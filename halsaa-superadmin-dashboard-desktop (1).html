@@ -882,7 +882,10 @@ function openApprove(reqId){
 }
 
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');_currentReqId=null;}
-document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.addEventListener('DOMContentLoaded',function(){
+  var mo=document.getElementById('modalOverlay');
+  if(mo) mo.addEventListener('click',function(e){if(e.target===this)closeModal();});
+});
 
 function genPwd(){
   var chars='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
