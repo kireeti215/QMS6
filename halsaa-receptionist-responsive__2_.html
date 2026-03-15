@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HALSAA — Receptionist Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --teal:#00C9A7;--teal2:#00E8C0;--teal-light:#E8FAF7;--teal-mid:rgba(0,201,167,.12);
+  --gold:#FFB347;--gold-light:#FFF4E6;
+  --bg:#F4FDFB;--card:#fff;--text:#0D2B26;--muted:#7A9E98;
+  --border:#E4F5F0;--red:#FF6B6B;--green:#00C853;
+  --shadow:0 4px 20px rgba(0,201,167,.1);--shadow2:0 2px 8px rgba(0,0,0,.06);
+  --sidebar:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+html,body{max-width:100vw;overflow-x:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{position:fixed;left:0;top:0;width:var(--sidebar);height:100vh;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;box-shadow:2px 0 12px rgba(0,201,167,.06);}
+.sb-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--gold));display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.sb-logo-text{font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,var(--teal),#00A88D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sb-role{margin:0 12px 6px;padding:8px 12px;background:var(--teal-light);border-radius:10px;font-size:.68rem;font-weight:700;color:var(--teal);text-align:center;letter-spacing:.06em;}
+.sb-nav{flex:1;padding:8px 12px;display:flex;flex-direction:column;gap:3px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;cursor:pointer;transition:all .2s;font-size:.8rem;font-weight:600;color:var(--muted);}
+.sb-item:hover,.sb-item.active{background:var(--teal-light);color:var(--teal);}
+.sb-item .sb-icon{font-size:1rem;width:22px;text-align:center;}
+.sb-bottom{padding:14px 12px;border-top:1px solid var(--border);}
+.sb-clinic{background:var(--teal-light);border-radius:11px;padding:10px 12px;}
+.sb-clinic-name{font-size:.75rem;font-weight:800;color:var(--text);}
+.sb-clinic-sub{font-size:.62rem;color:var(--muted);}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar);min-height:100vh;}
+.topbar{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.tb-left{display:flex;align-items:center;gap:12px;}
+.tb-logo-mobile{display:none;align-items:center;gap:6px;}
+.tb-logo-mobile span{font-size:.95rem;font-weight:900;background:linear-gradient(135deg,var(--teal),#00A88D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.tb-title{font-size:.95rem;font-weight:800;color:var(--text);}
+.tb-sub{font-size:.65rem;color:var(--muted);}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.tb-date{font-size:.72rem;color:var(--muted);background:var(--teal-light);padding:5px 12px;border-radius:100px;font-weight:600;}
+.tb-bell{position:relative;cursor:pointer;font-size:1.1rem;padding:6px;}
+.tb-bell .bdot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid #fff;}
+
+/* ── CONTENT ── */
+.content{padding:22px 24px 30px;}
+.screen{display:none;}
+.screen.active{display:block;animation:fadeUp .3s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── STATS ROW ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);box-shadow:var(--shadow2);cursor:pointer;transition:all .2s;}
+.stat-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);}
+.stat-label{font-size:.62rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:6px;}
+.stat-value{font-size:1.6rem;font-weight:900;color:var(--teal);}
+.stat-value.gold{color:var(--gold);}
+.stat-value.green{color:var(--green);}
+.stat-value.red{color:var(--red);}
+.stat-sub{font-size:.6rem;color:var(--muted);margin-top:2px;}
+
+/* ── NOW SERVING ── */
+.serving-card{background:linear-gradient(135deg,#00C9A7 0%,#00A88D 60%,#007A62 100%);border-radius:18px;padding:20px 22px;margin-bottom:18px;position:relative;overflow:hidden;}
+.serving-card::before{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.06);}
+.serving-label{font-size:.62rem;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.1em;margin-bottom:6px;}
+.serving-token{font-size:2.4rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1;}
+.serving-name{font-size:.95rem;font-weight:700;color:rgba(255,255,255,.9);margin-top:4px;}
+.serving-spec{font-size:.7rem;color:rgba(255,255,255,.65);margin-top:2px;}
+.serving-actions{display:flex;gap:8px;margin-top:16px;}
+.action-btn{padding:10px 18px;border-radius:11px;border:none;font-size:.78rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-next{background:#fff;color:var(--teal);}
+.btn-hold{background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.4);}
+.btn-skip{background:rgba(255,179,71,.25);color:#FFE0A0;border:1.5px solid rgba(255,179,71,.4);}
+.btn-next:hover{background:#E8FAF7;}
+
+/* ── QUEUE LIST ── */
+.queue-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.queue-title{font-size:.85rem;font-weight:800;color:var(--text);}
+.queue-count{font-size:.68rem;font-weight:700;color:var(--teal);background:var(--teal-light);padding:3px 10px;border-radius:100px;}
+.queue-list{display:flex;flex-direction:column;gap:8px;}
+.q-card{background:var(--card);border-radius:13px;padding:13px 15px;border:1.5px solid var(--border);display:flex;align-items:center;gap:12px;transition:all .2s;}
+.q-card.on-hold{border-color:#FFB347;background:#FFFDF5;}
+.q-token{font-size:.75rem;font-weight:900;color:var(--teal);background:var(--teal-light);padding:4px 10px;border-radius:8px;min-width:52px;text-align:center;}
+.q-info{flex:1;}
+.q-name{font-size:.82rem;font-weight:700;color:var(--text);}
+.q-sub{font-size:.65rem;color:var(--muted);margin-top:1px;}
+.q-badge{font-size:.58rem;font-weight:700;padding:3px 8px;border-radius:100px;}
+.badge-waiting{background:var(--teal-light);color:var(--teal);}
+.badge-hold{background:#FFF4E6;color:#CC7A00;}
+.q-hold-btn{padding:6px 12px;border-radius:9px;border:1.5px solid var(--gold);background:var(--gold-light);color:#CC7A00;font-size:.65rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;}
+.q-resume-btn{padding:6px 12px;border-radius:9px;border:1.5px solid var(--teal);background:var(--teal-light);color:var(--teal);font-size:.65rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;}
+
+/* ── WALK-IN FLOW ── */
+.walkin-card{background:var(--card);border-radius:16px;padding:20px;border:1px solid var(--border);box-shadow:var(--shadow2);}
+.step-indicator{display:flex;align-items:center;gap:6px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px;}
+.step{display:flex;align-items:center;gap:6px;}
+.step-dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:var(--muted);flex-shrink:0;}
+.step-dot.active{border-color:var(--teal);background:var(--teal);color:#fff;}
+.step-dot.done{border-color:var(--teal);background:var(--teal-light);color:var(--teal);}
+.step-label{font-size:.65rem;font-weight:600;color:var(--muted);white-space:nowrap;}
+.step-label.active{color:var(--teal);}
+.step-line{width:20px;height:2px;background:var(--border);flex-shrink:0;}
+.step-line.done{background:var(--teal);}
+
+.form-group{margin-bottom:14px;}
+.form-label{font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.06em;display:block;margin-bottom:6px;}
+.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:11px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;background:#fff;transition:border-color .2s;}
+.form-input:focus{border-color:var(--teal);}
+.form-select{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:11px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;background:#fff;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-primary{width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--teal),#00A88D);color:#fff;font-size:.88rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,201,167,.28);margin-top:8px;}
+.btn-secondary{width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.82rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;margin-top:6px;}
+.btn-skip-otp{background:none;border:none;color:var(--teal);font-size:.72rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;display:block;text-align:center;margin-top:10px;}
+
+/* ── DOCTOR CARDS ── */
+.doc-card{background:var(--bg);border-radius:12px;padding:13px 14px;border:1.5px solid var(--border);cursor:pointer;transition:all .2s;margin-bottom:8px;}
+.doc-card:hover,.doc-card.selected{border-color:var(--teal);background:var(--teal-light);}
+.doc-name{font-size:.85rem;font-weight:800;color:var(--text);}
+.doc-spec{font-size:.68rem;color:var(--muted);}
+.doc-fee{font-size:.9rem;font-weight:900;color:var(--teal);}
+
+/* ── PAYMENT SCREEN ── */
+.pay-sort{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.sort-btn{padding:6px 14px;border-radius:100px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.68rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;}
+.sort-btn.active{border-color:var(--teal);background:var(--teal-light);color:var(--teal);}
+.pay-card{background:var(--card);border-radius:13px;padding:13px 15px;border:1.5px solid var(--border);margin-bottom:8px;}
+.pay-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.pay-token{font-size:.72rem;font-weight:900;color:var(--teal);}
+.pay-name{font-size:.82rem;font-weight:700;color:var(--text);}
+.pay-badges{display:flex;gap:6px;flex-wrap:wrap;}
+.pbadge{font-size:.58rem;font-weight:700;padding:3px 8px;border-radius:100px;}
+.pbadge-green{background:#E6FFF0;color:#00C853;}
+.pbadge-orange{background:#FFF4E6;color:#CC7A00;}
+.pbadge-blue{background:#E8F0FF;color:#3D6FCC;}
+.pbadge-red{background:#FFF0F0;color:#CC3333;}
+
+/* ── SEARCH SCREEN ── */
+.search-input-wrap{position:relative;margin-bottom:16px;}
+.search-input-wrap input{width:100%;padding:13px 14px 13px 42px;border:1.5px solid var(--border);border-radius:13px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;background:#fff;}
+.search-input-wrap input:focus{border-color:var(--teal);}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1rem;color:var(--muted);}
+.search-result{background:var(--card);border-radius:13px;padding:15px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:all .2s;}
+.search-result:hover{border-color:var(--teal);box-shadow:var(--shadow);}
+.sr-name{font-size:.88rem;font-weight:800;color:var(--text);}
+.sr-sub{font-size:.68rem;color:var(--muted);}
+.sr-history{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.sr-visit{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:.7rem;}
+
+/* ── SUMMARY SCREEN ── */
+.summary-section{background:var(--card);border-radius:16px;padding:18px;border:1px solid var(--border);margin-bottom:14px;}
+.summary-title{font-size:.8rem;font-weight:800;color:var(--text);margin-bottom:12px;}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:.78rem;}
+.summary-row:last-child{border-bottom:none;}
+.summary-row.total{font-weight:800;font-size:.88rem;color:var(--teal);}
+.avg-badge{background:var(--teal-light);border-radius:12px;padding:14px;text-align:center;}
+.avg-value{font-size:1.8rem;font-weight:900;color:var(--teal);}
+.avg-label{font-size:.65rem;color:var(--muted);}
+.end-day-btn{width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#FF6B6B,#FF4444);color:#fff;font-size:.88rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(255,107,107,.28);}
+
+/* ── MOBILE NAV ── */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);z-index:100;grid-template-columns:repeat(5,1fr);padding:6px 0 10px;}
+.mn-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 2px;}
+.mn-icon{font-size:1.1rem;}
+.mn-label{font-size:.52rem;font-weight:700;color:var(--muted);}
+.mn-item.active .mn-label{color:var(--teal);}
+.mn-item.active .mn-icon{filter:drop-shadow(0 0 4px rgba(0,201,167,.6));}
+
+/* ── OVERLAYS / SHEETS ── */
+.overlay{position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.overlay.top-right{align-items:flex-start;justify-content:flex-end;}
+.sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:24px 22px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);max-height:90vh;overflow-y:auto;position:relative;}
+.sheet-handle{display:flex;justify-content:center;margin-bottom:16px;}
+.sheet-handle-bar{width:40px;height:4px;border-radius:2px;background:#E0E0E0;}
+.sheet-close{position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted);}
+.sheet-title{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:4px;}
+.sheet-sub{font-size:.72rem;color:var(--muted);margin-bottom:18px;}
+
+/* Notif panel */
+.notif-panel{background:#fff;width:320px;max-width:92vw;height:100vh;transform:translateX(100%);transition:transform .32s cubic-bezier(.32,1.15,.7,1);overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,.12);margin-left:auto;}
+
+/* Hold reason chips */
+.reason-chip{display:flex;align-items:center;gap:10px;padding:13px 15px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:all .2s;margin-bottom:8px;}
+.reason-chip:hover,.reason-chip.selected{border-color:var(--teal);background:var(--teal-light);}
+.reason-chip-icon{font-size:1.2rem;}
+.reason-chip-text{font-size:.82rem;font-weight:700;color:var(--text);}
+
+/* Patient confirm banner */
+.pc-banner{background:var(--teal-light);border-radius:13px;padding:14px;margin-bottom:14px;border:1.5px solid var(--border);}
+
+/* Payment method */
+.pay-method-row{display:flex;gap:8px;margin-bottom:12px;}
+.pay-method-btn{flex:1;padding:11px;border-radius:11px;border:1.5px solid var(--border);background:#fff;font-size:.78rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;text-align:center;transition:all .2s;}
+.pay-method-btn.selected{border-color:var(--teal);background:var(--teal-light);color:var(--teal);}
+
+/* Existing patient card */
+.existing-card{background:var(--bg);border-radius:12px;padding:13px;border:1.5px solid var(--border);margin-bottom:8px;cursor:pointer;transition:all .2s;}
+.existing-card:hover{border-color:var(--teal);}
+
+/* Success token */
+.token-success{text-align:center;padding:20px 0;}
+.token-big{font-size:3rem;font-weight:900;color:var(--teal);letter-spacing:-2px;}
+.token-circle{width:90px;height:90px;border-radius:50%;background:var(--teal-light);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:2.2rem;}
+
+/* Stats popup */
+.stats-popup{position:fixed;inset:0;background:rgba(10,22,40,.6);z-index:700;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;padding:20px;}
+.stats-popup-card{background:#fff;border-radius:18px;width:100%;max-width:400px;padding:22px;max-height:80vh;overflow-y:auto;}
+.sp-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5;font-size:.78rem;}
+.sp-token{font-size:.7rem;font-weight:800;color:var(--teal);}
+
+@media(max-width:900px){
+  html,body{overflow-x:hidden !important;}
+  .sidebar{display:none !important;}
+  .main{margin-left:0 !important;width:100% !important;}
+  .content{padding:14px 14px 90px !important;box-sizing:border-box;}
+  .topbar{padding:0 14px !important;height:52px !important;}
+  .stats-row{grid-template-columns:repeat(2,1fr) !important;}
+  .mobile-nav{display:grid !important;}
+  .tb-logo-mobile{display:flex !important;}
+  .screen{width:100%;box-sizing:border-box;overflow-x:hidden;}
+  .form-row{grid-template-columns:1fr !important;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">❤️</div>
+    <span class="sb-logo-text">HALSAA</span>
+  </div>
+  <div class="sb-role">RECEPTIONIST</div>
+  <nav class="sb-nav">
+    <div class="sb-item active" onclick="showScreen('home')"><span class="sb-icon">🏠</span>Home</div>
+    <div class="sb-item" onclick="showScreen('queue')"><span class="sb-icon">🏥</span>Queue</div>
+    <div class="sb-item" onclick="showScreen('walkin')"><span class="sb-icon">🚶</span>Walk-in</div>
+    <div class="sb-item" onclick="showScreen('search')"><span class="sb-icon">🔍</span>Search Patient</div>
+    <div class="sb-item" onclick="showScreen('payments')"><span class="sb-icon">💳</span>Payments</div>
+    <div class="sb-item" onclick="showScreen('summary')"><span class="sb-icon">📊</span>End of Day</div>
+  </nav>
+  <div class="sb-bottom">
+    <div class="sb-clinic">
+      <div class="sb-clinic-name">🏥 Sri Sai Hospital</div>
+      <div class="sb-clinic-sub" id="recClinicSub">MG Road, Hanamkonda · Dr. Ramesh Kumar</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;cursor:pointer;margin-top:6px;transition:background .2s;" onclick="hlLogout()" onmouseover="this.style.background='rgba(255,107,107,.12)'" onmouseout="this.style.background='transparent'">
+      <span>🚪</span><span style="font-size:.73rem;font-weight:600;color:rgba(0,0,0,.4);">Logout</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-logo-mobile">
+        <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#00C9A7,#FFB347);display:flex;align-items:center;justify-content:center;font-size:.85rem;">❤️</div>
+        <span style="font-size:.9rem;font-weight:900;background:linear-gradient(135deg,#00C9A7,#00A88D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">HALSAA</span>
+      </div>
+      <div>
+        <div class="tb-title" id="topbarTitle">Queue Management</div>
+        <div class="tb-sub">Sri Sai Hospital</div>
+      </div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-date" id="todayDate"></div>
+      <div class="tb-bell" onclick="openNotifPanel()">🔔<div class="bdot"></div></div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ══ HOME / PROFILE SCREEN ══ -->
+    <div class="screen active" id="screen-home">
+      <!-- Receptionist Profile Card -->
+      <div style="background:linear-gradient(135deg,#00C9A7 0%,#00A88D 55%,#007A62 100%);border-radius:20px;padding:22px;margin-bottom:18px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.07);"></div>
+        <div style="position:absolute;bottom:-20px;left:40px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.05);"></div>
+        <!-- HALSAA brand -->
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+          <div style="width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.8rem;">❤️</div>
+          <span style="font-size:.78rem;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:.5px;">HALSAA</span>
+          <span style="font-size:.6rem;color:rgba(255,255,255,.55);margin-left:2px;">by Medhaara Innovations</span>
+        </div>
+        <!-- Receptionist info -->
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">👩‍⚕️</div>
+          <div>
+            <div style="font-size:.6rem;font-weight:700;color:rgba(255,255,255,.65);letter-spacing:.08em;">RECEPTIONIST</div>
+            <div style="font-size:1.1rem;font-weight:900;color:#fff;">Kavitha Reddy</div>
+            <div style="font-size:.68rem;color:rgba(255,255,255,.75);margin-top:2px;">Employee ID: EMP-004</div>
+          </div>
+        </div>
+        <!-- Hospital + Doctor assigned -->
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15);display:flex;gap:10px;">
+          <div style="flex:1;background:rgba(255,255,255,.12);border-radius:11px;padding:10px 12px;">
+            <div style="font-size:.58rem;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:3px;">🏥 HOSPITAL</div>
+            <div style="font-size:.78rem;font-weight:800;color:#fff;">Sri Sai Hospital</div>
+            <div style="font-size:.6rem;color:rgba(255,255,255,.65);">MG Road, Hanamkonda</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,.12);border-radius:11px;padding:10px 12px;">
+            <div style="font-size:.58rem;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:3px;">👨‍⚕️ ASSIGNED TO</div>
+            <div style="font-size:.78rem;font-weight:800;color:#fff;">Dr. Ramesh Kumar</div>
+            <div style="font-size:.6rem;color:rgba(255,255,255,.65);">General Medicine</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today quick stats -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">
+        <div style="background:#fff;border-radius:14px;padding:14px;border:1px solid var(--border);text-align:center;cursor:pointer;" onclick="showScreen('queue')">
+          <div style="font-size:1.5rem;font-weight:900;color:var(--teal);">24</div>
+          <div style="font-size:.65rem;font-weight:700;color:var(--muted);">Tokens Today</div>
+          <div style="font-size:.6rem;color:var(--teal);margin-top:3px;">Tap → Queue →</div>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:14px;border:1px solid var(--border);text-align:center;cursor:pointer;" onclick="showScreen('walkin')">
+          <div style="font-size:1.5rem;font-weight:900;color:var(--gold);">5</div>
+          <div style="font-size:.65rem;font-weight:700;color:var(--muted);">Walk-ins Today</div>
+          <div style="font-size:.6rem;color:var(--gold);margin-top:3px;">+ Add Walk-in →</div>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:14px;border:1px solid var(--border);text-align:center;cursor:pointer;" onclick="showScreen('payments')">
+          <div style="font-size:1.5rem;font-weight:900;color:var(--red);">3</div>
+          <div style="font-size:.65rem;font-weight:700;color:var(--muted);">Consult Pending</div>
+          <div style="font-size:.6rem;color:var(--red);margin-top:3px;">View Payments →</div>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:14px;border:1px solid var(--border);text-align:center;cursor:pointer;" onclick="showScreen('summary')">
+          <div style="font-size:1.5rem;font-weight:900;color:var(--green);">₹2,400</div>
+          <div style="font-size:.65rem;font-weight:700;color:var(--muted);">Today's Revenue</div>
+          <div style="font-size:.6rem;color:var(--green);margin-top:3px;">View Summary →</div>
+        </div>
+      </div>
+
+      <!-- Shift info -->
+      <div style="background:#fff;border-radius:14px;padding:14px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:.68rem;font-weight:700;color:var(--muted);">TODAY'S SHIFT</div>
+          <div style="font-size:.85rem;font-weight:800;color:var(--text);">8:00 AM — 2:00 PM</div>
+          <div style="font-size:.62rem;color:var(--teal);margin-top:2px;">🟢 On Duty</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:.62rem;color:var(--muted);" id="homeClockSub">Current time</div>
+          <div style="font-size:1rem;font-weight:900;color:var(--teal);" id="homeClock">--:--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ QUEUE SCREEN ══ -->
+    <div class="screen" id="screen-queue">
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card" onclick="openStatsList('issued')">
+          <div class="stat-label">ISSUED</div>
+          <div class="stat-value" id="statIssued">24</div>
+          <div class="stat-sub">Today's tokens ↓</div>
+        </div>
+        <div class="stat-card" onclick="openStatsList('done')">
+          <div class="stat-label">DONE</div>
+          <div class="stat-value green" id="statDone">17</div>
+          <div class="stat-sub">Completed ↓</div>
+        </div>
+        <div class="stat-card" onclick="openStatsList('waiting')">
+          <div class="stat-label">WAITING</div>
+          <div class="stat-value gold" id="statWaiting">6</div>
+          <div class="stat-sub">In queue ↓</div>
+        </div>
+        <div class="stat-card" onclick="openStatsList('noshow')">
+          <div class="stat-label">NO SHOW</div>
+          <div class="stat-value red" id="statNoShow">1</div>
+          <div class="stat-sub">Tap to view ↓</div>
+        </div>
+      </div>
+
+      <!-- Now Serving -->
+      <div class="serving-card" id="servingCard">
+        <div class="serving-label">🟢 NOW SERVING</div>
+        <div class="serving-token" id="servingToken">T-018</div>
+        <div class="serving-name" id="servingName">Lakshmi Devi</div>
+        <div class="serving-spec" id="servingSpec">Dr. Ramesh Kumar · General Medicine</div>
+        <div class="serving-actions">
+          <button class="action-btn btn-next" onclick="nextToken()">✅ Next</button>
+          <button class="action-btn btn-hold" onclick="openDoctorHold()">⏸ Doctor Hold</button>
+          <button class="action-btn btn-skip" onclick="skipToken()">⏭ Skip</button>
+        </div>
+      </div>
+
+
+
+      <!-- Queue -->
+      <div class="queue-header">
+        <div class="queue-title">⏳ Queue</div>
+        <div class="queue-count" id="queueCount">6 waiting</div>
+      </div>
+      <div class="queue-list" id="queueList"></div>
+    </div>
+
+    <!-- ══ WALK-IN SCREEN ══ -->
+    <div class="screen" id="screen-walkin">
+      <div class="walkin-card">
+        <!-- Step indicator -->
+        <div class="step-indicator" id="stepIndicator"></div>
+        <!-- Step content -->
+        <div id="walkinContent"></div>
+      </div>
+    </div>
+
+    <!-- ══ SEARCH SCREEN ══ -->
+    <div class="screen" id="screen-search">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Name, mobile, or location..." oninput="doSearch(this.value)"/>
+      </div>
+      <div id="searchResults"></div>
+    </div>
+
+    <!-- ══ PAYMENTS SCREEN ══ -->
+    <div class="screen" id="screen-payments">
+      <div class="pay-sort">
+        <button class="sort-btn" onclick="filterPayments('all',this)">All</button>
+        <button class="sort-btn active" onclick="filterPayments('consult-pending',this)">⚠️ Consult Pending</button>
+        <button class="sort-btn" onclick="filterPayments('walkin',this)">🚶 Walk-in</button>
+      </div>
+      <div id="paymentsList"></div>
+    </div>
+
+    <!-- ══ SUMMARY SCREEN ══ -->
+    <div class="screen" id="screen-summary">
+      <!-- Avg wait + tokens -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div class="avg-badge">
+          <div class="avg-value">~18m</div>
+          <div class="avg-label">Avg Wait Time</div>
+        </div>
+        <div class="avg-badge" style="background:var(--gold-light);">
+          <div class="avg-value" style="color:var(--gold);">24</div>
+          <div class="avg-label">Tokens Issued Today</div>
+        </div>
+      </div>
+
+      <!-- Main collections card -->
+      <div class="summary-section">
+        <div class="summary-title">💰 Today's Collections</div>
+
+        <!-- Row 1: Totals -->
+        <div class="summary-row">
+          <span style="font-weight:700;">Total Tokens Issued</span>
+          <span style="font-weight:800;color:var(--text);">24</span>
+        </div>
+        <div class="summary-row">
+          <span style="font-weight:700;">Consultation Completed</span>
+          <span style="font-weight:800;color:var(--green);">19</span>
+        </div>
+        <div class="summary-row" style="padding:10px 0;">
+          <span style="font-weight:700;">Total Consultation Amount</span>
+          <span style="font-weight:900;font-size:.95rem;color:var(--text);">₹5,700</span>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:4px 0 10px;"></div>
+
+        <!-- UPI -->
+        <div style="background:var(--teal-light);border-radius:11px;padding:11px 13px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:.62rem;font-weight:700;color:var(--teal);">💳 UPI</div>
+              <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">16 patients</div>
+            </div>
+            <div style="font-size:.95rem;font-weight:900;color:var(--teal);">₹4,800</div>
+          </div>
+        </div>
+
+        <!-- Cash -->
+        <div style="background:var(--gold-light);border-radius:11px;padding:11px 13px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:.62rem;font-weight:700;color:#CC7A00;">💵 Cash</div>
+              <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">3 patients</div>
+            </div>
+            <div style="font-size:.95rem;font-weight:900;color:#CC7A00;">₹900</div>
+          </div>
+        </div>
+
+        <!-- Total collected -->
+        <div style="display:flex;justify-content:space-between;padding:12px 14px;background:linear-gradient(135deg,#0D2B26,#1A4038);border-radius:12px;margin-bottom:14px;">
+          <span style="font-size:.85rem;font-weight:800;color:rgba(255,255,255,.8);">Total Collected</span>
+          <span style="font-size:1.1rem;font-weight:900;color:#fff;">₹5,700</span>
+        </div>
+
+        <!-- Platform fee cash collected (separate, smaller) -->
+        <div style="background:#F0F4FF;border-radius:11px;padding:11px 13px;border:1px solid #C8D4FF;">
+          <div style="font-size:.6rem;font-weight:700;color:#5B6ECC;margin-bottom:6px;">PLATFORM FEE — COLLECTED AS CASH (on behalf of HALSAA)</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:.68rem;color:var(--muted);">3 patients × ₹10</div>
+            <div style="font-size:.9rem;font-weight:900;color:#5B6ECC;">₹30</div>
+          </div>
+          <div style="font-size:.6rem;color:var(--muted);margin-top:4px;">⚠️ This amount will be adjusted in monthly HALSAA invoice</div>
+        </div>
+      </div>
+
+      <!-- Token status -->
+      <div class="summary-section">
+        <div class="summary-title">📋 Token Status</div>
+        <div class="summary-row"><span>✅ Completed</span><span style="font-weight:700;color:var(--green);">17</span></div>
+        <div class="summary-row"><span>⏳ Still in Queue</span><span style="font-weight:700;color:var(--gold);">6</span></div>
+        <div class="summary-row"><span>⚠️ Consult Fee Pending</span><span style="font-weight:700;color:var(--red);">3</span></div>
+        <div class="summary-row"><span>🚶 Walk-in</span><span style="font-weight:700;">5</span></div>
+        <div class="summary-row"><span>📱 Virtual Queue (Online)</span><span style="font-weight:700;color:var(--teal);">19</span></div>
+      </div>
+
+      <button class="end-day-btn" onclick="endOfDay()">🔴 End of Day — Close Queue</button>
+    </div>    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ═══════════════════ MOBILE NAV ═══════════════════ -->
+<div class="mobile-nav" style="grid-template-columns:repeat(6,1fr);">
+  <div class="mn-item active" onclick="showScreen('home');setMN(this)">
+    <span class="mn-icon">🏠</span><span class="mn-label">Home</span>
+  </div>
+  <div class="mn-item" onclick="showScreen('queue');setMN(this)">
+    <span class="mn-icon">🏥</span><span class="mn-label">Queue</span>
+  </div>
+  <div class="mn-item" onclick="showScreen('walkin');setMN(this)">
+    <span class="mn-icon">🚶</span><span class="mn-label">Walk-in</span>
+  </div>
+  <div class="mn-item" onclick="showScreen('search');setMN(this)">
+    <span class="mn-icon">🔍</span><span class="mn-label">Search</span>
+  </div>
+  <div class="mn-item" onclick="showScreen('payments');setMN(this)">
+    <span class="mn-icon">💳</span><span class="mn-label">Payments</span>
+  </div>
+  <div class="mn-item" onclick="showScreen('summary');setMN(this)">
+    <span class="mn-icon">📊</span><span class="mn-label">Summary</span>
+  </div>
+</div>
+
+<!-- ═══════ SHEETS / OVERLAYS ═══════ -->
+
+<!-- Doctor Hold Sheet -->
+<div class="overlay" id="holdOverlay">
+  <div class="sheet" id="holdSheet">
+    <div class="sheet-handle"><div class="sheet-handle-bar"></div></div>
+    <button class="sheet-close" onclick="closeSheet('holdOverlay','holdSheet')">✕</button>
+    <div class="sheet-title">⏸ Doctor Hold</div>
+    <div class="sheet-sub">Select reason and resume time</div>
+    <div id="holdReasons">
+      <div class="reason-chip" onclick="selectHoldReason(this,'Lunch Break','🍽️')">
+        <span class="reason-chip-icon">🍽️</span>
+        <span class="reason-chip-text">Lunch Break</span>
+      </div>
+      <div class="reason-chip" onclick="selectHoldReason(this,'Emergency','🚨')">
+        <span class="reason-chip-icon">🚨</span>
+        <span class="reason-chip-text">Emergency</span>
+      </div>
+      <div class="reason-chip" onclick="selectHoldReason(this,'Hospital Rounds','🔄')">
+        <span class="reason-chip-icon">🔄</span>
+        <span class="reason-chip-text">Hospital Rounds</span>
+      </div>
+    </div>
+    <div style="margin-top:14px;">
+      <label class="form-label">RESUME TIME</label>
+      <input type="time" id="holdResumeTime" class="form-input" value="13:00"/>
+      <div id="holdResumeDisplay" style="font-size:.68rem;color:var(--teal);margin-top:4px;"></div>
+    </div>
+    <button onclick="confirmDoctorHold()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#FF6B6B,#FF4444);color:#fff;font-size:.88rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;margin-top:14px;">Confirm Hold ⏸</button>
+  </div>
+</div>
+
+<!-- Patient Hold Sheet -->
+<div class="overlay" id="patHoldOverlay">
+  <div class="sheet" id="patHoldSheet">
+    <div class="sheet-handle"><div class="sheet-handle-bar"></div></div>
+    <button class="sheet-close" onclick="closeSheet('patHoldOverlay','patHoldSheet')">✕</button>
+    <div class="sheet-title">⏸ Patient On Hold</div>
+    <div class="sheet-sub" id="patHoldSubtitle">Token held — patient will be resumed when they arrive</div>
+    <div style="background:var(--gold-light);border-radius:12px;padding:14px;margin-bottom:14px;">
+      <div id="patHoldName" style="font-size:.88rem;font-weight:800;color:var(--text);"></div>
+      <div id="patHoldToken" style="font-size:.72rem;color:var(--muted);"></div>
+    </div>
+    <div style="font-size:.75rem;color:var(--muted);line-height:1.6;">Patient will remain frozen in queue. Other tokens continue. When patient arrives, tap <b>Resume</b> on their card.</div>
+    <button onclick="confirmPatientHold()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--gold),#FFC86B);color:#fff;font-size:.88rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;margin-top:14px;">⏸ Hold Patient</button>
+  </div>
+</div>
+
+<!-- Doctor Hold Active Banner -->
+<div id="holdBanner" style="display:none;position:fixed;top:60px;left:0;right:0;background:linear-gradient(135deg,#FF6B6B,#FF4444);color:#fff;z-index:200;padding:10px 20px;display:none;align-items:center;justify-content:space-between;">
+  <div>
+    <div style="font-size:.75rem;font-weight:800;" id="holdBannerTitle">⏸ Queue on Hold</div>
+    <div style="font-size:.65rem;opacity:.85;" id="holdBannerSub">Resuming at 1:00 PM</div>
+  </div>
+  <button onclick="resumeDoctorHold()" style="padding:6px 14px;border-radius:9px;border:none;background:rgba(255,255,255,.25);color:#fff;font-size:.72rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">▶️ Resume</button>
+</div>
+
+<!-- Stats List Popup -->
+<div class="stats-popup" id="statsPopup" onclick="if(event.target===this)closeStatsPopup()">
+  <div class="stats-popup-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-size:.9rem;font-weight:800;" id="statsPopupTitle">All Tokens</div>
+      <button onclick="closeStatsPopup()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+    <div id="statsPopupList"></div>
+  </div>
+</div>
+
+<!-- Search Patient Detail Sheet -->
+<div class="overlay" id="searchDetailOverlay">
+  <div class="sheet" id="searchDetailSheet">
+    <div class="sheet-handle"><div class="sheet-handle-bar"></div></div>
+    <button class="sheet-close" onclick="closeSheet('searchDetailOverlay','searchDetailSheet')">✕</button>
+    <div id="searchDetailContent"></div>
+  </div>
+</div>
+
+<!-- Walk-in Token Success Sheet -->
+<div class="overlay" id="walkinSuccessOverlay">
+  <div class="sheet" id="walkinSuccessSheet">
+    <div class="sheet-handle"><div class="sheet-handle-bar"></div></div>
+    <div class="token-success">
+      <div class="token-circle">🎫</div>
+      <div style="font-size:.68rem;font-weight:700;color:var(--muted);margin-bottom:4px;">TOKEN ISSUED</div>
+      <div class="token-big" id="successTokenNum">T-025</div>
+      <div style="font-size:.85rem;font-weight:700;color:var(--text);margin:6px 0 2px;" id="successPatName">Ramesh Kumar</div>
+      <div style="font-size:.68rem;color:var(--muted);" id="successDocName">Dr. Ramesh Kumar · General Medicine</div>
+      <div style="margin:14px 0;padding:12px;background:var(--teal-light);border-radius:12px;">
+        <div style="font-size:.72rem;color:var(--muted);">Queue Position</div>
+        <div style="font-size:1.2rem;font-weight:900;color:var(--teal);" id="successQueuePos">7th in queue</div>
+        <div style="font-size:.65rem;color:var(--muted);" id="successWait">Est. wait ~35 min</div>
+      </div>
+      <div id="successPayBadge" style="font-size:.72rem;font-weight:700;padding:6px 16px;border-radius:100px;background:var(--teal-light);color:var(--teal);display:inline-block;">✅ Payment Done</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button onclick="printTokenSlip()" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid var(--teal);background:#fff;color:var(--teal);font-size:.82rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">🖨️ Print Slip</button>
+      <button onclick="closeSheet('walkinSuccessOverlay','walkinSuccessSheet');showScreen('queue')" style="flex:2;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--teal),#00A88D);color:#fff;font-size:.82rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">Back to Queue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Panel -->
+<div class="overlay top-right" id="notifOverlay" onclick="if(event.target===this)closeNotifPanel()">
+  <div class="notif-panel" id="notifPanel">
+    <div style="position:sticky;top:0;background:#fff;z-index:2;padding:18px 16px 12px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:.9rem;font-weight:800;">Notifications</div>
+      <button onclick="closeNotifPanel()" style="background:none;border:none;font-size:1rem;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+    <div style="padding:12px;">
+      <div style="background:var(--teal-light);border-radius:12px;padding:12px;margin-bottom:8px;border:1.5px solid var(--teal);">
+        <div style="font-size:.75rem;font-weight:800;color:var(--teal);">🔔 New Walk-in arrived</div>
+        <div style="font-size:.65rem;color:var(--muted);margin-top:3px;">Patient at counter · 2 min ago</div>
+      </div>
+      <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid #f0f0f0;">
+        <div style="font-size:.75rem;font-weight:700;color:var(--text);">✅ T-017 completed</div>
+        <div style="font-size:.65rem;color:var(--muted);margin-top:3px;">Suresh Yadav · 10:45 AM</div>
+      </div>
+      <div style="background:#fff;border-radius:12px;padding:12px;border:1px solid #f0f0f0;">
+        <div style="font-size:.75rem;font-weight:700;color:var(--text);">💳 Online booking — T-025</div>
+        <div style="font-size:.65rem;color:var(--muted);margin-top:3px;">Priya Sharma booked · ₹310 paid · 9 min ago</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════
+
+var today = new Date();
+document.getElementById('todayDate').textContent =
+  today.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+var doctors = [
+  {id:'d1', name:'Dr. Ramesh Kumar', spec:'General Medicine', fee:300, validDays:15},
+  {id:'d2', name:'Dr. Priya Sharma',  spec:'Gynaecology',     fee:400, validDays:10},
+  {id:'d3', name:'Dr. Arun Reddy',    spec:'Orthopaedics',    fee:350, validDays:7},
+];
+
+// Follow-up validity check
+function checkFollowUp(mobile, doctorId) {
+  // last visit dates per patient per doctor (demo data)
+  var lastVisits = {
+    '9988776655_d1': 5,   // Suresh — visited Dr Ramesh 5 days ago (valid 15 days → FREE)
+    '8877665544_d2': 3,   // Lakshmi — visited Dr Priya 3 days ago (valid 10 days → FREE)
+    '7766554433_d3': 10,  // Arjun — visited Dr Arun 10 days ago (valid 7 days → EXPIRED)
+  };
+  var key = mobile + '_' + doctorId;
+  if(lastVisits[key] !== undefined) {
+    var doc = doctors.find(function(d){ return d.id === doctorId; });
+    if(doc && lastVisits[key] <= doc.validDays) {
+      return { isFollowUp: true, daysAgo: lastVisits[key], validDays: doc.validDays };
+    }
+  }
+  return { isFollowUp: false };
+}
+
+var _now = Date.now();
+var queueData = [
+  {token:'T-019', name:'Suresh Yadav',  phone:'9988776655', age:'42', location:'Kazipet',    spec:'General Medicine', complaint:'Fever since 2 days', status:'waiting', skipCount:0, held:false, since:_now - 38*60000},
+  {token:'T-020', name:'Lakshmi Devi',  phone:'8877665544', age:'29', location:'Hanamkonda', spec:'Gynaecology',      complaint:'Follow-up checkup',  status:'waiting', skipCount:0, held:false, since:_now - 29*60000},
+  {token:'T-021', name:'Arjun Kumar',   phone:'7766554433', age:'35', location:'Warangal',   spec:'General Medicine', complaint:'Cold & Cough',        status:'waiting', skipCount:0, held:false, since:_now - 22*60000},
+  {token:'T-022', name:'Priya Reddy',   phone:'6655443322', age:'26', location:'Kazipet',    spec:'Orthopaedics',     complaint:'Knee pain',           status:'waiting', skipCount:0, held:false, since:_now - 15*60000},
+  {token:'T-023', name:'Venkat Rao',    phone:'9876512345', age:'55', location:'Hanamkonda', spec:'General Medicine', complaint:'Diabetes follow-up',  status:'waiting', skipCount:0, held:false, since:_now - 9*60000},
+  {token:'T-024', name:'Sita Devi',     phone:'8765423456', age:'32', location:'Warangal',   spec:'Gynaecology',      complaint:'Routine checkup',     status:'waiting', skipCount:0, held:false, since:_now - 4*60000},
+];
+
+var servingData = {token:'T-018', name:'Lakshmi Devi', spec:'Dr. Ramesh Kumar · General Medicine'};
+var currentPatHoldToken = null;
+var selectedHoldReason = '';
+var doctorHoldActive = false;
+var walkInStep = 1;
+var walkInData = {};
+var selectedDoctor = null;
+var selectedPayMethod = 'upi';
+
+var patientsDB = [
+  {name:'Ramesh Kumar',  mobile:'9876543210', location:'Warangal', age:'35', gender:'Male',   blood:'B+', visits:[
+    {token:'T-026',doctor:'Dr. Ramesh Kumar',date:'13 Mar 2026',amount:'₹310',status:'Completed',time:'9:15 AM'},
+    {token:'T-018',doctor:'Dr. Priya Sharma',date:'5 Dec 2025', amount:'₹410',status:'Completed',time:'11:20 AM'},
+  ]},
+  {name:'Suresh Yadav',  mobile:'9988776655', location:'Kazipet',  age:'42', gender:'Male',   blood:'O+', visits:[
+    {token:'T-019',doctor:'Dr. Ramesh Kumar',date:'13 Mar 2026',amount:'₹310',status:'Waiting',time:'9:30 AM'},
+  ]},
+  {name:'Lakshmi Devi',  mobile:'8877665544', location:'Hanamkonda',age:'29',gender:'Female', blood:'A+', visits:[
+    {token:'T-020',doctor:'Dr. Priya Sharma',date:'13 Mar 2026',amount:'₹410',status:'Waiting',time:'9:45 AM'},
+  ]},
+];
+
+var paymentsData = [
+  {token:'T-015',name:'Ravi Kumar',    type:'online',   platformDone:true,  consultDone:true,  amount:'₹310', consultFee:300},
+  {token:'T-016',name:'Anita Sharma',  type:'virtual',  platformDone:true,  consultDone:false, amount:'₹10',  consultFee:300},
+  {token:'T-017',name:'Suresh Yadav',  type:'walkin',   platformDone:true,  consultDone:true,  amount:'₹310', consultFee:300},
+  {token:'T-018',name:'Lakshmi Devi',  type:'online',   platformDone:true,  consultDone:true,  amount:'₹410', consultFee:400},
+  {token:'T-019',name:'Arjun Kumar',   type:'walkin',   platformDone:true,  consultDone:false, amount:'₹10',  consultFee:300},
+  {token:'T-020',name:'Priya Reddy',   type:'online',   platformDone:true,  consultDone:true,  amount:'₹360', consultFee:350},
+  {token:'T-021',name:'Kavitha Rao',   type:'virtual',  platformDone:true,  consultDone:false, amount:'₹10',  consultFee:300},
+  {token:'T-022',name:'Ramu Naidu',    type:'virtual',  platformDone:true,  consultDone:false, amount:'₹10',  consultFee:400},
+];
+
+var allTokensToday = [
+  {token:'T-001',name:'Krishna Rao',   status:'done'},
+  {token:'T-002',name:'Meena Devi',    status:'done'},
+  {token:'T-003',name:'Raju Yadav',    status:'done'},
+  {token:'T-004',name:'Saritha',       status:'done'},
+  {token:'T-005',name:'Venkat',        status:'done'},
+  {token:'T-006',name:'Lakshmi',       status:'done'},
+  {token:'T-007',name:'Suresh',        status:'done'},
+  {token:'T-008',name:'Priya',         status:'done'},
+  {token:'T-009',name:'Arjun',         status:'done'},
+  {token:'T-010',name:'Anita',         status:'done'},
+  {token:'T-011',name:'Ravi',          status:'done'},
+  {token:'T-012',name:'Kavitha',       status:'done'},
+  {token:'T-013',name:'Srinivas',      status:'done'},
+  {token:'T-014',name:'Padma',         status:'done'},
+  {token:'T-015',name:'Ravi Kumar',    status:'done'},
+  {token:'T-016',name:'Anita Sharma',  status:'done'},
+  {token:'T-017',name:'Suresh Yadav',  status:'done'},
+  {token:'T-018',name:'Lakshmi Devi',  status:'serving'},
+  {token:'T-019',name:'Suresh Yadav',  status:'waiting'},
+  {token:'T-020',name:'Lakshmi Devi',  status:'waiting'},
+  {token:'T-021',name:'Arjun Kumar',   status:'waiting'},
+  {token:'T-022',name:'Priya Reddy',   status:'waiting'},
+  {token:'T-023',name:'Venkat Rao',    status:'waiting'},
+  {token:'T-024',name:'Sita Devi',     status:'noshow'},
+];
+
+// ════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════
+
+var screenTitles = {
+  home:'Dashboard', queue:'Queue Management', walkin:'Walk-in Patient',
+  search:'Search Patient', payments:'Payments', summary:'End of Day'
+};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('topbarTitle').textContent = screenTitles[id] || id;
+  document.querySelectorAll('.sb-item').forEach(function(i,idx){
+    i.classList.toggle('active', ['home','queue','walkin','search','payments','summary'][idx]===id);
+  });
+  if(id==='walkin') initWalkIn();
+  if(id==='payments') renderPayments('consult-pending');
+  if(id==='search') { document.getElementById('searchInput').value=''; document.getElementById('searchResults').innerHTML=''; }
+}
+
+function setMN(el) {
+  document.querySelectorAll('.mn-item').forEach(function(i){ i.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+// ════════════════════════════════════════
+//  QUEUE MANAGEMENT
+// ════════════════════════════════════════
+
+function waitMins(since) {
+  if(!since) return '';
+  var mins = Math.floor((Date.now() - since) / 60000);
+  if(mins < 1) return 'Just arrived';
+  return mins + ' min waiting';
+}
+function waitColor(since) {
+  if(!since) return 'var(--teal)';
+  var mins = Math.floor((Date.now() - since) / 60000);
+  if(mins > 30) return '#FF6B6B';
+  if(mins > 15) return '#FFB347';
+  return 'var(--teal)';
+}
+function dialPhone(phone) {
+  var a = document.createElement('a');
+  a.href = 'tel:+91' + phone;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ document.body.removeChild(a); }, 300);
+}
+window.dialPhone = dialPhone;
+
+function renderQueue() {
+  var list = document.getElementById('queueList');
+  var waiting = queueData.filter(function(q){ return !q.held; });
+  var held = queueData.filter(function(q){ return q.held; });
+  var all = waiting.concat(held);
+  document.getElementById('queueCount').textContent = queueData.length + ' waiting';
+
+  list.innerHTML = all.map(function(q) {
+    var wMin = waitMins(q.since);
+    var wCol = waitColor(q.since);
+    var callBtn = q.phone
+      ? '<button onclick="dialPhone(\''+q.phone+'\');" style="padding:5px 9px;border-radius:8px;border:none;background:var(--teal-light);color:var(--teal);font-size:.7rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;flex-shrink:0;">📞</button>'
+      : '';
+    var rightBtns = q.held
+      ? '<span class="q-badge badge-hold">Hold</span><button class="q-resume-btn" onclick="resumePatient(\''+q.token+'\')">▶️</button>'
+      : '<span class="q-badge badge-waiting" style="white-space:nowrap;">Waiting</span>' +
+        (q.skipCount >= 2 ? '<button class="q-hold-btn" onclick="openPatientHold(\''+q.token+'\',\''+q.name+'\')">⏸</button>' : '');
+    return '<div class="q-card'+(q.held?' on-hold':'')+'">' +
+      '<div class="q-token" style="min-width:52px;text-align:center;">'+q.token+'<div style="font-size:.55rem;font-weight:700;color:'+wCol+';margin-top:3px;white-space:nowrap;">'+wMin+'</div></div>' +
+      '<div class="q-info" onclick="openQueueDetail(\''+q.token+'\');" style="cursor:pointer;flex:1;">' +
+        '<div class="q-name" style="text-decoration:underline dotted;text-underline-offset:3px;">'+q.name+' ›</div>' +
+        '<div class="q-sub">'+q.spec+'</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:6px;">'+callBtn+rightBtns+'</div>' +
+    '</div>';
+  }).join('');
+}
+setInterval(renderQueue, 60000);
+
+function nextToken() {
+  if(queueData.length === 0) { alert('No more patients in queue!'); return; }
+  var next = queueData.shift();
+  servingData = {token: next.token, name: next.name, spec: 'Dr. Ramesh Kumar · ' + next.spec};
+  document.getElementById('servingToken').textContent = servingData.token;
+  document.getElementById('servingName').textContent = servingData.name;
+  document.getElementById('servingSpec').textContent = servingData.spec;
+  var done = parseInt(document.getElementById('statDone').textContent);
+  document.getElementById('statDone').textContent = done + 1;
+  var wait = parseInt(document.getElementById('statWaiting').textContent);
+  document.getElementById('statWaiting').textContent = Math.max(0, wait - 1);
+  renderQueue();
+}
+
+function skipToken() {
+  if(queueData.length === 0) return;
+  var current = {
+    token: servingData.token,
+    name: servingData.name,
+    spec: servingData.spec.split(' · ')[1] || 'General Medicine',
+    status:'waiting', skipCount: (servingData.skipCount||0) + 1, held:false
+  };
+  servingData.skipCount = current.skipCount;
+
+  // Move to after first non-held item
+  var insertAt = 1;
+  for(var i=0;i<queueData.length;i++){
+    if(!queueData[i].held){ insertAt = i+1; break; }
+  }
+  queueData.splice(insertAt, 0, current);
+
+  // Next becomes serving
+  var next = queueData.shift();
+  servingData = {token:next.token, name:next.name, spec:'Dr. Ramesh Kumar · '+next.spec, skipCount:next.skipCount};
+  document.getElementById('servingToken').textContent = servingData.token;
+  document.getElementById('servingName').textContent = servingData.name;
+  document.getElementById('servingSpec').textContent = 'Dr. Ramesh Kumar · ' + next.spec;
+  renderQueue();
+}
+
+// ── Doctor Hold ──
+function openDoctorHold() {
+  openSheet('holdOverlay','holdSheet');
+}
+
+function selectHoldReason(el, reason, icon) {
+  document.querySelectorAll('.reason-chip').forEach(function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+  selectedHoldReason = reason;
+  updateHoldTimeDisplay();
+}
+
+function updateHoldTimeDisplay() {
+  var t = document.getElementById('holdResumeTime').value;
+  if(t && selectedHoldReason) {
+    document.getElementById('holdResumeDisplay').textContent =
+      'Queue will resume at ' + formatTime(t) + ' · Patients notified automatically';
+  }
+}
+
+document.getElementById('holdResumeTime').addEventListener('change', updateHoldTimeDisplay);
+
+function formatTime(t) {
+  var parts = t.split(':');
+  var h = parseInt(parts[0]);
+  var m = parts[1];
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return h + ':' + m + ' ' + ampm;
+}
+
+function confirmDoctorHold() {
+  if(!selectedHoldReason) { alert('Please select a reason'); return; }
+  var t = document.getElementById('holdResumeTime').value;
+  closeSheet('holdOverlay','holdSheet');
+  doctorHoldActive = true;
+  var banner = document.getElementById('holdBanner');
+  banner.style.display = 'flex';
+  document.getElementById('holdBannerTitle').textContent = '⏸ Queue on Hold · ' + selectedHoldReason;
+  document.getElementById('holdBannerSub').textContent = 'Resuming at ' + formatTime(t) + ' · Patients have been notified';
+}
+
+function resumeDoctorHold() {
+  doctorHoldActive = false;
+  document.getElementById('holdBanner').style.display = 'none';
+}
+
+// ── Patient Hold ──
+function openPatientHold(token, name) {
+  currentPatHoldToken = token;
+  document.getElementById('patHoldName').textContent = '👤 ' + name;
+  document.getElementById('patHoldToken').textContent = token + ' · Called 2 times, no response';
+  openSheet('patHoldOverlay','patHoldSheet');
+}
+
+function confirmPatientHold() {
+  var q = queueData.find(function(x){ return x.token === currentPatHoldToken; });
+  if(q) q.held = true;
+  closeSheet('patHoldOverlay','patHoldSheet');
+  renderQueue();
+}
+
+function resumePatient(token) {
+  var q = queueData.find(function(x){ return x.token === token; });
+  if(q) { q.held = false; q.skipCount = 0; }
+  renderQueue();
+}
+
+// ── Stats Popup ──
+function openStatsList(type) {
+  var titles = {issued:'All Issued Tokens (24)', done:'Completed (17)', waiting:'In Queue (6)', noshow:'No Show (1)'};
+  var filtered;
+  if(type==='issued') filtered = allTokensToday;
+  else if(type==='done') filtered = allTokensToday.filter(function(t){ return t.status==='done'; });
+  else if(type==='waiting') filtered = allTokensToday.filter(function(t){ return t.status==='waiting'; });
+  else filtered = allTokensToday.filter(function(t){ return t.status==='noshow'; });
+
+  document.getElementById('statsPopupTitle').textContent = titles[type];
+  document.getElementById('statsPopupList').innerHTML = filtered.map(function(t) {
+    var statusColor = t.status==='done' ? '#00C853' : t.status==='waiting' ? '#FFB347' : t.status==='serving' ? '#00C9A7' : '#FF6B6B';
+    var statusLabel = t.status==='done' ? '✅ Done' : t.status==='waiting' ? '⏳ Waiting' : t.status==='serving' ? '🟢 Serving' : '⚠️ No Show';
+    return '<div class="sp-item"><span><span class="sp-token">' + t.token + '</span>  ' + t.name + '</span><span style="color:'+statusColor+';font-size:.65rem;font-weight:700;">'+statusLabel+'</span></div>';
+  }).join('');
+
+  var popup = document.getElementById('statsPopup');
+  popup.style.opacity='1'; popup.style.pointerEvents='auto';
+}
+
+function closeStatsPopup() {
+  var popup = document.getElementById('statsPopup');
+  popup.style.opacity='0'; popup.style.pointerEvents='none';
+}
+
+// ════════════════════════════════════════
+//  WALK-IN FLOW
+// ════════════════════════════════════════
+
+function renderWalkInStep() {
+  renderStepIndicator2();
+  var content = document.getElementById('walkinContent');
+
+  if(walkInStep === 1) {
+    content.innerHTML =
+      '<div style="margin-bottom:14px;">' +
+        '<div style="font-size:.7rem;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:.06em;">SELECT DOCTOR</div>' +
+        doctors.map(function(d,i) {
+          return '<div class="doc-card" id="dc'+i+'" onclick="wiStep1SelectDoc('+i+')">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+              '<div><div class="doc-name">'+d.name+'</div><div class="doc-spec">'+d.spec+'</div>' +
+              '<div style="font-size:.6rem;color:var(--muted);margin-top:2px;">Follow-up valid: '+d.validDays+' days</div></div>' +
+              '<div class="doc-fee">₹'+d.fee+'</div>' +
+            '</div></div>';
+        }).join('') +
+      '</div>';
+  }
+  else if(walkInStep === 2) {
+    content.innerHTML =
+      '<div style="background:var(--teal-light);border-radius:12px;padding:11px 13px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">' +
+        '<div style="font-size:.9rem;">👨‍⚕️</div>' +
+        '<div><div style="font-size:.78rem;font-weight:800;color:var(--text);">'+selectedDoctor.name+'</div>' +
+        '<div style="font-size:.65rem;color:var(--muted);">'+selectedDoctor.spec+' · ₹'+selectedDoctor.fee+'</div></div>' +
+      '</div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">PATIENT MOBILE NUMBER</label>' +
+        '<input id="wiPhone" class="form-input" type="tel" maxlength="10" placeholder="10-digit number" style="font-size:1.1rem;font-weight:700;letter-spacing:2px;"/>' +
+      '</div>' +
+      '<button class="btn-primary" onclick="wiLookup()">🔍 Find / Register Patient</button>' +
+      '<button class="btn-skip-otp" onclick="wiSkipToNew()">+ Register as New Patient (No Mobile)</button>';
+  }
+  else if(walkInStep === 3) {
+    content.innerHTML =
+      '<div style="background:var(--teal-light);border-radius:12px;padding:10px 13px;margin-bottom:14px;font-size:.72rem;font-weight:700;color:var(--teal);">🆕 New Patient Registration</div>' +
+      '<div class="form-group"><label class="form-label">FULL NAME *</label>' +
+        '<input id="wiName" class="form-input" placeholder="Patient full name" value="'+(walkInData.prefillName||'')+'"/></div>' +
+      '<div class="form-row">' +
+        '<div class="form-group"><label class="form-label">AGE</label>' +
+          '<input id="wiAge" class="form-input" type="number" placeholder="Age" value="'+(walkInData.prefillAge||'')+'"/></div>' +
+        '<div class="form-group"><label class="form-label">GENDER</label>' +
+          '<select id="wiGender" class="form-select"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>' +
+      '</div>' +
+      '<div class="form-group"><label class="form-label">LOCATION / CITY</label>' +
+        '<input id="wiLocation" class="form-input" placeholder="City, Area" value="'+(walkInData.prefillLocation||'')+'"/></div>' +
+      '<div class="form-group"><label class="form-label">CHIEF COMPLAINT *</label>' +
+        '<textarea id="wiComplaint" class="form-input" rows="2" placeholder="e.g. Fever, Headache..." style="resize:none;line-height:1.5;">'+(walkInData.complaint||'')+'</textarea>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;">' +
+          ['Fever','Cold','Headache','Stomach','Body Pain','Follow-up'].map(function(c){
+            return '<button onclick="wiAddChipMain(\''+c+'\')" style="padding:4px 10px;border-radius:100px;border:1px solid var(--border);background:#F7FFFE;color:var(--muted);font-size:.62rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">'+c+'</button>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+      '<button class="btn-primary" onclick="wiSubmitNewPatient()">Next: Confirm & Pay →</button>';
+  }
+  else if(walkInStep === 4) {
+    var p = walkInData.existingPatient;
+    var fu = walkInData.followUp || {};
+    var feeDisplay = fu.isFollowUp
+      ? '<span style="text-decoration:line-through;color:var(--muted);font-size:.85rem;">₹'+selectedDoctor.fee+'</span> <span style="color:#00C853;font-weight:900;font-size:1rem;">₹0 FREE</span>'
+      : '<span style="font-weight:900;color:var(--teal);font-size:1rem;">₹'+selectedDoctor.fee+'</span>';
+    var fuBanner = fu.isFollowUp
+      ? '<div style="background:#E6FFF0;border-radius:11px;padding:10px 13px;margin-bottom:12px;border:1.5px solid #B2EFC8;">' +
+          '<div style="font-size:.72rem;font-weight:800;color:#00C853;">✅ Follow-up Valid!</div>' +
+          '<div style="font-size:.65rem;color:var(--muted);margin-top:2px;">Last visited '+fu.daysAgo+' days ago · Valid up to '+fu.validDays+' days → Consult FREE</div>' +
+        '</div>'
+      : '';
+    content.innerHTML =
+      fuBanner +
+      '<div style="background:var(--teal-light);border-radius:13px;padding:14px;margin-bottom:12px;">' +
+        '<div style="font-size:.6rem;font-weight:700;color:var(--muted);margin-bottom:8px;">PATIENT DETAILS</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+          '<div><div style="font-size:.58rem;color:var(--muted);">NAME</div><div style="font-size:.85rem;font-weight:800;">'+p.name+'</div></div>' +
+          '<div><div style="font-size:.58rem;color:var(--muted);">MOBILE</div><div style="font-size:.82rem;font-weight:700;">'+p.mobile+'</div></div>' +
+          '<div><div style="font-size:.58rem;color:var(--muted);">AGE</div><div style="font-size:.82rem;font-weight:700;">'+p.age+' yrs</div></div>' +
+          '<div><div style="font-size:.58rem;color:var(--muted);">GENDER</div><div style="font-size:.82rem;font-weight:700;">'+p.gender+'</div></div>' +
+          '<div><div style="font-size:.58rem;color:var(--muted);">LOCATION</div><div style="font-size:.82rem;font-weight:700;">'+p.location+'</div></div>' +
+          '<div><div style="font-size:.58rem;color:var(--muted);">DOCTOR</div><div style="font-size:.75rem;font-weight:700;color:var(--teal);">'+selectedDoctor.name+'</div></div>' +
+        '</div>' +
+        '<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border);">' +
+          '<span style="font-size:.72rem;color:var(--muted);">Consultation Fee</span>'+feeDisplay+
+        '</div>' +
+      '</div>' +
+      '<div class="form-group"><label class="form-label">CHIEF COMPLAINT *</label>' +
+        '<textarea id="wiComplaint" class="form-input" rows="2" placeholder="e.g. Fever, Follow-up..." style="resize:none;line-height:1.5;">'+(walkInData.complaint||'')+'</textarea>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;">' +
+          ['Fever','Cold','Headache','Stomach','Body Pain','Follow-up'].map(function(c){
+            return '<button onclick="wiAddChipMain(\''+c+'\')" style="padding:4px 10px;border-radius:100px;border:1px solid var(--border);background:#F7FFFE;color:var(--muted);font-size:.62rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">'+c+'</button>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+      '<button class="btn-primary" onclick="wiConfirmExisting()">✅ Confirm & Next →</button>';
+  }
+  else if(walkInStep === 5) {
+    var fu2 = walkInData.followUp || {};
+    var consultFee = fu2.isFollowUp ? 0 : selectedDoctor.fee;
+    var total = consultFee + 10;
+    var fuNote = fu2.isFollowUp
+      ? '<div style="background:#E6FFF0;border-radius:10px;padding:9px 12px;margin-bottom:8px;font-size:.68rem;font-weight:700;color:#00C853;">✅ Follow-up: Consultation FREE · Valid within '+fu2.validDays+' days</div>'
+      : '';
+    content.innerHTML =
+      '<div style="background:var(--teal-light);border-radius:13px;padding:13px;margin-bottom:12px;">' +
+        '<div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.75rem;"><span style="color:var(--muted);">Patient</span><span style="font-weight:700;">'+(walkInData.name||'Patient')+'</span></div>' +
+        '<div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:.75rem;"><span style="color:var(--muted);">Doctor</span><span style="font-weight:700;">'+(selectedDoctor?selectedDoctor.name:'—')+'</span></div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:.75rem;"><span style="color:var(--muted);">Complaint</span><span style="font-weight:600;color:var(--teal);">'+(walkInData.complaint||'—')+'</span></div>' +
+      '</div>' +
+      fuNote +
+      '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">' +
+        '<div style="display:flex;justify-content:space-between;padding:10px 14px;background:#fff;border:1px solid var(--border);border-radius:10px;">' +
+          '<span style="font-size:.8rem;">Consultation Fee</span>' +
+          (fu2.isFollowUp
+            ? '<span><span style="text-decoration:line-through;color:var(--muted);font-size:.8rem;">₹'+selectedDoctor.fee+'</span> <b style="color:#00C853;">₹0</b></span>'
+            : '<span style="font-size:.85rem;font-weight:700;">₹'+consultFee+'</span>') +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;padding:10px 14px;background:#fff;border:1px solid var(--border);border-radius:10px;">' +
+          '<span style="font-size:.8rem;">HALSAA Platform Fee</span><span style="font-size:.85rem;font-weight:700;">₹10</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;padding:12px 14px;background:linear-gradient(135deg,#E8FAF7,#F0FFF8);border-radius:10px;border:1.5px solid var(--teal);">' +
+          '<span style="font-size:.85rem;font-weight:800;">Total</span>' +
+          '<span style="font-size:.95rem;font-weight:900;color:var(--teal);">₹'+total+'</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="form-label">PAYMENT METHOD</div>' +
+      '<div class="pay-method-row">' +
+        '<button class="pay-method-btn selected" id="pmUPI" onclick="wiSelectPay(\'upi\')">📱 UPI</button>' +
+        '<button class="pay-method-btn" id="pmCash" onclick="wiSelectPay(\'cash\')">💵 Cash</button>' +
+      '</div>' +
+      '<div id="noUpiOption" style="display:none;margin-bottom:12px;">' +
+        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:11px 13px;border:1.5px solid var(--border);border-radius:11px;background:#fff;">' +
+          '<input type="checkbox" id="noUpiCheck"/> ' +
+          '<span style="font-size:.78rem;font-weight:600;">Patient has no UPI — collect full cash at counter</span>' +
+        '</label>' +
+      '</div>' +
+      '<button class="btn-primary" onclick="wiIssueToken()">🎫 Issue Token</button>';
+  }
+}
+
+function renderStepIndicator2() {
+  var steps = ['Doctor','Phone','Patient','Payment'];
+  var displayStep = walkInStep <= 2 ? walkInStep : walkInStep === 3 ? 3 : walkInStep === 4 ? 3 : 4;
+  var si = document.getElementById('stepIndicator');
+  if(!si) return;
+  si.innerHTML = steps.map(function(s,i) {
+    var num = i+1;
+    var dotClass = num < displayStep ? 'done' : num === displayStep ? 'active' : '';
+    var labelClass = num === displayStep ? 'active' : '';
+    var line = i < steps.length-1 ? '<div class="step-line'+(num < displayStep ? ' done' : '')+'"></div>' : '';
+    return '<div class="step"><div class="step-dot '+dotClass+'">'+(num < displayStep ? '✓' : num)+'</div><span class="step-label '+labelClass+'">'+s+'</span></div>' + line;
+  }).join('');
+}
+
+function initWalkIn() {
+  walkInStep = 1;
+  walkInData = {};
+  selectedDoctor = null;
+  selectedPayMethod = 'upi';
+  renderWalkInStep();
+}
+
+function wiStep1SelectDoc(idx) {
+  selectedDoctor = doctors[idx];
+  document.querySelectorAll('.doc-card').forEach(function(c,i){
+    c.classList.toggle('selected', i===idx);
+  });
+  setTimeout(function(){
+    if(walkInData.quickRebook && walkInData.existingPatient) {
+      // Skip phone step — go straight to confirm
+      walkInData.followUp = checkFollowUp(walkInData.phone, selectedDoctor.id);
+      walkInStep = 4;
+    } else {
+      walkInStep = 2;
+    }
+    renderWalkInStep();
+  }, 180);
+}
+window.wiStep1SelectDoc = wiStep1SelectDoc;
+
+function wiLookup() {
+  var phone = document.getElementById('wiPhone').value.trim();
+  if(phone.length < 10) { alert('Please enter a valid 10-digit mobile number'); return; }
+  var found = patientsDB.find(function(p){ return p.mobile === phone; });
+  if(found) {
+    walkInData.existingPatient = found;
+    walkInData.name = found.name;
+    walkInData.age = found.age;
+    walkInData.gender = found.gender;
+    walkInData.location = found.location;
+    walkInData.isNew = false;
+    walkInData.phone = phone;
+    // Check follow-up
+    walkInData.followUp = checkFollowUp(phone, selectedDoctor.id);
+    walkInStep = 4;
+  } else {
+    walkInData.isNew = true;
+    walkInData.phone = phone;
+    walkInStep = 3;
+  }
+  renderWalkInStep();
+}
+
+function wiSkipToNew() {
+  walkInData.isNew = true;
+  walkInData.phone = '';
+  walkInStep = 3;
+  renderWalkInStep();
+}
+
+function wiAddChipMain(text) {
+  var ta = document.getElementById('wiComplaint');
+  if(!ta) return;
+  var cur = ta.value.trim();
+  ta.value = cur ? cur + ', ' + text : text;
+}
+window.wiAddChipMain = wiAddChipMain;
+
+function wiSubmitNewPatient() {
+  var name = document.getElementById('wiName').value.trim();
+  var age = document.getElementById('wiAge').value.trim();
+  var gender = document.getElementById('wiGender').value;
+  var location = document.getElementById('wiLocation').value.trim();
+  var complaint = document.getElementById('wiComplaint') ? document.getElementById('wiComplaint').value.trim() : '';
+  if(!name){ alert('Please enter patient name'); return; }
+  if(!complaint){
+    var el = document.getElementById('wiComplaint');
+    if(el){ el.style.borderColor='var(--red)'; el.focus(); }
+    return;
+  }
+  walkInData.name = name;
+  walkInData.age = age || '—';
+  walkInData.gender = gender || '—';
+  walkInData.location = location || '—';
+  walkInData.complaint = complaint;
+  walkInData.followUp = { isFollowUp: false };
+  walkInStep = 5;
+  renderWalkInStep();
+}
+window.wiSubmitNewPatient = wiSubmitNewPatient;
+
+function wiConfirmExisting() {
+  var complaint = document.getElementById('wiComplaint') ? document.getElementById('wiComplaint').value.trim() : '';
+  if(!complaint){
+    var el = document.getElementById('wiComplaint');
+    if(el){ el.style.borderColor='var(--red)'; el.focus(); }
+    return;
+  }
+  walkInData.complaint = complaint;
+  walkInStep = 5;
+  renderWalkInStep();
+}
+window.wiConfirmExisting = wiConfirmExisting;
+
+function wiSelectPay(method) {
+  selectedPayMethod = method;
+  var upi = document.getElementById('pmUPI');
+  var cash = document.getElementById('pmCash');
+  var noUpi = document.getElementById('noUpiOption');
+  if(upi) upi.classList.toggle('selected', method==='upi');
+  if(cash) cash.classList.toggle('selected', method==='cash');
+  if(noUpi) noUpi.style.display = method==='cash' ? 'block' : 'none';
+}
+window.wiSelectPay = wiSelectPay;
+
+function wiIssueToken() {
+  var tokenNum = 'T-0' + (25 + Math.floor(Math.random()*5));
+  var queuePos = queueData.length + 1;
+  var waitMin = queuePos * 5 + 10;
+  var fu = walkInData.followUp || {};
+  var consultFee = fu.isFollowUp ? 0 : selectedDoctor.fee;
+  var total = consultFee + 10;
+
+  document.getElementById('successTokenNum').textContent = tokenNum;
+  document.getElementById('successPatName').textContent = walkInData.name;
+  document.getElementById('successDocName').textContent = selectedDoctor.name + ' · ' + selectedDoctor.spec;
+  document.getElementById('successQueuePos').textContent = queuePos + (queuePos===1?'st':queuePos===2?'nd':queuePos===3?'rd':'th') + ' in queue';
+  document.getElementById('successWait').textContent = 'Est. wait ~' + waitMin + ' min';
+  // Save for print slip
+  _lastIssuedToken = {
+    token: tokenNum, name: walkInData.name,
+    doctor: selectedDoctor.name, complaint: walkInData.complaint,
+    position: queuePos + (queuePos===1?'st':queuePos===2?'nd':queuePos===3?'rd':'th') + ' in queue',
+    wait: '~' + waitMin + ' min'
+  };
+
+  var noUpi = document.getElementById('noUpiCheck') && document.getElementById('noUpiCheck').checked;
+  var payBadge = document.getElementById('successPayBadge');
+  if(fu.isFollowUp) {
+    payBadge.textContent = '✅ Follow-up · Consult FREE · Paid ₹10';
+    payBadge.style.background = '#E6FFF0';
+    payBadge.style.color = '#00C853';
+  } else if(noUpi) {
+    payBadge.textContent = '💵 Cash Collected · ₹' + total;
+    payBadge.style.background = '#FFF4E6';
+    payBadge.style.color = '#CC7A00';
+  } else {
+    payBadge.textContent = '✅ Payment Done · ₹' + total;
+    payBadge.style.background = 'var(--teal-light)';
+    payBadge.style.color = 'var(--teal)';
+  }
+
+  queueData.push({
+    token:tokenNum, name:walkInData.name,
+    phone: walkInData.phone || '',
+    age: walkInData.age || '—',
+    location: walkInData.location || '—',
+    complaint: walkInData.complaint || '—',
+    spec: selectedDoctor.spec, status:'waiting', skipCount:0, held:false
+  });
+  renderQueue();
+  openSheet('walkinSuccessOverlay','walkinSuccessSheet');
+}
+window.wiIssueToken = wiIssueToken;
+
+// Remove old wiSubmitDetails and wiAddChip3 stubs if present
+window.wiAddChip3 = wiAddChipMain;
+
+// ════════════════════════════════════════
+//  SEARCH
+// ════════════════════════════════════════
+
+function doSearch(val) {
+  var results = document.getElementById('searchResults');
+  if(val.length < 2){ results.innerHTML = ''; return; }
+  var q = val.toLowerCase();
+  var found = patientsDB.filter(function(p){
+    return p.name.toLowerCase().includes(q) || p.mobile.includes(q) || p.location.toLowerCase().includes(q);
+  });
+  if(!found.length){ results.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);font-size:.8rem;">No patient found</div>'; return; }
+  results.innerHTML = found.map(function(p) {
+    return '<div class="search-result" onclick="openSearchDetail(\'' + p.mobile + '\')">' +
+      '<div class="sr-name">👤 ' + p.name + '</div>' +
+      '<div class="sr-sub">📱 ' + p.mobile + ' · ' + p.location + ' · ' + p.age + ' yrs · ' + p.gender + '</div>' +
+      '<div class="sr-history">' +
+        p.visits.slice(0,2).map(function(v) {
+          return '<div class="sr-visit"><span><b>' + v.token + '</b> · ' + v.doctor + '</span><span style="color:var(--teal);">' + v.amount + ' · ' + v.status + '</span></div>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openSearchDetail(mobile) {
+  var p = patientsDB.find(function(x){ return x.mobile === mobile; });
+  if(!p) return;
+  document.getElementById('searchDetailContent').innerHTML =
+    '<div class="sheet-title">👤 ' + p.name + '</div>' +
+    '<div class="sheet-sub">' + p.mobile + ' · ' + p.location + ' · ' + p.age + ' yrs · ' + p.gender + '</div>' +
+    // Quick re-book button
+    '<button onclick="quickRebook(\'' + p.mobile + '\')" style="width:100%;padding:11px;border-radius:12px;border:none;background:linear-gradient(135deg,#FFB347,#FFC86B);color:#fff;font-size:.82rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;margin-bottom:14px;">⚡ Quick Re-book Token</button>' +
+    '<div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:.08em;">VISIT HISTORY</div>' +
+    p.visits.map(function(v) {
+      return '<div style="background:var(--bg);border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border);">' +
+        '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' +
+          '<span style="font-size:.78rem;font-weight:800;color:var(--teal);">' + v.token + '</span>' +
+          '<span style="font-size:.65rem;color:var(--muted);">' + v.date + '</span>' +
+        '</div>' +
+        '<div style="font-size:.78rem;font-weight:700;color:var(--text);">' + v.doctor + '</div>' +
+        '<div style="display:flex;justify-content:space-between;margin-top:6px;">' +
+          '<span style="font-size:.7rem;color:var(--muted);">Queue entry: ' + v.time + '</span>' +
+          '<span style="font-size:.72rem;font-weight:700;color:var(--green);">' + v.amount + ' paid</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  openSheet('searchDetailOverlay','searchDetailSheet');
+}
+
+function quickRebook(mobile) {
+  // Pre-fill walk-in with existing patient, go straight to doctor select
+  var p = patientsDB.find(function(x){ return x.mobile === mobile; });
+  if(!p) return;
+  closeSheet('searchDetailOverlay','searchDetailSheet');
+  setTimeout(function(){
+    showScreen('walkin');
+    walkInData = { existingPatient: p, name:p.name, age:p.age, gender:p.gender, location:p.location, phone:p.mobile, isNew:false };
+    walkInStep = 1; // Doctor select first
+    renderWalkInStep();
+    // Mark as quick rebook — after doctor select, skip phone step → go straight to step 4
+    walkInData.quickRebook = true;
+  }, 300);
+}
+window.quickRebook = quickRebook;
+
+// ════════════════════════════════════════
+//  PAYMENTS
+// ════════════════════════════════════════
+
+function renderPayments(filter) {
+  var list = paymentsData.slice();
+  if(filter==='consult-pending') {
+    list = list.filter(function(p){ return !p.consultDone; });
+  } else if(filter==='walkin') {
+    list = list.filter(function(p){ return p.type==='walkin'; });
+  } else {
+    // All: pending first, complete at bottom
+    list.sort(function(a,b){
+      if(!a.consultDone && b.consultDone) return -1;
+      if(a.consultDone && !b.consultDone) return 1;
+      return 0;
+    });
+  }
+  document.getElementById('paymentsList').innerHTML = list.map(function(p) {
+    var allDone = p.platformDone && p.consultDone;
+    var isPending = !p.consultDone;
+    var isVirtual = p.type === 'virtual';
+    var cardBorder = isPending ? '1.5px solid #FFB347' : '1px solid var(--border)';
+    var cardBg     = isPending ? '#FFFDF5' : '#fff';
+    var badges = '';
+    if(p.platformDone) badges += '<span class="pbadge pbadge-green">✅ Platform ₹10</span>';
+    if(p.consultDone)  badges += '<span class="pbadge pbadge-green">✅ Consult ₹' + p.consultFee + '</span>';
+    else               badges += '<span class="pbadge pbadge-orange">⚠️ Consult ₹' + p.consultFee + ' Pending</span>';
+    if(p.type==='walkin')  badges += '<span class="pbadge pbadge-blue">🚶 Walk-in</span>';
+    if(isVirtual) badges += '<span class="pbadge" style="background:#EEF2FF;color:#5B6ECC;">📱 Virtual Queue</span>';
+    if(allDone)   badges += '<span class="pbadge" style="background:#E6FFF0;color:#00C853;">✅ Complete</span>';
+
+    var clickable = isPending
+      ? ' onclick="openCollectFee(\'' + p.token + '\')" style="cursor:pointer;"'
+      : '';
+    var collectBtn = isPending
+      ? '<button onclick="openCollectFee(\'' + p.token + '\')" style="padding:6px 14px;border-radius:9px;border:none;background:linear-gradient(135deg,#FFB347,#FFC86B);color:#fff;font-size:.68rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;white-space:nowrap;">💰 Collect</button>'
+      : '';
+
+    return '<div class="pay-card" style="border:' + cardBorder + ';background:' + cardBg + ';transition:all .2s;"' + clickable + '>' +
+      '<div class="pay-card-top">' +
+        '<span class="pay-token">' + p.token + '</span>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          '<span style="font-size:.75rem;font-weight:700;color:var(--teal);">' + p.amount + '</span>' +
+          collectBtn +
+        '</div>' +
+      '</div>' +
+      '<div class="pay-name">' + p.name + '</div>' +
+      '<div class="pay-badges" style="margin-top:6px;">' + badges + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function filterPayments(type, btn) {
+  document.querySelectorAll('.sort-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderPayments(type);
+}
+
+// ════════════════════════════════════════
+//  END OF DAY
+// ════════════════════════════════════════
+
+function endOfDay() {
+  if(confirm('Close queue for today?\n\nAll pending tokens will be notified. This cannot be undone.')) {
+    alert('✅ Queue closed!\n\nDaily summary saved.\nPending patients notified via WhatsApp.\nMonthly billing updated automatically.');
+  }
+}
+
+// ════════════════════════════════════════
+//  NOTIFICATIONS
+// ════════════════════════════════════════
+
+function openNotifPanel() {
+  var o = document.getElementById('notifOverlay');
+  var p = document.getElementById('notifPanel');
+  o.style.opacity='1'; o.style.pointerEvents='auto';
+  p.style.transform='translateX(0)';
+}
+
+function closeNotifPanel() {
+  var o = document.getElementById('notifOverlay');
+  var p = document.getElementById('notifPanel');
+  p.style.transform='translateX(100%)';
+  setTimeout(function(){ o.style.opacity='0'; o.style.pointerEvents='none'; }, 320);
+}
+
+// ════════════════════════════════════════
+//  SHEET HELPERS
+// ════════════════════════════════════════
+
+function openSheet(overlayId, sheetId) {
+  var o = document.getElementById(overlayId);
+  var s = document.getElementById(sheetId);
+  o.style.opacity='1'; o.style.pointerEvents='auto';
+  s.style.transform='translateY(0)';
+}
+
+function closeSheet(overlayId, sheetId) {
+  var s = document.getElementById(sheetId);
+  s.style.transform='translateY(100%)';
+  setTimeout(function(){
+    var o = document.getElementById(overlayId);
+    o.style.opacity='0'; o.style.pointerEvents='none';
+  }, 380);
+}
+
+// Click outside to close overlays
+['holdOverlay','patHoldOverlay','searchDetailOverlay','walkinSuccessOverlay'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('click', function(e){
+    if(e.target===this) {
+      var sheetId = id.replace('Overlay','Sheet');
+      closeSheet(id, sheetId);
+    }
+  });
+});
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+renderQueue();
+renderPayments('all');
+
+
+// ════════════════════════════════════════
+//  QUEUE PATIENT DETAIL
+// ════════════════════════════════════════
+var currentQDetailPhone = '';
+
+function openQueueDetail(token) {
+  // Find in queueData or servingData
+  var q = queueData.find(function(x){ return x.token === token; });
+  if(!q) return;
+
+  document.getElementById('qdToken').textContent = q.token;
+  document.getElementById('qdSpec').textContent = q.spec;
+  document.getElementById('qdName').textContent = q.name;
+  document.getElementById('qdPhone').textContent = q.phone || 'Not provided';
+  document.getElementById('qdAge').textContent = (q.age || '—') + ' yrs';
+  document.getElementById('qdGender').textContent = q.gender || '';
+  document.getElementById('qdLocation').textContent = q.location || '—';
+  document.getElementById('qdComplaint').textContent = q.complaint || '—';
+
+  currentQDetailPhone = q.phone || '';
+  document.getElementById('qdCallBtn').style.display = q.phone ? 'inline-block' : 'none';
+
+  openSheet('qDetailOverlay','qDetailSheet');
+}
+
+function callPatient() {
+  if(!currentQDetailPhone) return;
+  var a = document.createElement('a');
+  a.href = 'tel:+91' + currentQDetailPhone;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ document.body.removeChild(a); }, 300);
+}
+
+window.openQueueDetail = openQueueDetail;
+window.callPatient = callPatient;
+
+var _qdo = document.getElementById('qDetailOverlay');
+if(_qdo) _qdo.addEventListener('click', function(e){ if(e.target===this) closeSheet('qDetailOverlay','qDetailSheet'); });
+
+// Home screen clock
+function updateHomeClock() {
+  var now = new Date();
+  var h = now.getHours(), m = now.getMinutes();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  h = h%12||12;
+  var timeStr = h + ':' + (m<10?'0':'')+m+' '+ampm;
+  var el = document.getElementById('homeClock');
+  var sub = document.getElementById('homeClockSub');
+  if(el) el.textContent = timeStr;
+  if(sub) sub.textContent = now.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+}
+updateHomeClock();
+setInterval(updateHomeClock, 30000);
+
+// ════════════════════════════════════════
+//  COLLECT CONSULTATION FEE
+// ════════════════════════════════════════
+var currentCollectToken = null;
+
+function openCollectFee(token) {
+  var p = paymentsData.find(function(x){ return x.token === token; });
+  if(!p || p.consultDone) return;
+  currentCollectToken = token;
+
+  document.getElementById('cfPatName').textContent = p.name;
+  document.getElementById('cfToken').textContent = p.token + ' · ' + (p.type==='virtual' ? 'Online (Virtual Queue)' : p.type==='walkin' ? 'Walk-in' : 'Online');
+  document.getElementById('cfFeeAmt').textContent = '₹' + p.consultFee;
+  document.getElementById('cfCollectAmt').textContent = '₹' + p.consultFee;
+  document.getElementById('cfSubtitle').textContent = 'Collect ₹' + p.consultFee + ' consultation fee from ' + p.name;
+  document.getElementById('cfVirtualBadge').style.display = p.type==='virtual' ? 'inline-block' : 'none';
+
+  // Reset pay method
+  document.getElementById('cfUPI').classList.add('selected');
+  document.getElementById('cfCash').classList.remove('selected');
+
+  openSheet('collectFeeOverlay','collectFeeSheet');
+}
+
+function cfSetPay(method) {
+  document.getElementById('cfUPI').classList.toggle('selected', method==='upi');
+  document.getElementById('cfCash').classList.toggle('selected', method==='cash');
+}
+
+function confirmCollectFee() {
+  if(!currentCollectToken) return;
+  var p = paymentsData.find(function(x){ return x.token === currentCollectToken; });
+  if(p) {
+    p.consultDone = true;
+    p.amount = '₹' + (p.consultFee + 10);
+  }
+  closeSheet('collectFeeOverlay','collectFeeSheet');
+  // Refresh payments list
+  setTimeout(function(){
+    var activeFilter = document.querySelector('.sort-btn.active');
+    var filter = 'consult-pending';
+    if(activeFilter) {
+      var txt = activeFilter.textContent.trim();
+      if(txt === 'All') filter = 'all';
+      else if(txt.includes('Walk')) filter = 'walkin';
+    }
+    renderPayments(filter);
+  }, 420);
+}
+
+var _cfo = document.getElementById('collectFeeOverlay');
+if(_cfo) _cfo.addEventListener('click', function(e){ if(e.target===this) closeSheet('collectFeeOverlay','collectFeeSheet'); });
+
+window.openCollectFee = openCollectFee;
+window.cfSetPay = cfSetPay;
+window.confirmCollectFee = confirmCollectFee;
+
+// ════════════════════════════════════════
+//  PRINT TOKEN SLIP
+// ════════════════════════════════════════
+var _lastIssuedToken = {};
+
+function printTokenSlip() {
+  var t = _lastIssuedToken;
+  var slipHTML = '<html><head><style>' +
+    'body{font-family:Arial,sans-serif;padding:20px;max-width:300px;margin:0 auto;}' +
+    '.slip-header{text-align:center;border-bottom:2px dashed #ccc;padding-bottom:12px;margin-bottom:12px;}' +
+    '.slip-logo{font-size:1.4rem;font-weight:900;color:#00C9A7;}' +
+    '.slip-hospital{font-size:.8rem;color:#666;margin-top:2px;}' +
+    '.token-num{font-size:3rem;font-weight:900;color:#00C9A7;text-align:center;letter-spacing:-2px;margin:12px 0;}' +
+    '.slip-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:.8rem;}' +
+    '.slip-label{color:#999;}' +
+    '.slip-val{font-weight:700;color:#333;}' +
+    '.slip-footer{text-align:center;margin-top:14px;font-size:.7rem;color:#999;border-top:2px dashed #ccc;padding-top:12px;}' +
+    '@media print{body{padding:0;}}' +
+    '</style></head><body>' +
+    '<div class="slip-header">' +
+      '<div class="slip-logo">❤️ HALSAA</div>' +
+      '<div class="slip-hospital">Sri Sai Hospital · MG Road, Hanamkonda</div>' +
+    '</div>' +
+    '<div class="token-num">' + (t.token||'T-000') + '</div>' +
+    '<div class="slip-row"><span class="slip-label">Patient</span><span class="slip-val">' + (t.name||'—') + '</span></div>' +
+    '<div class="slip-row"><span class="slip-label">Doctor</span><span class="slip-val">' + (t.doctor||'—') + '</span></div>' +
+    '<div class="slip-row"><span class="slip-label">Complaint</span><span class="slip-val">' + (t.complaint||'—') + '</span></div>' +
+    '<div class="slip-row"><span class="slip-label">Queue Position</span><span class="slip-val">' + (t.position||'—') + '</span></div>' +
+    '<div class="slip-row"><span class="slip-label">Est. Wait</span><span class="slip-val">' + (t.wait||'—') + '</span></div>' +
+    '<div class="slip-row"><span class="slip-label">Date</span><span class="slip-val">' + new Date().toLocaleDateString('en-IN') + '</span></div>' +
+    '<div class="slip-footer">Book in HALSAA · Do Jalsaa 😊<br/>halsaa.in</div>' +
+    '</body></html>';
+  var w = window.open('','_blank','width=360,height=500');
+  if(w) { w.document.write(slipHTML); w.document.close(); w.print(); }
+}
+window.printTokenSlip = printTokenSlip;
+
+// ══ AUTH ══
+function hlLogout(){
+  sessionStorage.removeItem('halsaa_session');
+  window.location.href='index.html';
+}
+(function initRecSession(){
+  try{
+    var s=sessionStorage.getItem('halsaa_session');
+    var u=s?JSON.parse(s):null;
+    if(!u){ var lm=localStorage.getItem('halsaa_last_mobile'); if(lm){var lv=localStorage.getItem('halsaa_staff_'+lm);if(lv)u=JSON.parse(lv);} }
+    if(u){
+      var tbName=document.querySelector('.tb-left .tb-title'); if(tbName) tbName.textContent=u.name||'Receptionist';
+    }
+  }catch(e){}
+})();
+</script>
+
+<!-- ══ QUEUE PATIENT DETAIL SHEET ══ -->
+<div class="overlay" id="qDetailOverlay">
+  <div class="sheet" id="qDetailSheet">
+    <div class="sheet-handle"><div class="sheet-handle-bar"></div></div>
+    <button class="sheet-close" onclick="closeSheet('qDetailOverlay','qDetailSheet')">✕</button>
+
+    <!-- Token badge -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="background:var(--teal-light);border-radius:11px;padding:6px 14px;">
+        <span id="qdToken" style="font-size:.9rem;font-weight:900;color:var(--teal);"></span>
+      </div>
+      <span id="qdSpec" style="font-size:.7rem;color:var(--muted);font-weight:600;"></span>
+    </div>
+
+    <!-- Name card -->
+    <div style="background:linear-gradient(135deg,var(--teal),#00A88D);border-radius:16px;padding:16px 18px;margin-bottom:12px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.08);"></div>
+      <div style="font-size:.6rem;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.1em;margin-bottom:4px;">PATIENT</div>
+      <div id="qdName" style="font-size:1.2rem;font-weight:900;color:#fff;"></div>
+    </div>
+
+    <!-- Info cards grid -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div style="background:#F7FFFE;border-radius:13px;padding:13px 14px;border:1px solid var(--border);">
+        <div style="font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:5px;">📱 PHONE</div>
+        <div id="qdPhone" style="font-size:.85rem;font-weight:800;color:var(--text);"></div>
+        <button id="qdCallBtn" style="margin-top:7px;padding:5px 12px;border-radius:8px;border:none;background:var(--teal-light);color:var(--teal);font-size:.65rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;" onclick="callPatient()">📞 Call</button>
+      </div>
+      <div style="background:#F7FFFE;border-radius:13px;padding:13px 14px;border:1px solid var(--border);">
+        <div style="font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:5px;">👤 AGE</div>
+        <div id="qdAge" style="font-size:.85rem;font-weight:800;color:var(--text);"></div>
+        <div id="qdGender" style="font-size:.65rem;color:var(--muted);margin-top:2px;"></div>
+      </div>
+      <div style="background:#F7FFFE;border-radius:13px;padding:13px 14px;border:1px solid var(--border);">
+        <div style="font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:5px;">📍 LOCATION</div>
+        <div id="qdLocation" style="font-size:.85rem;font-weight:800;color:var(--text);"></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#FFF4E6,#FFFDF5);border-radius:13px;padding:13px 14px;border:1px solid #FFE0A0;">
+        <div style="font-size:.58rem;font-weight:700;color:#CC7A00;letter-spacing:.08em;margin-bottom:5px;">💊 COMPLAINT</div>
+        <div id="qdComplaint" style="font-size:.8rem;font-weight:800;color:var(--text);line-height:1.4;"></div>
+      </div>
+    </div>
+
+    <button onclick="closeSheet('qDetailOverlay','qDetailSheet')" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.82rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">Close</button>
+  </div>
+</div>
+
+<!-- ══ COLLECT CONSULTATION FEE SHEET ══ -->
+<div class="overlay" id="collectFeeOverlay">
+  <div class="sheet" id="collectFeeSheet">
+    <div class="sheet-handle"><div class="sheet-handle-bar"></div></div>
+    <button class="sheet-close" onclick="closeSheet('collectFeeOverlay','collectFeeSheet')">✕</button>
+    <div class="sheet-title">💰 Collect Consultation Fee</div>
+    <div class="sheet-sub" id="cfSubtitle">Collect pending amount from patient</div>
+
+    <!-- Patient info banner -->
+    <div style="background:var(--gold-light);border-radius:13px;padding:14px;margin-bottom:14px;border:1.5px solid #FFB347;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:.6rem;font-weight:700;color:#CC7A00;margin-bottom:4px;">PATIENT</div>
+          <div id="cfPatName" style="font-size:.92rem;font-weight:900;color:var(--text);"></div>
+          <div id="cfToken" style="font-size:.68rem;color:var(--muted);margin-top:2px;"></div>
+        </div>
+        <div id="cfVirtualBadge" style="display:none;background:#EEF2FF;color:#5B6ECC;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:100px;">📱 Virtual Queue</div>
+      </div>
+    </div>
+
+    <!-- Fee breakdown -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:#E6FFF0;border-radius:10px;border:1px solid #B2EFC8;">
+        <span style="font-size:.78rem;color:var(--text);">✅ Platform Fee (Already paid)</span>
+        <span style="font-size:.82rem;font-weight:700;color:var(--green);">₹10</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--gold-light);border-radius:10px;border:1.5px solid #FFB347;">
+        <span style="font-size:.78rem;color:var(--text);">⚠️ Consultation Fee (Pending)</span>
+        <span id="cfFeeAmt" style="font-size:.88rem;font-weight:900;color:#CC7A00;"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:12px 14px;background:linear-gradient(135deg,#E8FAF7,#F0FFF8);border-radius:10px;border:1.5px solid var(--teal);">
+        <span style="font-size:.85rem;font-weight:800;">Collect Now</span>
+        <span id="cfCollectAmt" style="font-size:.95rem;font-weight:900;color:var(--teal);"></span>
+      </div>
+    </div>
+
+    <!-- Payment method -->
+    <div style="margin-bottom:14px;">
+      <label class="form-label">PAYMENT METHOD</label>
+      <div class="pay-method-row">
+        <button class="pay-method-btn selected" id="cfUPI" onclick="cfSetPay('upi')">📱 UPI</button>
+        <button class="pay-method-btn" id="cfCash" onclick="cfSetPay('cash')">💵 Cash</button>
+      </div>
+    </div>
+
+    <button onclick="confirmCollectFee()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#FFB347,#FFC86B);color:#fff;font-size:.9rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(255,179,71,.3);">✅ Confirm — Fee Collected</button>
+  </div>
+</div>
+</body>
+</html>

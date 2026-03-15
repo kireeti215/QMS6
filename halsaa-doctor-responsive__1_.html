@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HALSAA — Doctor Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --teal:#00C9A7;--teal2:#00E8C0;--teal-light:#E8FAF7;--teal-mid:rgba(0,201,167,.15);
+  --gold:#FFB347;--gold-light:#FFF4E6;
+  --bg:#F4FDFB;--card:#fff;--text:#0D2B26;--muted:#7A9E98;
+  --border:#E4F5F0;--red:#FF6B6B;--green:#00C853;
+  --shadow:0 4px 20px rgba(0,201,167,.1);--shadow2:0 2px 8px rgba(0,0,0,.06);
+  --sidebar:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;width:var(--sidebar);height:100vh;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;box-shadow:2px 0 12px rgba(0,201,167,.06);}
+.sb-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-logo-text{font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,var(--teal),#00A88D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sb-role{margin:10px 12px 6px;padding:7px 12px;background:var(--teal-light);border-radius:10px;font-size:.65rem;font-weight:800;color:var(--teal);text-align:center;letter-spacing:.08em;}
+.sb-nav{flex:1;padding:8px 12px;display:flex;flex-direction:column;gap:3px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;cursor:pointer;transition:all .2s;font-size:.8rem;font-weight:600;color:var(--muted);}
+.sb-item:hover,.sb-item.active{background:var(--teal-light);color:var(--teal);}
+.sb-icon{font-size:1rem;width:22px;text-align:center;}
+.sb-bottom{padding:14px 12px;border-top:1px solid var(--border);}
+.sb-clinic{background:var(--teal-light);border-radius:11px;padding:10px 12px;}
+.sb-clinic-name{font-size:.75rem;font-weight:800;color:var(--text);}
+.sb-clinic-sub{font-size:.62rem;color:var(--muted);}
+
+/* MAIN */
+.main{margin-left:var(--sidebar);min-height:100vh;}
+.topbar{background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.tb-logo-m{display:none;align-items:center;gap:8px;}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.tb-date{font-size:.7rem;color:var(--muted);background:var(--teal-light);padding:5px 12px;border-radius:100px;font-weight:600;}
+.content{padding:22px 24px 30px;}
+.screen{display:none;}
+.screen.active{display:block;animation:fadeUp .3s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* SOFT BANNER */
+.soft-banner{display:none;align-items:center;justify-content:space-between;padding:9px 16px;border-radius:12px;margin-bottom:14px;}
+.soft-banner.show{display:flex;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.stat-card{background:var(--card);border-radius:14px;padding:13px 14px;border:1px solid var(--border);box-shadow:var(--shadow2);transition:all .2s;}
+.stat-card.clickable{cursor:pointer;}
+.stat-card.clickable:hover{border-color:var(--teal);transform:translateY(-2px);}
+.stat-label{font-size:.57rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:5px;}
+.stat-value{font-size:1.45rem;font-weight:900;color:var(--teal);}
+.stat-value.gold{color:var(--gold);}
+.stat-value.green{color:var(--green);}
+.stat-value.red{color:var(--red);}
+.stat-value.purple{color:#9B6ECC;}
+.stat-sub{font-size:.57rem;color:var(--muted);margin-top:2px;}
+
+/* NOW SERVING */
+.serving-card{background:linear-gradient(135deg,#00C9A7 0%,#00A88D 55%,#007A62 100%);border-radius:18px;padding:20px 22px;margin-bottom:14px;position:relative;overflow:hidden;}
+.serving-card::before{content:'';position:absolute;top:-30px;right:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.06);}
+.serving-label{font-size:.6rem;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.1em;margin-bottom:5px;}
+.serving-token{font-size:2rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1;}
+.serving-name{font-size:.92rem;font-weight:700;color:rgba(255,255,255,.95);margin-top:4px;}
+.serving-chips{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.s-chip{background:rgba(255,255,255,.15);border-radius:100px;padding:3px 10px;font-size:.63rem;color:rgba(255,255,255,.85);font-weight:600;}
+.complaint-box{background:rgba(255,179,71,.22);border-radius:10px;padding:9px 13px;margin-top:10px;border:1px solid rgba(255,179,71,.3);}
+.complaint-label{font-size:.57rem;font-weight:700;color:rgba(255,255,255,.65);margin-bottom:2px;}
+.complaint-text{font-size:.82rem;font-weight:700;color:#FFE0A0;}
+.action-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.act-btn{padding:10px 16px;border-radius:11px;border:none;font-size:.76rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-done{background:#fff;color:var(--teal);}
+.btn-hold{background:rgba(255,255,255,.18);color:#fff;border:1.5px solid rgba(255,255,255,.4);}
+.btn-skip{background:rgba(255,179,71,.22);color:#FFE0A0;border:1.5px solid rgba(255,179,71,.35);}
+.btn-vitals{background:rgba(255,255,255,.12);color:rgba(255,255,255,.9);border:1.5px solid rgba(255,255,255,.22);font-size:.7rem;}
+
+/* QUEUE */
+.q-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.q-title{font-size:.85rem;font-weight:800;}
+.q-count{font-size:.68rem;font-weight:700;color:var(--teal);background:var(--teal-light);padding:3px 10px;border-radius:100px;}
+.q-list{display:flex;flex-direction:column;gap:8px;}
+.q-card{background:var(--card);border-radius:13px;padding:12px 14px;border:1.5px solid var(--border);display:flex;align-items:center;gap:12px;}
+.q-card.held{border-color:var(--gold);background:#FFFDF5;}
+.q-token-box{min-width:52px;text-align:center;}
+.q-tok{font-size:.7rem;font-weight:900;color:var(--teal);background:var(--teal-light);padding:4px 8px;border-radius:8px;display:inline-block;}
+.q-wait{font-size:.52rem;font-weight:700;margin-top:3px;text-align:center;}
+.q-info{flex:1;cursor:pointer;}
+.q-name{font-size:.8rem;font-weight:700;text-decoration:underline dotted;text-underline-offset:3px;}
+.q-sub{font-size:.62rem;color:var(--muted);margin-top:1px;}
+.q-complaint-tag{font-size:.6rem;color:var(--gold);font-weight:600;margin-top:2px;}
+.q-badge{font-size:.57rem;font-weight:700;padding:3px 8px;border-radius:100px;}
+.badge-w{background:var(--teal-light);color:var(--teal);}
+.badge-h{background:#FFF4E6;color:#CC7A00;}
+
+/* OPTIONAL PANELS */
+.opt-panel{background:var(--card);border-radius:14px;border:1px solid var(--border);margin-bottom:10px;overflow:hidden;}
+.opt-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;}
+.opt-title{font-size:.8rem;font-weight:800;display:flex;align-items:center;gap:8px;}
+.opt-tag{font-size:.58rem;font-weight:700;padding:2px 8px;border-radius:100px;background:var(--gold-light);color:#CC7A00;}
+.opt-body{padding:0 16px 16px;display:none;}
+.opt-body.open{display:block;}
+.arr{font-size:.75rem;color:var(--muted);transition:transform .2s;}
+.arr.open{transform:rotate(180deg);}
+
+/* VITALS */
+.vitals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.v-wrap{display:flex;flex-direction:column;gap:4px;}
+.v-label{font-size:.58rem;font-weight:700;color:var(--muted);letter-spacing:.06em;}
+.v-input{padding:10px;border:1.5px solid var(--border);border-radius:10px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;text-align:center;font-weight:700;}
+.v-input:focus{border-color:var(--teal);}
+.v-unit{font-size:.58rem;color:var(--muted);text-align:center;margin-top:2px;}
+
+/* PRESCRIPTION */
+.rx-area{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:11px;font-size:.82rem;font-family:'Poppins',sans-serif;outline:none;resize:none;line-height:1.6;}
+.rx-area:focus{border-color:var(--teal);}
+.rx-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.rx-chip{padding:5px 12px;border-radius:100px;border:1px solid var(--border);background:#F7FFFE;color:var(--muted);font-size:.63rem;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer;transition:all .15s;}
+.rx-chip:hover{border-color:var(--teal);color:var(--teal);}
+.rx-row{display:flex;gap:8px;margin-top:10px;}
+.rx-btn{padding:8px 16px;border-radius:10px;border:none;font-size:.72rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;}
+.rx-print{background:var(--teal-light);color:var(--teal);}
+.rx-wa{background:#E6FFE6;color:#00A020;}
+
+/* FOLLOW-UP */
+.fu-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.fu-chip{padding:8px 14px;border-radius:100px;border:1.5px solid var(--border);background:#fff;font-size:.73rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;transition:all .15s;}
+.fu-chip:hover,.fu-chip.sel{border-color:var(--teal);background:var(--teal-light);color:var(--teal);}
+
+/* QUICK NOTE */
+.note-area{width:100%;padding:11px;border:1.5px solid var(--border);border-radius:11px;font-size:.8rem;font-family:'Poppins',sans-serif;outline:none;resize:none;transition:border-color .2s;}
+.note-area:focus{border-color:var(--teal);}
+
+/* SCHEDULE */
+.sched-card{background:var(--card);border-radius:14px;padding:16px;border:1px solid var(--border);margin-bottom:12px;}
+.sched-title{font-size:.82rem;font-weight:800;margin-bottom:12px;}
+.day-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:.78rem;}
+.day-name{width:38px;font-weight:700;}
+.day-time{flex:1;color:var(--muted);}
+.day-badge{font-size:.6rem;font-weight:700;padding:3px 9px;border-radius:100px;}
+.don{background:var(--teal-light);color:var(--teal);}
+.doff{background:#f5f5f5;color:var(--muted);}
+.day-row:last-child{border-bottom:none;}
+.t-input{padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:.73rem;font-family:'Poppins',sans-serif;outline:none;width:88px;}
+.t-input:focus{border-color:var(--teal);}
+.tog-btn{padding:5px 10px;border-radius:8px;border:1.5px solid;font-size:.63rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;}
+
+/* PROFILE */
+.prof-card{background:var(--card);border-radius:16px;padding:18px;border:1px solid var(--border);margin-bottom:12px;}
+.prof-avatar{width:60px;height:60px;border-radius:14px;background:linear-gradient(135deg,var(--teal),#00A88D);display:flex;align-items:center;justify-content:center;font-size:1.7rem;}
+.prof-name{font-size:1.08rem;font-weight:900;}
+.prof-qual{font-size:.73rem;color:var(--muted);margin-top:2px;}
+.prof-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f5f5f5;font-size:.78rem;}
+.prof-row:last-child{border-bottom:none;}
+.prof-label{color:var(--muted);font-size:.66rem;font-weight:700;letter-spacing:.06em;}
+.prof-val{font-weight:700;}
+.p-input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:.82rem;font-family:'Poppins',sans-serif;outline:none;margin-top:3px;}
+.p-input:focus{border-color:var(--teal);}
+
+/* HISTORY */
+.hist-item{background:var(--bg);border-radius:11px;padding:11px 13px;margin-bottom:8px;border:1px solid var(--border);}
+
+/* STATS POPUP */
+.st-popup{position:fixed;inset:0;background:rgba(10,22,40,.6);z-index:700;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;padding:20px;}
+.st-popup.show{opacity:1;pointer-events:auto;}
+.st-popup-card{background:#fff;border-radius:18px;width:100%;max-width:420px;padding:22px;max-height:80vh;overflow-y:auto;}
+
+/* SHEETS */
+.overlay{position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.overlay.show{opacity:1;pointer-events:auto;}
+.overlay.notif-side{align-items:flex-start;justify-content:flex-end;}
+.sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:22px 20px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);max-height:90vh;overflow-y:auto;position:relative;}
+.sheet.show{transform:translateY(0);}
+.sh-handle{display:flex;justify-content:center;margin-bottom:14px;}
+.sh-bar{width:40px;height:4px;border-radius:2px;background:#E0E0E0;}
+.sh-close{position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted);}
+.sh-title{font-size:1rem;font-weight:800;margin-bottom:3px;}
+.sh-sub{font-size:.7rem;color:var(--muted);margin-bottom:14px;}
+.reason-chip{display:flex;align-items:center;gap:10px;padding:13px;border-radius:12px;border:1.5px solid var(--border);cursor:pointer;transition:all .18s;margin-bottom:8px;}
+.reason-chip:hover,.reason-chip.sel{border-color:var(--teal);background:var(--teal-light);}
+
+/* HOLD BANNER */
+.hold-banner{display:none;position:fixed;top:60px;left:0;right:0;background:linear-gradient(135deg,#FF6B6B,#FF4444);color:#fff;z-index:200;padding:10px 20px;align-items:center;justify-content:space-between;}
+.hold-banner.show{display:flex;}
+
+/* NOTIF PANEL */
+.notif-panel{background:#fff;width:300px;max-width:90vw;height:100vh;transform:translateX(100%);transition:transform .3s cubic-bezier(.32,1.15,.7,1);overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,.12);margin-left:auto;}
+.notif-panel.show{transform:translateX(0);}
+
+/* MOBILE NAV */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);z-index:100;grid-template-columns:repeat(5,1fr);padding:6px 0 10px;}
+.mn-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 2px;}
+.mn-icon{font-size:1.1rem;}
+.mn-label{font-size:.5rem;font-weight:700;color:var(--muted);}
+.mn-item.active .mn-label{color:var(--teal);}
+
+@media(max-width:900px){
+  .sidebar{display:none!important;}
+  .main{margin-left:0!important;}
+  .content{padding:14px 14px 88px!important;}
+  .topbar{padding:0 14px!important;height:52px!important;}
+  .stats-row{grid-template-columns:repeat(3,1fr)!important;}
+  .mobile-nav{display:grid!important;}
+  .tb-logo-m{display:flex!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.95rem;">❤️</div>
+    <span class="sb-logo-text">HALSAA</span>
+  </div>
+  <div class="sb-role">DOCTOR</div>
+  <nav class="sb-nav">
+    <div class="sb-item active" onclick="goScreen('home',this)"><span class="sb-icon">🏠</span>Home</div>
+    <div class="sb-item" onclick="goScreen('queue',this)"><span class="sb-icon">🏥</span>Queue</div>
+    <div class="sb-item" onclick="goScreen('history',this)"><span class="sb-icon">📖</span>Patient History</div>
+    <div class="sb-item" onclick="goScreen('schedule',this)"><span class="sb-icon">📅</span>Schedule</div>
+    <div class="sb-item" onclick="goScreen('profile',this)"><span class="sb-icon">👨‍⚕️</span>Profile</div>
+  </nav>
+  <div class="sb-bottom">
+    <div class="sb-clinic">
+      <div class="sb-clinic-name">🏥 Sri Sai Hospital</div>
+      <div class="sb-clinic-sub">MG Road, Hanamkonda</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;cursor:pointer;margin-top:6px;transition:background .2s;" onclick="hlLogout()" onmouseover="this.style.background='rgba(255,107,107,.12)'" onmouseout="this.style.background='transparent'">
+      <span>🚪</span><span style="font-size:.73rem;font-weight:600;color:rgba(0,0,0,.4);">Logout</span>
+    </div>
+  </div>
+</div>
+
+<!-- HOLD BANNER -->
+<div class="hold-banner" id="holdBanner">
+  <div>
+    <div style="font-size:.75rem;font-weight:800;" id="holdTitle">⏸ Queue on Hold</div>
+    <div style="font-size:.63rem;opacity:.85;" id="holdSub">Resuming at 1:00 PM</div>
+  </div>
+  <button onclick="resumeHold()" style="padding:6px 14px;border-radius:9px;border:none;background:rgba(255,255,255,.25);color:#fff;font-size:.72rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">▶️ Resume</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="tb-logo-m">
+        <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.8rem;">❤️</div>
+        <span style="font-size:.9rem;font-weight:900;background:linear-gradient(135deg,var(--teal),#00A88D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">HALSAA</span>
+      </div>
+      <div>
+        <div style="font-size:.92rem;font-weight:800;" id="tbTitle">Dashboard</div>
+        <div style="font-size:.63rem;color:var(--muted);">Dr. Ramesh Kumar</div>
+      </div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-date" id="todayDate"></div>
+      <div style="cursor:pointer;font-size:1.1rem;padding:6px;position:relative;" onclick="openNotif()">🔔<div style="position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid #fff;"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ HOME ═══ -->
+    <div class="screen active" id="screen-home">
+
+      <!-- Doctor Hero -->
+      <div style="background:linear-gradient(135deg,#00C9A7 0%,#00A88D 55%,#007A62 100%);border-radius:20px;padding:22px;margin-bottom:18px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-25px;right:-25px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.07);"></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+          <div style="width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.75rem;">❤️</div>
+          <span style="font-size:.75rem;font-weight:800;color:rgba(255,255,255,.9);">HALSAA</span>
+          <span style="font-size:.58rem;color:rgba(255,255,255,.5);margin-left:2px;">by Medhaara Innovations</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">👨‍⚕️</div>
+          <div>
+            <div style="font-size:.56rem;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:.1em;">DOCTOR</div>
+            <div style="font-size:1.12rem;font-weight:900;color:#fff;" id="docNameDisplay">Dr. Ramesh Kumar</div>
+            <div style="font-size:.68rem;color:rgba(255,255,255,.75);margin-top:1px;" id="docQualDisplay">MBBS, MD · General Medicine</div>
+            <div style="font-size:.6rem;color:rgba(255,255,255,.5);margin-top:1px;" id="docRegDisplay">Reg: AP-MED-2847</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15);display:flex;gap:10px;">
+          <div style="flex:1;background:rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:.56rem;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:2px;">🏥 HOSPITAL</div>
+            <div style="font-size:.76rem;font-weight:800;color:#fff;">Sri Sai Hospital</div>
+            <div style="font-size:.58rem;color:rgba(255,255,255,.6);">MG Road, Hanamkonda</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:.56rem;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:2px;">⏰ SHIFT</div>
+            <div style="font-size:.76rem;font-weight:800;color:#fff;" id="shiftDisplay">9:00 AM – 2:00 PM</div>
+            <div style="font-size:.58rem;color:rgba(255,255,255,.6);">🟢 On Duty</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row" id="homeStats">
+        <div class="stat-card clickable" onclick="openStatPopup('issued')">
+          <div class="stat-label">TOTAL ISSUED</div>
+          <div class="stat-value">24</div>
+          <div class="stat-sub">Tap to view ↓</div>
+        </div>
+        <div class="stat-card clickable" onclick="openStatPopup('seen')">
+          <div class="stat-label">SEEN</div>
+          <div class="stat-value green">17</div>
+          <div class="stat-sub">Tap to view ↓</div>
+        </div>
+        <div class="stat-card clickable" onclick="openStatPopup('pending')">
+          <div class="stat-label">PENDING</div>
+          <div class="stat-value gold">6</div>
+          <div class="stat-sub">Tap to view ↓</div>
+        </div>
+        <div class="stat-card clickable" onclick="openStatPopup('noshow')">
+          <div class="stat-label">NO SHOW</div>
+          <div class="stat-value red">1</div>
+          <div class="stat-sub">Tap to view ↓</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">AVG TIME</div>
+          <div class="stat-value purple">8m</div>
+          <div class="stat-sub">Per patient</div>
+        </div>
+      </div>
+
+      <!-- Weekly Chart -->
+      <div style="background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);margin-bottom:12px;">
+        <div style="font-size:.72rem;font-weight:800;margin-bottom:10px;">📊 This Week</div>
+        <div id="weekChart"></div>
+      </div>
+
+      <!-- Go to Queue -->
+      <div style="background:#fff;border-radius:14px;padding:15px;border:1.5px solid var(--teal);display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:12px;" onclick="goScreen('queue',null)">
+        <div>
+          <div style="font-size:.82rem;font-weight:800;">🟢 Now Serving: T-018</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">Lakshmi Devi · Follow-up checkup</div>
+        </div>
+        <div style="font-size:1.2rem;color:var(--teal);">→</div>
+      </div>
+
+      <!-- WA Summary -->
+      <div style="background:#fff;border-radius:14px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:.72rem;font-weight:800;margin-bottom:3px;">📲 WhatsApp End of Day Summary</div>
+        <div style="font-size:.63rem;color:var(--muted);margin-bottom:10px;">Auto-sends daily summary to your registered WhatsApp</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="sendWASummary()" style="flex:1;padding:10px;border-radius:11px;border:none;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;font-size:.73rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">📲 Send Now</button>
+          <button style="flex:1;padding:10px;border-radius:11px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.73rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">⚙️ Auto-send ON</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ QUEUE ═══ -->
+    <div class="screen" id="screen-queue">
+
+      <!-- Soft Banner -->
+      <div class="soft-banner" id="softBanner" style="background:linear-gradient(135deg,#FFB347,#FFCA6B);">
+        <div>
+          <div style="font-size:.75rem;font-weight:800;color:#fff;" id="softBannerText">⏳ Last 3 patients remaining</div>
+          <div style="font-size:.6rem;color:rgba(255,255,255,.8);">Queue almost done for today</div>
+        </div>
+        <button onclick="document.getElementById('softBanner').classList.remove('show')" style="background:rgba(255,255,255,.25);border:none;border-radius:8px;padding:5px 10px;color:#fff;font-size:.65rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">✕</button>
+      </div>
+
+      <!-- Stats mini -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;">
+        <div class="stat-card clickable" onclick="openStatPopup('issued')"><div class="stat-label">ISSUED</div><div class="stat-value" style="font-size:1.2rem;">24</div></div>
+        <div class="stat-card clickable" onclick="openStatPopup('seen')"><div class="stat-label">SEEN</div><div class="stat-value green" style="font-size:1.2rem;">17</div></div>
+        <div class="stat-card clickable" onclick="openStatPopup('pending')"><div class="stat-label">PENDING</div><div class="stat-value gold" style="font-size:1.2rem;">6</div></div>
+        <div class="stat-card clickable" onclick="openStatPopup('noshow')"><div class="stat-label">NO SHOW</div><div class="stat-value red" style="font-size:1.2rem;">1</div></div>
+        <div class="stat-card"><div class="stat-label">AVG</div><div class="stat-value purple" style="font-size:1.2rem;">8m</div></div>
+      </div>
+
+      <!-- Now Serving -->
+      <div class="serving-card">
+        <div class="serving-label">🟢 NOW SERVING</div>
+        <div class="serving-token" id="sToken">T-018</div>
+        <div class="serving-name" id="sName">Lakshmi Devi</div>
+        <div class="serving-chips">
+          <span class="s-chip" id="sAge">29 yrs</span>
+          <span class="s-chip" id="sGender">Female</span>
+          <span class="s-chip" id="sLoc">Hanamkonda</span>
+        </div>
+        <div class="complaint-box">
+          <div class="complaint-label">💊 CHIEF COMPLAINT</div>
+          <div class="complaint-text" id="sComplaint">Follow-up checkup</div>
+        </div>
+        <div class="action-row">
+          <button class="act-btn btn-done" onclick="markDone()">✅ Done</button>
+          <button class="act-btn btn-hold" onclick="openHoldSheet()">⏸ Hold</button>
+          <button class="act-btn btn-skip" onclick="skipToken()">⏭ Skip</button>
+          <button class="act-btn btn-vitals" onclick="toggleVitals()">💉 Vitals</button>
+        </div>
+      </div>
+
+      <!-- Vitals (toggleable) -->
+      <div class="opt-panel" id="vitalsPanel" style="display:none;">
+        <div class="opt-header" onclick="toggleSection('vbody','varr')">
+          <div class="opt-title">💉 Vitals <span class="opt-tag">OPTIONAL</span></div>
+          <span class="arr open" id="varr">▼</span>
+        </div>
+        <div class="opt-body open" id="vbody">
+          <div class="vitals-grid">
+            <div class="v-wrap"><div class="v-label">BLOOD PRESSURE</div><input class="v-input" id="vBP" placeholder="120/80"/><div class="v-unit">mmHg</div></div>
+            <div class="v-wrap"><div class="v-label">TEMPERATURE</div><input class="v-input" id="vTemp" placeholder="98.6"/><div class="v-unit">°F</div></div>
+            <div class="v-wrap"><div class="v-label">WEIGHT</div><input class="v-input" id="vWt" placeholder="65"/><div class="v-unit">kg</div></div>
+          </div>
+          <button onclick="saveVitals()" style="margin-top:12px;padding:9px 20px;border-radius:10px;border:none;background:var(--teal-light);color:var(--teal);font-size:.73rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">Save Vitals ✓</button>
+        </div>
+      </div>
+
+      <!-- Prescription -->
+      <div class="opt-panel">
+        <div class="opt-header" onclick="toggleSection('rxbody','rxarr')">
+          <div class="opt-title">📝 Prescription <span class="opt-tag">OPTIONAL</span></div>
+          <span class="arr" id="rxarr">▼</span>
+        </div>
+        <div class="opt-body" id="rxbody">
+          <textarea class="rx-area" id="rxText" rows="4" placeholder="Type medicines, dosage, instructions...&#10;e.g. Tab. Paracetamol 500mg — 1-0-1 × 5 days"></textarea>
+          <div class="rx-chips">
+            <button class="rx-chip" onclick="addRx('Tab. Paracetamol 500mg — 1-0-1 × 5 days')">Paracetamol</button>
+            <button class="rx-chip" onclick="addRx('Tab. Amoxicillin 500mg — 1-0-1 × 7 days')">Amoxicillin</button>
+            <button class="rx-chip" onclick="addRx('Tab. Cetirizine 10mg — 0-0-1 × 5 days')">Cetirizine</button>
+            <button class="rx-chip" onclick="addRx('Tab. Omeprazole 20mg — 1-0-0 (before food)')">Omeprazole</button>
+            <button class="rx-chip" onclick="addRx('Syp. Azithromycin 200mg — 5ml BD × 3 days')">Azithromycin</button>
+            <button class="rx-chip" onclick="addRx('Tab. Metformin 500mg — 1-0-1 (after food)')">Metformin</button>
+          </div>
+          <div class="rx-row">
+            <button class="rx-btn rx-print" onclick="printRx()">🖨️ Print</button>
+            <button class="rx-btn rx-wa" onclick="sendRxWA()">💬 WhatsApp</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Follow-up -->
+      <div class="opt-panel">
+        <div class="opt-header" onclick="toggleSection('fubody','fuarr')">
+          <div class="opt-title">🔁 Follow-up <span class="opt-tag">OPTIONAL</span></div>
+          <span class="arr" id="fuarr">▼</span>
+        </div>
+        <div class="opt-body" id="fubody">
+          <div style="font-size:.7rem;color:var(--muted);margin-bottom:10px;">Come back in:</div>
+          <div class="fu-chips">
+            <button class="fu-chip" onclick="pickFU(this,'3 days')">3 Days</button>
+            <button class="fu-chip" onclick="pickFU(this,'5 days')">5 Days</button>
+            <button class="fu-chip" onclick="pickFU(this,'7 days')">1 Week</button>
+            <button class="fu-chip" onclick="pickFU(this,'10 days')">10 Days</button>
+            <button class="fu-chip" onclick="pickFU(this,'15 days')">15 Days</button>
+            <button class="fu-chip" onclick="pickFU(this,'1 month')">1 Month</button>
+          </div>
+          <div id="fuInfo" style="display:none;background:var(--teal-light);border-radius:10px;padding:9px 12px;font-size:.76rem;font-weight:700;color:var(--teal);margin-bottom:8px;"></div>
+          <button id="fuBtn" style="display:none;width:100%;padding:11px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--teal),#00A88D);color:#fff;font-size:.8rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;" onclick="confirmFU()">✅ Set Follow-up & Notify Patient</button>
+        </div>
+      </div>
+
+      <!-- Quick Note -->
+      <div class="opt-panel">
+        <div class="opt-header" onclick="toggleSection('notebody','notearr')">
+          <div class="opt-title">📌 Quick Note <span class="opt-tag">OPTIONAL</span></div>
+          <span class="arr" id="notearr">▼</span>
+        </div>
+        <div class="opt-body" id="notebody">
+          <textarea class="note-area" id="noteText" rows="2" placeholder="Internal note for this patient (visible only to you)...&#10;e.g. BP high, monitor next visit"></textarea>
+          <button onclick="saveNote()" style="margin-top:8px;padding:8px 18px;border-radius:10px;border:none;background:var(--teal-light);color:var(--teal);font-size:.72rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">📌 Save Note</button>
+        </div>
+      </div>
+
+      <!-- Queue List -->
+      <div class="q-header" style="margin-top:16px;">
+        <div class="q-title">⏳ Queue</div>
+        <div class="q-count" id="qCount">6 waiting</div>
+      </div>
+      <div class="q-list" id="qList"></div>
+    </div>
+
+    <!-- ═══ HISTORY ═══ -->
+    <div class="screen" id="screen-history">
+      <div style="position:relative;margin-bottom:14px;">
+        <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);">🔍</span>
+        <input type="text" id="histInput" placeholder="Search by name or mobile..." oninput="searchHist(this.value)"
+          style="width:100%;padding:13px 13px 13px 40px;border:1.5px solid var(--border);border-radius:13px;font-size:.83rem;font-family:'Poppins',sans-serif;outline:none;background:#fff;"/>
+      </div>
+      <div id="histResults"></div>
+    </div>
+
+    <!-- ═══ SCHEDULE ═══ -->
+    <div class="screen" id="screen-schedule">
+      <div class="sched-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div class="sched-title" style="margin-bottom:0;">📅 Weekly Schedule</div>
+          <button onclick="toggleSchedEdit()" id="schedBtn" style="padding:6px 14px;border-radius:10px;border:1.5px solid var(--teal);background:var(--teal-light);color:var(--teal);font-size:.68rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">✏️ Edit</button>
+        </div>
+        <div id="schedView"></div>
+        <div id="schedEditWrap" style="display:none;"></div>
+        <div id="schedBtns" style="display:none;margin-top:12px;">
+          <div style="display:flex;gap:8px;">
+            <button onclick="saveSchedule()" style="flex:2;padding:11px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--teal),#00A88D);color:#fff;font-size:.78rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">✅ Save Schedule</button>
+            <button onclick="cancelSchedEdit()" style="flex:1;padding:11px;border-radius:11px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.73rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="sched-card">
+        <div class="sched-title">📊 This Month</div>
+        <div class="prof-row"><span class="prof-label">WORKING DAYS</span><span class="prof-val">22 days</span></div>
+        <div class="prof-row"><span class="prof-label">PATIENTS SEEN</span><span class="prof-val" style="color:var(--teal);">386</span></div>
+        <div class="prof-row"><span class="prof-label">AVG PER DAY</span><span class="prof-val">17.5</span></div>
+        <div class="prof-row"><span class="prof-label">LEAVES TAKEN</span><span class="prof-val">2 days</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ PROFILE ═══ -->
+    <div class="screen" id="screen-profile">
+      <div class="prof-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div class="prof-avatar">👨‍⚕️</div>
+          <button onclick="toggleProfEdit()" id="profEditBtn" style="padding:7px 16px;border-radius:10px;border:1.5px solid var(--teal);background:var(--teal-light);color:var(--teal);font-size:.7rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">✏️ Edit</button>
+        </div>
+        <!-- View -->
+        <div id="profView">
+          <div class="prof-name" id="pv-name">Dr. Ramesh Kumar</div>
+          <div class="prof-qual" id="pv-qual">MBBS, MD (General Medicine)</div>
+          <div style="height:1px;background:var(--border);margin:13px 0;"></div>
+          <div class="prof-row"><span class="prof-label">REGISTRATION NO</span><span class="prof-val" id="pv-reg">AP-MED-2847</span></div>
+          <div class="prof-row"><span class="prof-label">SPECIALIZATION</span><span class="prof-val" id="pv-spec">General Medicine</span></div>
+          <div class="prof-row"><span class="prof-label">EXPERIENCE</span><span class="prof-val" id="pv-exp">12 Years</span></div>
+          <div class="prof-row"><span class="prof-label">HOSPITAL</span><span class="prof-val">Sri Sai Hospital</span></div>
+          <div class="prof-row"><span class="prof-label">MOBILE</span><span class="prof-val" id="pv-mob">9876543210</span></div>
+          <div class="prof-row"><span class="prof-label">WHATSAPP</span><span class="prof-val" id="pv-wa">9876543210</span></div>
+        </div>
+        <!-- Edit -->
+        <div id="profEdit" style="display:none;">
+          <div style="height:1px;background:var(--border);margin:10px 0 14px;"></div>
+          <div style="margin-bottom:10px;">
+            <div class="prof-label">FULL NAME *</div>
+            <input class="p-input" id="pe-name" value="Dr. Ramesh Kumar"/>
+          </div>
+          <div style="margin-bottom:10px;">
+            <div class="prof-label">QUALIFICATION *</div>
+            <input class="p-input" id="pe-qual" value="MBBS, MD (General Medicine)"/>
+          </div>
+          <div style="margin-bottom:10px;">
+            <div class="prof-label">REGISTRATION NO <span style="color:var(--muted);font-weight:500;">(optional)</span></div>
+            <input class="p-input" id="pe-reg" value="AP-MED-2847"/>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div><div class="prof-label">SPECIALIZATION</div><input class="p-input" id="pe-spec" value="General Medicine"/></div>
+            <div><div class="prof-label">EXPERIENCE</div><input class="p-input" id="pe-exp" value="12 Years"/></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+            <div><div class="prof-label">MOBILE *</div><input class="p-input" type="tel" id="pe-mob" value="9876543210"/></div>
+            <div><div class="prof-label">WHATSAPP</div><input class="p-input" type="tel" id="pe-wa" value="9876543210"/></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="saveProfile()" style="flex:2;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--teal),#00A88D);color:#fff;font-size:.8rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">✅ Save Changes</button>
+            <button onclick="cancelProfEdit()" style="flex:1;padding:12px;border-radius:11px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.75rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <!-- Preferences -->
+      <div class="prof-card">
+        <div class="sched-title">⚙️ Preferences</div>
+        <div class="prof-row" style="cursor:pointer;" onclick="togglePref('wa',this)">
+          <span style="font-size:.78rem;">📲 WhatsApp Daily Summary</span>
+          <span id="pref-wa" style="font-size:.73rem;font-weight:700;color:var(--teal);">ON ✅</span>
+        </div>
+        <div class="prof-row" style="cursor:pointer;" onclick="togglePref('notif',this)">
+          <span style="font-size:.78rem;">🔔 New Token Notification</span>
+          <span id="pref-notif" style="font-size:.73rem;font-weight:700;color:var(--teal);">ON ✅</span>
+        </div>
+        <div class="prof-row" style="cursor:pointer;" onclick="togglePref('rxt',this)">
+          <span style="font-size:.78rem;">📝 Auto Prescription Template</span>
+          <span id="pref-rxt" style="font-size:.73rem;font-weight:700;color:var(--muted);">OFF</span>
+        </div>
+        <div class="prof-row" style="cursor:pointer;" onclick="togglePref('qalert',this)">
+          <span style="font-size:.78rem;">⚠️ Queue Alert (10+ patients)</span>
+          <span id="pref-qalert" style="font-size:.73rem;font-weight:700;color:var(--teal);">ON ✅</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+  <div class="mn-item active" id="mn-home" onclick="goScreen('home',null);setMN('home')"><span class="mn-icon">🏠</span><span class="mn-label">Home</span></div>
+  <div class="mn-item" id="mn-queue" onclick="goScreen('queue',null);setMN('queue')"><span class="mn-icon">🏥</span><span class="mn-label">Queue</span></div>
+  <div class="mn-item" id="mn-history" onclick="goScreen('history',null);setMN('history')"><span class="mn-icon">📖</span><span class="mn-label">History</span></div>
+  <div class="mn-item" id="mn-schedule" onclick="goScreen('schedule',null);setMN('schedule')"><span class="mn-icon">📅</span><span class="mn-label">Schedule</span></div>
+  <div class="mn-item" id="mn-profile" onclick="goScreen('profile',null);setMN('profile')"><span class="mn-icon">👨‍⚕️</span><span class="mn-label">Profile</span></div>
+</div>
+
+<!-- PATIENT DETAIL SHEET -->
+<div class="overlay" id="patOv" onclick="if(event.target===this)closeSheet('patOv','patSh')">
+  <div class="sheet" id="patSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('patOv','patSh')">✕</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="background:var(--teal-light);border-radius:10px;padding:5px 13px;"><span id="pd-token" style="font-size:.88rem;font-weight:900;color:var(--teal);"></span></div>
+    </div>
+    <div style="background:linear-gradient(135deg,var(--teal),#00A88D);border-radius:15px;padding:15px 17px;margin-bottom:12px;">
+      <div style="font-size:.58rem;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px;">PATIENT</div>
+      <div id="pd-name" style="font-size:1.15rem;font-weight:900;color:#fff;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;">
+      <div style="background:var(--bg);border-radius:12px;padding:12px;border:1px solid var(--border);">
+        <div style="font-size:.56rem;font-weight:700;color:var(--muted);margin-bottom:4px;">📱 PHONE</div>
+        <div id="pd-phone" style="font-size:.83rem;font-weight:800;"></div>
+      </div>
+      <div style="background:var(--bg);border-radius:12px;padding:12px;border:1px solid var(--border);">
+        <div style="font-size:.56rem;font-weight:700;color:var(--muted);margin-bottom:4px;">👤 AGE</div>
+        <div id="pd-age" style="font-size:.83rem;font-weight:800;"></div>
+      </div>
+      <div style="background:var(--bg);border-radius:12px;padding:12px;border:1px solid var(--border);">
+        <div style="font-size:.56rem;font-weight:700;color:var(--muted);margin-bottom:4px;">📍 LOCATION</div>
+        <div id="pd-loc" style="font-size:.83rem;font-weight:800;"></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#FFF4E6,#FFFDF5);border-radius:12px;padding:12px;border:1px solid #FFE0A0;">
+        <div style="font-size:.56rem;font-weight:700;color:#CC7A00;margin-bottom:4px;">💊 COMPLAINT</div>
+        <div id="pd-complaint" style="font-size:.78rem;font-weight:800;line-height:1.4;"></div>
+      </div>
+    </div>
+    <button onclick="closeSheet('patOv','patSh')" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.8rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">Close</button>
+  </div>
+</div>
+
+<!-- HOLD SHEET -->
+<div class="overlay" id="holdOv" onclick="if(event.target===this)closeSheet('holdOv','holdSh')">
+  <div class="sheet" id="holdSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('holdOv','holdSh')">✕</button>
+    <div class="sh-title">⏸ Doctor Hold</div>
+    <div class="sh-sub">Select reason and resume time</div>
+    <div class="reason-chip" onclick="pickHold(this,'Lunch Break')"><span style="font-size:1.2rem;">🍽️</span><span style="font-size:.82rem;font-weight:700;">Lunch Break</span></div>
+    <div class="reason-chip" onclick="pickHold(this,'Emergency')"><span style="font-size:1.2rem;">🚨</span><span style="font-size:.82rem;font-weight:700;">Emergency</span></div>
+    <div class="reason-chip" onclick="pickHold(this,'Hospital Rounds')"><span style="font-size:1.2rem;">🔄</span><span style="font-size:.82rem;font-weight:700;">Hospital Rounds</span></div>
+    <div style="margin-top:14px;">
+      <div class="prof-label" style="margin-bottom:6px;">RESUME TIME</div>
+      <input type="time" id="holdTime" value="13:00" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:11px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;"/>
+      <div id="holdTimeDisplay" style="font-size:.67rem;color:var(--teal);margin-top:4px;"></div>
+    </div>
+    <button onclick="confirmHold()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#FF6B6B,#FF4444);color:#fff;font-size:.86rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;margin-top:14px;">Confirm Hold ⏸</button>
+  </div>
+</div>
+
+<!-- STATS POPUP -->
+<div class="st-popup" id="stPopup" onclick="if(event.target===this)closeStatPopup()">
+  <div class="st-popup-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-size:.9rem;font-weight:800;" id="stTitle">Patients</div>
+      <button onclick="closeStatPopup()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+    <div id="stList"></div>
+  </div>
+</div>
+
+<!-- NOTIF PANEL -->
+<div class="overlay notif-side" id="notifOv" onclick="if(event.target===this)closeNotif()">
+  <div class="notif-panel" id="notifPanel">
+    <div style="position:sticky;top:0;background:#fff;z-index:2;padding:18px 16px 12px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:.9rem;font-weight:800;">Notifications</div>
+      <button onclick="closeNotif()" style="background:none;border:none;font-size:1rem;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+    <div style="padding:12px;">
+      <div style="background:var(--teal-light);border-radius:12px;padding:12px;margin-bottom:8px;border:1.5px solid var(--teal);">
+        <div style="font-size:.75rem;font-weight:800;color:var(--teal);">🔔 T-019 — Next in queue</div>
+        <div style="font-size:.63rem;color:var(--muted);margin-top:3px;">Suresh Yadav · Fever · 2 min ago</div>
+      </div>
+      <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid #f0f0f0;">
+        <div style="font-size:.75rem;font-weight:700;">🔁 Follow-up due today</div>
+        <div style="font-size:.63rem;color:var(--muted);margin-top:3px;">Arjun Kumar — set 7 days ago</div>
+      </div>
+      <div style="background:#fff;border-radius:12px;padding:12px;border:1px solid #f0f0f0;">
+        <div style="font-size:.75rem;font-weight:700;">📊 Yesterday's summary sent</div>
+        <div style="font-size:.63rem;color:var(--muted);margin-top:3px;">18 patients seen · WhatsApp delivered</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+document.getElementById('todayDate').textContent =
+  new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+var _n = Date.now();
+var serving = {token:'T-018',name:'Lakshmi Devi',age:'29',gender:'Female',location:'Hanamkonda',complaint:'Follow-up checkup',phone:'8877665544',skipCount:0};
+
+var queue = [
+  {token:'T-019',name:'Suresh Yadav',  phone:'9988776655',age:'42',gender:'Male',  location:'Kazipet',    complaint:'Fever since 2 days', since:_n-38*60000,held:false,skipCount:0},
+  {token:'T-020',name:'Lakshmi Devi',  phone:'8877665544',age:'29',gender:'Female',location:'Hanamkonda', complaint:'Follow-up checkup',  since:_n-29*60000,held:false,skipCount:0},
+  {token:'T-021',name:'Arjun Kumar',   phone:'7766554433',age:'35',gender:'Male',  location:'Warangal',   complaint:'Cold & Cough',       since:_n-22*60000,held:false,skipCount:0},
+  {token:'T-022',name:'Priya Reddy',   phone:'6655443322',age:'26',gender:'Female',location:'Kazipet',    complaint:'Knee pain',          since:_n-15*60000,held:false,skipCount:0},
+  {token:'T-023',name:'Venkat Rao',    phone:'9876512345',age:'55',gender:'Male',  location:'Hanamkonda', complaint:'Diabetes follow-up', since:_n-9*60000, held:false,skipCount:0},
+  {token:'T-024',name:'Sita Devi',     phone:'8765423456',age:'32',gender:'Female',location:'Warangal',   complaint:'Routine checkup',    since:_n-4*60000, held:false,skipCount:0},
+];
+
+var allPatients = [
+  {token:'T-001',name:'Krishna Rao',  status:'seen',   complaint:'Fever'},
+  {token:'T-002',name:'Meena Devi',   status:'seen',   complaint:'Cold'},
+  {token:'T-003',name:'Raju Yadav',   status:'seen',   complaint:'BP checkup'},
+  {token:'T-004',name:'Saritha',      status:'seen',   complaint:'Headache'},
+  {token:'T-005',name:'Venkat',       status:'seen',   complaint:'Diabetes follow-up'},
+  {token:'T-006',name:'Lakshmi',      status:'seen',   complaint:'Fever'},
+  {token:'T-007',name:'Suresh',       status:'seen',   complaint:'Cough'},
+  {token:'T-008',name:'Priya',        status:'seen',   complaint:'Stomach pain'},
+  {token:'T-009',name:'Arjun',        status:'seen',   complaint:'Cold & Cough'},
+  {token:'T-010',name:'Anita',        status:'seen',   complaint:'Body pain'},
+  {token:'T-011',name:'Ravi',         status:'seen',   complaint:'Fever'},
+  {token:'T-012',name:'Kavitha',      status:'seen',   complaint:'Follow-up'},
+  {token:'T-013',name:'Srinivas',     status:'seen',   complaint:'Diabetes'},
+  {token:'T-014',name:'Padma',        status:'seen',   complaint:'Headache'},
+  {token:'T-015',name:'Ravi Kumar',   status:'seen',   complaint:'BP'},
+  {token:'T-016',name:'Anita Sharma', status:'seen',   complaint:'Cold'},
+  {token:'T-017',name:'Suresh Yadav', status:'seen',   complaint:'Fever'},
+  {token:'T-018',name:'Lakshmi Devi', status:'serving',complaint:'Follow-up checkup'},
+  {token:'T-019',name:'Suresh Yadav', status:'pending',complaint:'Fever since 2 days'},
+  {token:'T-020',name:'Lakshmi Devi', status:'pending',complaint:'Follow-up'},
+  {token:'T-021',name:'Arjun Kumar',  status:'pending',complaint:'Cold & Cough'},
+  {token:'T-022',name:'Priya Reddy',  status:'pending',complaint:'Knee pain'},
+  {token:'T-023',name:'Venkat Rao',   status:'pending',complaint:'Diabetes follow-up'},
+  {token:'T-024',name:'Sita Devi',    status:'noshow', complaint:'Routine checkup'},
+];
+
+var historyDB = [
+  {name:'Ramesh Kumar',  mobile:'9876543210', visits:[
+    {date:'13 Mar 2026',complaint:'Fever',              rx:'Tab. Paracetamol 500mg — 1-0-1 × 5 days',fu:'—'},
+    {date:'5 Dec 2025', complaint:'Cold & Cough',       rx:'Tab. Cetirizine + Amoxicillin',          fu:'7 days'},
+    {date:'2 Sep 2025', complaint:'General checkup',    rx:'Nil',                                    fu:'3 months'},
+  ]},
+  {name:'Suresh Yadav',  mobile:'9988776655', visits:[
+    {date:'13 Mar 2026',complaint:'Fever since 2 days', rx:'Tab. Paracetamol 500mg × 5 days',        fu:'3 days'},
+    {date:'2 Jan 2026', complaint:'Cold & Cough',       rx:'Tab. Cetirizine + Amoxicillin',          fu:'—'},
+    {date:'14 Oct 2025',complaint:'Body pain',          rx:'Tab. Ibuprofen 400mg',                   fu:'—'},
+  ]},
+  {name:'Lakshmi Devi',  mobile:'8877665544', visits:[
+    {date:'13 Mar 2026',complaint:'Follow-up checkup',  rx:'Tab. Metformin 500mg — 1-0-1',           fu:'15 days'},
+    {date:'28 Feb 2026',complaint:'Diabetes review',    rx:'Tab. Metformin 500mg — 1-0-1',           fu:'15 days'},
+    {date:'14 Jan 2026',complaint:'Sugar level high',   rx:'Tab. Metformin 1000mg + Diet advice',    fu:'15 days'},
+  ]},
+  {name:'Arjun Kumar',   mobile:'7766554433', visits:[
+    {date:'10 Mar 2026',complaint:'Cold & Cough',       rx:'Tab. Amoxicillin 500mg × 7 days',        fu:'7 days'},
+    {date:'18 Nov 2025',complaint:'Throat pain',        rx:'Tab. Azithromycin 500mg × 3 days',       fu:'—'},
+  ]},
+  {name:'Priya Reddy',   mobile:'6655443322', visits:[
+    {date:'8 Mar 2026', complaint:'Knee pain',          rx:'Tab. Ibuprofen 400mg + Physiotherapy',   fu:'10 days'},
+  ]},
+  {name:'Venkat Rao',    mobile:'9876512345', visits:[
+    {date:'13 Mar 2026',complaint:'Diabetes follow-up', rx:'Continue current medication',             fu:'15 days'},
+    {date:'28 Jan 2026',complaint:'Diabetes review',    rx:'Tab. Metformin 500mg',                   fu:'15 days'},
+    {date:'10 Dec 2025',complaint:'Sugar high + Fatigue',rx:'Tab. Metformin 1000mg',                 fu:'1 month'},
+  ]},
+  {name:'Sita Devi',     mobile:'8765423456', visits:[
+    {date:'12 Mar 2026',complaint:'Routine checkup',    rx:'Nil — all normal',                       fu:'6 months'},
+  ]},
+  {name:'Krishna Rao',   mobile:'9123456780', visits:[
+    {date:'13 Mar 2026',complaint:'Fever',              rx:'Tab. Paracetamol 500mg',                  fu:'—'},
+    {date:'5 Feb 2026', complaint:'BP checkup',         rx:'Tab. Amlodipine 5mg',                    fu:'1 month'},
+    {date:'6 Jan 2026', complaint:'Headache + BP high', rx:'Tab. Amlodipine 5mg — 1-0-0',            fu:'15 days'},
+  ]},
+  {name:'Meena Devi',    mobile:'9234567801', visits:[
+    {date:'13 Mar 2026',complaint:'Cold',               rx:'Tab. Cetirizine 10mg',                   fu:'—'},
+  ]},
+  {name:'Padma Reddy',   mobile:'9345678012', visits:[
+    {date:'13 Mar 2026',complaint:'Headache',           rx:'Tab. Paracetamol 650mg',                 fu:'3 days'},
+    {date:'20 Feb 2026',complaint:'Migraine',           rx:'Tab. Sumatriptan 50mg',                  fu:'7 days'},
+  ]},
+];
+
+var scheduleData = [
+  {day:'Mon',start:'09:00',end:'14:00',on:true},
+  {day:'Tue',start:'09:00',end:'14:00',on:true},
+  {day:'Wed',start:'09:00',end:'14:00',on:true},
+  {day:'Thu',start:'09:00',end:'14:00',on:true},
+  {day:'Fri',start:'09:00',end:'14:00',on:true},
+  {day:'Sat',start:'09:00',end:'13:00',on:true},
+  {day:'Sun',start:'09:00',end:'13:00',on:false},
+];
+
+var prefs = {wa:true,notif:true,rxt:false,qalert:true};
+var patNotes = {};
+var selectedHold = '';
+var selectedFU = '';
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+var titles = {home:'Dashboard',queue:'Queue',history:'Patient History',schedule:'Schedule',profile:'Profile'};
+function goScreen(id, sbEl) {
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('tbTitle').textContent = titles[id]||id;
+  document.querySelectorAll('.sb-item').forEach(function(el,i){
+    el.classList.toggle('active',['home','queue','history','schedule','profile'][i]===id);
+  });
+}
+function setMN(id) {
+  ['home','queue','history','schedule','profile'].forEach(function(k){
+    var el=document.getElementById('mn-'+k);
+    if(el) el.classList.toggle('active',k===id);
+  });
+}
+
+// ══════════════════════════════════════════
+//  QUEUE
+// ══════════════════════════════════════════
+function wMin(since) {
+  if(!since) return '';
+  var m=Math.floor((Date.now()-since)/60000);
+  return m<1?'Just arrived':m+'m';
+}
+function wCol(since) {
+  if(!since) return 'var(--teal)';
+  var m=Math.floor((Date.now()-since)/60000);
+  return m>30?'#FF6B6B':m>15?'#FFB347':'var(--teal)';
+}
+
+function renderQueue() {
+  var waiting = queue.filter(function(q){return !q.held;});
+  var held    = queue.filter(function(q){return  q.held;});
+  var all = waiting.concat(held);
+  document.getElementById('qCount').textContent = queue.length+' waiting';
+  document.getElementById('qList').innerHTML = all.map(function(q) {
+    var w=wMin(q.since), c=wCol(q.since);
+    var badge = q.held
+      ? '<span class="q-badge badge-h">Hold</span>'
+      : '<span class="q-badge badge-w">Waiting</span>';
+    return '<div class="q-card'+(q.held?' held':'')+'">' +
+      '<div class="q-token-box">' +
+        '<div class="q-tok">'+q.token+'</div>' +
+        '<div class="q-wait" style="color:'+c+';">'+w+'</div>' +
+      '</div>' +
+      '<div class="q-info" onclick="openPatDetail(\''+q.token+'\')">' +
+        '<div class="q-name">'+q.name+' ›</div>' +
+        '<div class="q-sub">'+q.age+' yrs · '+q.gender+'</div>' +
+        '<div class="q-complaint-tag">💊 '+q.complaint+'</div>' +
+      '</div>' +
+      '<div>'+badge+'</div>' +
+    '</div>';
+  }).join('');
+  checkSoftBanner();
+}
+setInterval(renderQueue, 60000);
+
+function checkSoftBanner() {
+  var active = queue.filter(function(q){return !q.held;}).length;
+  var banner = document.getElementById('softBanner');
+  if(active<=3 && active>0) {
+    var col = active===1 ? 'linear-gradient(135deg,#FF9500,#FFAE33)' : 'linear-gradient(135deg,#FFB347,#FFCA6B)';
+    banner.style.background = col;
+    document.getElementById('softBannerText').textContent =
+      active===1 ? '⏳ Last patient remaining' : '⏳ Last '+active+' patients remaining';
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function markDone() {
+  if(!queue.length){alert('Queue is empty!');return;}
+  var next = queue.shift();
+  serving = next;
+  document.getElementById('sToken').textContent    = next.token;
+  document.getElementById('sName').textContent     = next.name;
+  document.getElementById('sAge').textContent      = next.age+' yrs';
+  document.getElementById('sGender').textContent   = next.gender;
+  document.getElementById('sLoc').textContent      = next.location;
+  document.getElementById('sComplaint').textContent= next.complaint;
+  // reset optionals
+  document.getElementById('rxText').value='';
+  document.getElementById('noteText').value='';
+  document.getElementById('vBP').value='';
+  document.getElementById('vTemp').value='';
+  document.getElementById('vWt').value='';
+  selectedFU='';
+  document.getElementById('fuInfo').style.display='none';
+  document.getElementById('fuBtn').style.display='none';
+  document.querySelectorAll('.fu-chip').forEach(function(c){c.classList.remove('sel');});
+  renderQueue();
+}
+
+function skipToken() {
+  var skipped = Object.assign({},serving,{skipCount:(serving.skipCount||0)+1,since:serving.since});
+  queue.splice(Math.min(1,queue.length),0,skipped);
+  markDone();
+}
+
+function openPatDetail(token) {
+  var q=queue.find(function(x){return x.token===token;});
+  if(!q) return;
+  document.getElementById('pd-token').textContent   = q.token;
+  document.getElementById('pd-name').textContent    = q.name;
+  document.getElementById('pd-phone').textContent   = q.phone||'—';
+  document.getElementById('pd-age').textContent     = (q.age||'—')+' yrs · '+(q.gender||'');
+  document.getElementById('pd-loc').textContent     = q.location||'—';
+  document.getElementById('pd-complaint').textContent= q.complaint||'—';
+  openSheet('patOv','patSh');
+}
+
+function toggleVitals() {
+  var p=document.getElementById('vitalsPanel');
+  p.style.display = (p.style.display==='none'||!p.style.display) ? 'block' : 'none';
+}
+
+function saveVitals() {
+  var bp=document.getElementById('vBP').value, t=document.getElementById('vTemp').value, w=document.getElementById('vWt').value;
+  alert('Vitals saved!\nBP: '+(bp||'—')+' mmHg  Temp: '+(t||'—')+'°F  Weight: '+(w||'—')+' kg');
+}
+
+function addRx(txt) {
+  var ta=document.getElementById('rxText');
+  ta.value = ta.value ? ta.value+'\n'+txt : txt;
+}
+function printRx() {
+  var rx=document.getElementById('rxText').value;
+  if(!rx){alert('Prescription is empty');return;}
+  var wn=window.open('','_blank','width=360,height=520');
+  if(wn){
+    wn.document.write('<html><head><style>body{font-family:Arial;padding:20px;max-width:300px;}h2{color:#00C9A7;}pre{font-size:.85rem;line-height:1.7;white-space:pre-wrap;}</style></head><body>'+
+      '<h2>❤️ HALSAA Prescription</h2><p><b>'+document.getElementById('pv-name').textContent+'</b><br>'+
+      document.getElementById('pv-qual').textContent+'<br>Sri Sai Hospital, Hanamkonda</p><hr>'+
+      '<p><b>Patient:</b> '+serving.name+'<br><b>Date:</b> '+new Date().toLocaleDateString('en-IN')+'</p><hr>'+
+      '<pre>'+rx+'</pre><hr><p style="font-size:.7rem;color:#999;">HALSAA · halsaa.in</p></body></html>');
+    wn.document.close(); wn.print();
+  }
+}
+function sendRxWA() {
+  var rx=document.getElementById('rxText').value;
+  if(!rx){alert('Prescription is empty');return;}
+  var msg='*HALSAA Prescription*\n'+document.getElementById('pv-name').textContent+'\nPatient: '+serving.name+'\n\n'+rx+'\n\nhalsaa.in';
+  window.open('https://wa.me/91'+serving.phone+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function pickFU(el,days) {
+  document.querySelectorAll('.fu-chip').forEach(function(c){c.classList.remove('sel');});
+  el.classList.add('sel'); selectedFU=days;
+  var info=document.getElementById('fuInfo');
+  info.style.display='block';
+  info.textContent='📅 Follow-up in '+days+' — patient will be notified via WhatsApp';
+  document.getElementById('fuBtn').style.display='block';
+}
+function confirmFU() {
+  alert('✅ Follow-up set: '+selectedFU+'\nPatient '+serving.name+' will receive a reminder.');
+}
+
+function saveNote() {
+  var n=document.getElementById('noteText').value.trim();
+  if(!n) return;
+  patNotes[serving.token]=n;
+  var ta=document.getElementById('noteText');
+  ta.style.borderColor='var(--teal)';
+  setTimeout(function(){ta.style.borderColor='var(--border)';},800);
+}
+
+function toggleSection(bodyId, arrId) {
+  var b=document.getElementById(bodyId), a=document.getElementById(arrId);
+  var open=b.classList.toggle('open');
+  if(a) a.classList.toggle('open',open);
+}
+
+// ══════════════════════════════════════════
+//  HOLD
+// ══════════════════════════════════════════
+function openHoldSheet(){ openSheet('holdOv','holdSh'); }
+function pickHold(el,reason) {
+  document.querySelectorAll('.reason-chip').forEach(function(c){c.classList.remove('sel');});
+  el.classList.add('sel'); selectedHold=reason; updateHoldTime();
+}
+function updateHoldTime() {
+  var t=document.getElementById('holdTime').value;
+  if(t&&selectedHold){
+    var p=t.split(':'),h=parseInt(p[0]),m=p[1],ap=h>=12?'PM':'AM';h=h%12||12;
+    document.getElementById('holdTimeDisplay').textContent='Resuming at '+h+':'+m+' '+ap+' · Patients will be notified';
+  }
+}
+document.getElementById('holdTime').addEventListener('change',updateHoldTime);
+function confirmHold() {
+  if(!selectedHold){alert('Please select a reason');return;}
+  var t=document.getElementById('holdTime').value;
+  var p=t.split(':'),h=parseInt(p[0]),m=p[1],ap=h>=12?'PM':'AM';h=h%12||12;
+  closeSheet('holdOv','holdSh');
+  var b=document.getElementById('holdBanner');
+  document.getElementById('holdTitle').textContent='⏸ Queue on Hold · '+selectedHold;
+  document.getElementById('holdSub').textContent='Resuming at '+h+':'+m+' '+ap;
+  b.classList.add('show');
+}
+function resumeHold(){ document.getElementById('holdBanner').classList.remove('show'); }
+
+// ══════════════════════════════════════════
+//  STATS POPUP
+// ══════════════════════════════════════════
+var statColors={seen:'#00C853',pending:'#FFB347',serving:'#00C9A7',noshow:'#FF6B6B'};
+var statLabels={seen:'✅ Seen',pending:'⏳ Pending',serving:'🟢 Serving',noshow:'⚠️ No Show'};
+var statTitles={issued:'All Tokens (24)',seen:'Seen (17)',pending:'Pending (6)',noshow:'No Show (1)'};
+
+function openStatPopup(type) {
+  var filtered;
+  if(type==='issued') filtered=allPatients;
+  else if(type==='seen') filtered=allPatients.filter(function(p){return p.status==='seen';});
+  else if(type==='pending') filtered=allPatients.filter(function(p){return p.status==='pending'||p.status==='serving';});
+  else filtered=allPatients.filter(function(p){return p.status==='noshow';});
+  document.getElementById('stTitle').textContent=statTitles[type]||'Patients';
+  document.getElementById('stList').innerHTML = filtered.map(function(p) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;" onclick="jumpToHistory(\''+p.name+'\')">' +
+      '<div>' +
+        '<span style="font-size:.7rem;font-weight:800;color:var(--teal);">'+p.token+'</span>' +
+        '<span style="font-size:.78rem;font-weight:700;margin-left:10px;">'+p.name+' ›</span>' +
+        '<div style="font-size:.62rem;color:var(--muted);margin-top:1px;margin-left:42px;">'+p.complaint+'</div>' +
+      '</div>' +
+      '<span style="font-size:.6rem;font-weight:700;color:'+(statColors[p.status]||'var(--muted)')+';">'+(statLabels[p.status]||'')+'</span>' +
+    '</div>';
+  }).join('');
+  document.getElementById('stPopup').classList.add('show');
+}
+function closeStatPopup(){ document.getElementById('stPopup').classList.remove('show'); }
+function jumpToHistory(name) {
+  closeStatPopup();
+  goScreen('history',null); setMN('history');
+  setTimeout(function(){
+    var inp=document.getElementById('histInput');
+    if(inp){inp.value=name;searchHist(name);}
+  },200);
+}
+
+// ══════════════════════════════════════════
+//  PATIENT HISTORY
+// ══════════════════════════════════════════
+function searchHist(val) {
+  var res=document.getElementById('histResults');
+  if(!val||val.length<1){res.innerHTML='';return;}
+  var q=val.toLowerCase();
+  var found=historyDB.filter(function(p){
+    return p.name.toLowerCase().includes(q)||p.mobile.includes(q);
+  });
+  if(!found.length){
+    res.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:.8rem;">No patient found</div>';
+    return;
+  }
+  // Show patient CARDS — click to expand full history
+  res.innerHTML=found.map(function(p){
+    var last=p.visits[0];
+    return '<div data-mobile="'+p.mobile+'" class="pat-card" style="background:var(--card);border-radius:14px;padding:14px;border:1.5px solid var(--border);margin-bottom:10px;cursor:pointer;">' +
+      '<div style="display:flex;align-items:center;gap:12px;pointer-events:none;">' +
+        '<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--teal),#00A88D);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">👤</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:.88rem;font-weight:800;">'+p.name+'</div>' +
+          '<div style="font-size:.65rem;color:var(--muted);">📱 '+p.mobile+'</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div style="font-size:.72rem;font-weight:800;color:var(--teal);">'+p.visits.length+' visit'+(p.visits.length>1?'s':'')+'</div>' +
+          '<div style="font-size:.6rem;color:var(--muted);">Last: '+last.date+'</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:10px;padding:9px 11px;background:var(--bg);border-radius:10px;border:1px solid var(--border);pointer-events:none;">' +
+        '<div style="font-size:.6rem;font-weight:700;color:var(--muted);margin-bottom:2px;">LAST VISIT</div>' +
+        '<div style="font-size:.76rem;font-weight:700;">💊 '+last.complaint+'</div>' +
+        '<div style="font-size:.62rem;color:var(--muted);margin-top:2px;">Rx: '+last.rx+'</div>' +
+      '</div>' +
+      '<div style="font-size:.65rem;color:var(--teal);text-align:right;margin-top:8px;font-weight:700;pointer-events:none;">Tap to see full history ›</div>' +
+    '</div>';
+  }).join('');
+  // Event delegation — one listener for all cards
+  res.querySelectorAll('.pat-card').forEach(function(card){
+    card.addEventListener('click', function(){ openHistDetail(this.getAttribute('data-mobile')); });
+    card.addEventListener('mouseover', function(){ this.style.borderColor='var(--teal)'; });
+    card.addEventListener('mouseout',  function(){ this.style.borderColor='var(--border)'; });
+  });
+
+}
+
+function openHistDetail(mobile) {
+  var p=historyDB.find(function(x){return x.mobile===mobile;});
+  if(!p) return;
+  document.getElementById('hdName').textContent=p.name;
+  document.getElementById('hdMobile').textContent=p.mobile;
+  document.getElementById('hdVisitCount').textContent=p.visits.length+' visit'+(p.visits.length>1?'s':'');
+  document.getElementById('hdVisits').innerHTML=p.visits.map(function(v,i){
+    return '<div style="background:var(--bg);border-radius:13px;padding:13px;border:1px solid var(--border);margin-bottom:10px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+        '<div style="font-size:.7rem;font-weight:800;color:var(--teal);">📅 '+v.date+'</div>' +
+        '<div style="font-size:.6rem;font-weight:700;background:var(--teal-light);color:var(--teal);padding:2px 8px;border-radius:100px;">Visit '+(i+1)+'</div>' +
+      '</div>' +
+      '<div style="font-size:.82rem;font-weight:700;margin-bottom:6px;">💊 '+v.complaint+'</div>' +
+      '<div style="background:#fff;border-radius:9px;padding:9px 11px;border:1px solid var(--border);font-size:.72rem;line-height:1.6;color:var(--text);">' +
+        '<span style="font-size:.58rem;font-weight:700;color:var(--muted);display:block;margin-bottom:2px;">PRESCRIPTION</span>' +
+        v.rx +
+      '</div>' +
+      (v.fu!=='—'?'<div style="margin-top:6px;background:var(--gold-light);border-radius:8px;padding:7px 10px;font-size:.68rem;font-weight:700;color:#CC7A00;">🔁 Follow-up: '+v.fu+'</div>':'') +
+    '</div>';
+  }).join('');
+  openSheet('histOv','histSh');
+}
+
+// ══════════════════════════════════════════
+//  SCHEDULE
+// ══════════════════════════════════════════
+function fmt12(t){
+  if(!t) return '—';
+  var p=t.split(':'),h=parseInt(p[0]),m=p[1],ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+m+' '+ap;
+}
+function renderSchedView() {
+  document.getElementById('schedView').innerHTML=scheduleData.map(function(d){
+    return '<div class="day-row">' +
+      '<span class="day-name">'+d.day+'</span>' +
+      '<span class="day-time">'+(d.on?fmt12(d.start)+' – '+fmt12(d.end):'—')+'</span>' +
+      '<span class="day-badge '+(d.on?'don':'doff')+'" style="margin-left:auto;">'+(d.on?'On':'Off')+'</span>' +
+    '</div>';
+  }).join('');
+  // Update shift display on home
+  var today = scheduleData[Math.min(new Date().getDay()-1,5)];
+  if(today&&today.on) document.getElementById('shiftDisplay').textContent=fmt12(today.start)+' – '+fmt12(today.end);
+}
+function renderSchedEdit() {
+  document.getElementById('schedEditWrap').innerHTML=scheduleData.map(function(d,i){
+    return '<div style="display:flex;align-items:center;gap:7px;padding:9px 0;border-bottom:1px solid #f5f5f5;">' +
+      '<span style="width:34px;font-size:.76rem;font-weight:700;">'+d.day+'</span>' +
+      '<input type="time" id="se-s'+i+'" value="'+d.start+'" '+(d.on?'':'disabled')+' class="t-input"/>' +
+      '<span style="font-size:.68rem;color:var(--muted);">–</span>' +
+      '<input type="time" id="se-e'+i+'" value="'+d.end+'" '+(d.on?'':'disabled')+' class="t-input"/>' +
+      '<button class="tog-btn" id="se-t'+i+'" onclick="toggleSchedDay('+i+')" style="border-color:'+(d.on?'var(--teal)':'var(--border)')+';background:'+(d.on?'var(--teal-light)':'#f5f5f5')+';color:'+(d.on?'var(--teal)':'var(--muted)')+';">'+(d.on?'ON':'OFF')+'</button>' +
+    '</div>';
+  }).join('');
+}
+function toggleSchedDay(i){scheduleData[i].on=!scheduleData[i].on;renderSchedEdit();}
+var schedEditing=false;
+function toggleSchedEdit(){
+  schedEditing=!schedEditing;
+  document.getElementById('schedView').style.display=schedEditing?'none':'block';
+  document.getElementById('schedEditWrap').style.display=schedEditing?'block':'none';
+  document.getElementById('schedBtns').style.display=schedEditing?'block':'none';
+  document.getElementById('schedBtn').textContent=schedEditing?'✕ Cancel':'✏️ Edit';
+  if(schedEditing) renderSchedEdit();
+}
+function saveSchedule(){
+  scheduleData.forEach(function(d,i){
+    var s=document.getElementById('se-s'+i),e=document.getElementById('se-e'+i);
+    if(s)d.start=s.value; if(e)d.end=e.value;
+  });
+  cancelSchedEdit(); renderSchedView();
+}
+function cancelSchedEdit(){
+  schedEditing=false;
+  document.getElementById('schedView').style.display='block';
+  document.getElementById('schedEditWrap').style.display='none';
+  document.getElementById('schedBtns').style.display='none';
+  document.getElementById('schedBtn').textContent='✏️ Edit';
+}
+
+// ══════════════════════════════════════════
+//  PROFILE EDIT
+// ══════════════════════════════════════════
+var profEditing=false;
+function toggleProfEdit(){
+  profEditing=!profEditing;
+  document.getElementById('profView').style.display=profEditing?'none':'block';
+  document.getElementById('profEdit').style.display=profEditing?'block':'none';
+  document.getElementById('profEditBtn').textContent=profEditing?'✕ Cancel':'✏️ Edit';
+}
+function saveProfile(){
+  var name=document.getElementById('pe-name').value.trim();
+  if(!name){alert('Name is required');return;}
+  document.getElementById('pv-name').textContent=name;
+  document.getElementById('pv-qual').textContent=document.getElementById('pe-qual').value;
+  document.getElementById('pv-reg').textContent=document.getElementById('pe-reg').value||'Not provided';
+  document.getElementById('pv-spec').textContent=document.getElementById('pe-spec').value;
+  document.getElementById('pv-exp').textContent=document.getElementById('pe-exp').value;
+  document.getElementById('pv-mob').textContent=document.getElementById('pe-mob').value;
+  document.getElementById('pv-wa').textContent=document.getElementById('pe-wa').value;
+  // Update home display
+  document.getElementById('docNameDisplay').textContent=name;
+  document.getElementById('docQualDisplay').textContent=document.getElementById('pe-qual').value+' · '+document.getElementById('pe-spec').value;
+  var reg=document.getElementById('pe-reg').value;
+  document.getElementById('docRegDisplay').textContent=reg?'Reg: '+reg:'';
+  profEditing=true; toggleProfEdit();
+}
+function cancelProfEdit(){profEditing=true;toggleProfEdit();}
+
+function togglePref(key,row){
+  prefs[key]=!prefs[key];
+  var el=document.getElementById('pref-'+key);
+  if(el){el.textContent=prefs[key]?'ON ✅':'OFF';el.style.color=prefs[key]?'var(--teal)':'var(--muted)';}
+}
+
+// ══════════════════════════════════════════
+//  WA SUMMARY
+// ══════════════════════════════════════════
+function sendWASummary(){
+  var name=document.getElementById('pv-name').textContent;
+  var mob=document.getElementById('pv-mob').textContent;
+  var msg='*HALSAA Daily Summary*\n'+name+'\n📅 '+new Date().toLocaleDateString('en-IN')+
+    '\n\n✅ Seen: 17\n⏳ Pending: 6\n❌ No Show: 1\n⏱ Avg: 8 min\n\n📍 Sri Sai Hospital\nhalsaa.in';
+  window.open('https://wa.me/91'+mob+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ══════════════════════════════════════════
+//  WEEKLY CHART
+// ══════════════════════════════════════════
+function renderChart(){
+  var el=document.getElementById('weekChart');
+  if(!el)return;
+  var data=[14,18,16,20,17,12,0],days=['M','T','W','T','F','S','S'];
+  var max=Math.max.apply(null,data);
+  var tod=(new Date().getDay()+6)%7;
+  el.innerHTML='<div style="display:flex;align-items:flex-end;gap:5px;height:56px;">'+
+    data.map(function(v,i){
+      var h=max>0?Math.round((v/max)*48):0;
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">' +
+        '<div style="font-size:.53rem;font-weight:700;color:'+(i===tod?'var(--teal)':'var(--muted)')+';">'+(v||'—')+'</div>' +
+        '<div style="width:100%;height:'+h+'px;border-radius:4px 4px 0 0;background:'+(i===tod?'var(--teal)':'var(--teal-mid)')+';min-height:3px;transition:height .4s;"></div>' +
+        '<div style="font-size:.53rem;font-weight:'+(i===tod?'800':'600')+';color:'+(i===tod?'var(--teal)':'var(--muted)')+';">'+days[i]+'</div>' +
+      '</div>';
+    }).join('')+'</div>';
+}
+
+// ══════════════════════════════════════════
+//  SHEET HELPERS
+// ══════════════════════════════════════════
+function openSheet(oid,sid){
+  document.getElementById(oid).classList.add('show');
+  document.getElementById(sid).classList.add('show');
+}
+function closeSheet(oid,sid){
+  document.getElementById(sid).classList.remove('show');
+  setTimeout(function(){document.getElementById(oid).classList.remove('show');},380);
+}
+function openNotif(){
+  document.getElementById('notifOv').classList.add('show');
+  document.getElementById('notifPanel').classList.add('show');
+}
+function closeNotif(){
+  document.getElementById('notifPanel').classList.remove('show');
+  setTimeout(function(){document.getElementById('notifOv').classList.remove('show');},320);
+}
+
+// ══ AUTH ══
+function hlLogout(){
+  sessionStorage.removeItem('halsaa_session');
+  window.location.href='index.html';
+}
+(function initDoctorSession(){
+  try{
+    var s=sessionStorage.getItem('halsaa_session');
+    var u=s?JSON.parse(s):null;
+    if(!u){ var lm=localStorage.getItem('halsaa_last_mobile'); if(lm){var lv=localStorage.getItem('halsaa_staff_'+lm);if(lv)u=JSON.parse(lv);} }
+    if(u){
+      var dn=document.getElementById('docNameDisplay'); if(dn) dn.textContent=u.name||'Doctor';
+      var dq=document.getElementById('docQualDisplay'); if(dq&&u.qual) dq.textContent=u.qual+(u.spec?' · '+u.spec:'');
+      var tb=document.querySelector('.topbar .halsaa-title-group div:last-child,.topbar [style*="muted"]');
+      // topbar subtitle
+      var tbSub=document.querySelectorAll('.topbar div'); tbSub.forEach(function(el){if(el.textContent==='Dr. Ramesh Kumar')el.textContent=u.name;});
+      var pn=document.getElementById('pv-name'); if(pn) pn.textContent=u.name;
+      var pe=document.getElementById('pe-name'); if(pe) pe.value=u.name;
+    }
+  }catch(e){}
+})();
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+renderQueue();
+renderSchedView();
+renderChart();
+checkSoftBanner();
+</script>
+
+<!-- HISTORY DETAIL SHEET -->
+<div class="overlay" id="histOv" onclick="if(event.target===this)closeSheet('histOv','histSh')">
+  <div class="sheet" id="histSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('histOv','histSh')">✕</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:48px;height:48px;border-radius:13px;background:linear-gradient(135deg,var(--teal),#00A88D);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">👤</div>
+      <div>
+        <div style="font-size:1rem;font-weight:900;" id="hdName"></div>
+        <div style="font-size:.68rem;color:var(--muted);" id="hdMobile"></div>
+      </div>
+      <div style="margin-left:auto;font-size:.7rem;font-weight:800;color:var(--teal);background:var(--teal-light);padding:4px 12px;border-radius:100px;" id="hdVisitCount"></div>
+    </div>
+    <div style="font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:10px;">VISIT HISTORY</div>
+    <div id="hdVisits"></div>
+  </div>
+</div>
+
+<!-- HISTORY DETAIL SHEET -->
+<div class="overlay" id="histOv" onclick="if(event.target===this)closeSheet('histOv','histSh')">
+  <div class="sheet" id="histSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('histOv','histSh')">✕</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:48px;height:48px;border-radius:13px;background:linear-gradient(135deg,var(--teal),#00A88D);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">👤</div>
+      <div>
+        <div style="font-size:1rem;font-weight:900;" id="hdName"></div>
+        <div style="font-size:.68rem;color:var(--muted);" id="hdMobile"></div>
+      </div>
+      <div style="margin-left:auto;font-size:.7rem;font-weight:800;color:var(--teal);background:var(--teal-light);padding:4px 12px;border-radius:100px;" id="hdVisitCount"></div>
+    </div>
+    <div style="font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:10px;">VISIT HISTORY</div>
+    <div id="hdVisits"></div>
+  </div>
+</div>
+
+</body>
+</html>

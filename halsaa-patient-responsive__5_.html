@@ -1,0 +1,2806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HALSAA — Patient Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --teal:#00C9A7;--teal2:#00E8C0;--teal-light:#E6FAF6;--teal-mid:rgba(0,201,167,0.12);
+  --gold:#FFB347;--gold-light:#FFF4E6;
+  --white:#fff;--bg:#F0FAF8;--card:#fff;
+  --text:#1A2E2A;--muted:#7A9E98;
+  --border:rgba(0,201,167,0.15);
+  --shadow:0 4px 20px rgba(0,201,167,0.10);
+  --shadow2:0 2px 12px rgba(0,0,0,0.06);
+  --red:#FF6B6B;--green:#00C853;
+  --sidebar:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{overflow-x:hidden;max-width:100vw;}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+button{cursor:pointer;font-family:'Poppins',sans-serif;}
+a{text-decoration:none;color:inherit;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,201,167,0.4)}50%{box-shadow:0 0 0 8px rgba(0,201,167,0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(0,201,167,0.2)}50%{box-shadow:0 0 24px rgba(0,201,167,0.35)}}
+
+/* ══ LAYOUT ══ */
+.app{display:flex;min-height:100vh;}
+
+/* ══ SIDEBAR ══ */
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;
+  background:linear-gradient(180deg,#0D2B26 0%,#004D3D 60%,#007A62 100%);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:100;
+  box-shadow:4px 0 24px rgba(0,0,0,0.12);
+}
+.sb-logo{padding:28px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sb-brand{font-size:1.5rem;font-weight:900;color:#fff;letter-spacing:-.01em;}
+.sb-brand span{color:var(--gold);}
+.sb-tagline{font-size:.58rem;color:rgba(255,255,255,.38);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:3px;}
+
+.sb-user{padding:16px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sb-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;border:2px solid rgba(255,255,255,.2);}
+.sb-uname{font-size:.8rem;font-weight:700;color:#fff;}
+.sb-urole{font-size:.6rem;color:rgba(255,255,255,.45);font-weight:500;}
+
+.sb-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:2px;}
+.sb-item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;cursor:pointer;transition:all .2s;border:1px solid transparent;}
+.sb-item:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.06);}
+.sb-item.active{background:rgba(0,201,167,.18);border-color:rgba(0,201,167,.25);}
+.sb-icon{font-size:1.1rem;width:24px;text-align:center;flex-shrink:0;}
+.sb-label{font-size:.8rem;font-weight:700;color:rgba(255,255,255,.65);}
+.sb-item.active .sb-label{color:#fff;}
+.sb-item.active .sb-icon{filter:drop-shadow(0 0 4px rgba(0,201,167,.6));}
+.sb-badge{margin-left:auto;background:var(--gold);color:#fff;font-size:.52rem;font-weight:800;padding:2px 7px;border-radius:100px;}
+
+.sb-section{font-size:.56rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:10px 12px 4px;}
+
+.sb-bottom{padding:16px 12px;}
+.sb-token-live{background:rgba(0,201,167,.15);border:1px solid rgba(0,201,167,.25);border-radius:13px;padding:13px;margin-bottom:10px;}
+.sb-token-label{font-size:.58rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(0,201,167,.8);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;flex-shrink:0;}
+.sb-token-num{font-size:1.5rem;font-weight:900;color:var(--teal);line-height:1;}
+.sb-token-sub{font-size:.62rem;color:rgba(255,255,255,.45);margin-top:2px;}
+.sb-logout{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:background .2s;}
+.sb-logout:hover{background:rgba(255,107,107,.12);}
+.sb-logout-icon{font-size:1rem;}
+.sb-logout-text{font-size:.75rem;font-weight:600;color:rgba(255,255,255,.45);}
+
+/* ══ MAIN ══ */
+.main{margin-left:var(--sidebar);flex:1;min-height:100vh;}
+
+/* ══ TOPBAR ══ */
+.topbar{
+  background:rgba(255,255,255,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.tb-title{font-size:1rem;font-weight:800;color:var(--text);}
+.tb-sub{font-size:.68rem;color:var(--muted);font-weight:500;margin-top:1px;}
+.tb-right{display:flex;align-items:center;gap:12px;}
+.tb-search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-size:.78rem;color:var(--muted);}
+.tb-notif{width:38px;height:38px;background:var(--teal-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;position:relative;cursor:pointer;}
+.notif-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;background:var(--gold);border-radius:50%;border:2px solid #fff;}
+.tb-date{font-size:.7rem;color:var(--muted);font-weight:600;}
+
+/* ══ CONTENT ══ */
+.content{padding:24px 28px;}
+.screen{display:none;animation:fadeUp .35s ease both;}
+.screen.active{display:block;}
+
+/* ══ HOME SCREEN ══ */
+/* Welcome banner */
+.welcome-banner{
+  background:linear-gradient(135deg,var(--teal) 0%,#00A88D 50%,#007A62 100%);
+  border-radius:20px;padding:28px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:22px;position:relative;overflow:hidden;
+  animation:fadeUp .4s ease both;
+}
+.wb-bg1{position:absolute;top:-30px;right:-30px;width:160px;height:160px;background:rgba(255,255,255,.06);border-radius:50%;}
+.wb-bg2{position:absolute;bottom:-20px;left:200px;width:100px;height:100px;background:rgba(255,179,71,.08);border-radius:50%;}
+.wb-text{position:relative;z-index:1;}
+.wb-hi{font-size:.78rem;color:rgba(255,255,255,.7);font-weight:500;margin-bottom:4px;}
+.wb-name{font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:3px;}
+.wb-sub{font-size:.78rem;color:rgba(255,255,255,.6);}
+.wb-token{position:relative;z-index:1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:18px 24px;text-align:center;backdrop-filter:blur(8px);}
+.wb-token-label{font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:5px;}
+.wb-token-num{font-size:2.4rem;font-weight:900;color:var(--gold);line-height:1;letter-spacing:-.02em;}
+.wb-token-prefix{font-size:1.1rem;}
+.wb-token-clinic{font-size:.68rem;color:rgba(255,255,255,.6);margin-top:4px;}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.stat-card{background:var(--card);border-radius:16px;padding:18px 20px;border:1.5px solid var(--border);box-shadow:var(--shadow2);animation:fadeUp .4s ease both;}
+.stat-card:nth-child(1){animation-delay:.05s;}
+.stat-card:nth-child(2){animation-delay:.1s;}
+.stat-card:nth-child(3){animation-delay:.15s;}
+.stat-card:nth-child(4){animation-delay:.2s;}
+.sc-label{font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.sc-val{font-size:1.8rem;font-weight:900;color:var(--teal);line-height:1;margin-bottom:4px;}
+.sc-sub{font-size:.68rem;color:var(--muted);}
+.sc-badge{display:inline-block;font-size:.55rem;font-weight:800;padding:2px 8px;border-radius:100px;margin-top:6px;}
+.sc-live{background:rgba(0,200,83,.1);color:var(--green);}
+
+/* 2-col layout */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:22px;}
+
+/* Section header */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-hdr-title{font-size:.82rem;font-weight:800;color:var(--text);}
+.sec-hdr-link{font-size:.72rem;font-weight:700;color:var(--teal);cursor:pointer;}
+
+/* Active token card */
+.active-token{background:var(--card);border-radius:18px;padding:22px;border:2px solid var(--border);box-shadow:var(--shadow);animation:glow 3s ease-in-out infinite;}
+.at-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.at-label{font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.at-live{display:flex;align-items:center;gap:5px;background:rgba(0,200,83,.1);border-radius:100px;padding:4px 12px;}
+.at-live-text{font-size:.6rem;font-weight:800;color:var(--green);}
+.at-token{font-size:3.5rem;font-weight:900;color:var(--teal);line-height:1;letter-spacing:-.03em;margin-bottom:6px;}
+.at-prefix{font-size:1.5rem;color:var(--gold);}
+.at-clinic{font-size:.92rem;font-weight:800;color:var(--text);margin-bottom:3px;}
+.at-doctor{font-size:.72rem;color:var(--muted);margin-bottom:12px;}
+.at-progress-wrap{background:#f0f0f0;border-radius:100px;height:7px;margin-bottom:5px;}
+.at-progress{background:linear-gradient(90deg,var(--teal),var(--teal2));border-radius:100px;height:7px;width:65%;}
+.at-progress-text{font-size:.65rem;color:var(--muted);font-weight:600;margin-bottom:14px;}
+.at-btns{display:flex;gap:8px;}
+.at-btn{flex:1;padding:11px;border-radius:11px;border:none;font-size:.78rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;transition:all .2s;}
+.at-btn-primary{background:var(--teal);color:#fff;}
+.at-btn-secondary{background:var(--teal-light);color:var(--teal);}
+
+/* Queue status */
+.queue-status{background:linear-gradient(135deg,var(--gold-light),#FFFAF2);border:1.5px solid rgba(255,179,71,.2);border-radius:18px;padding:20px;}
+.qs-now{margin-bottom:14px;}
+.qs-now-label{font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#CC7A00;margin-bottom:4px;}
+.qs-now-token{font-size:2rem;font-weight:900;color:var(--gold);}
+.qs-now-name{font-size:.72rem;color:rgba(204,122,0,.8);}
+.qs-divider{height:1px;background:rgba(255,179,71,.2);margin:12px 0;}
+.qs-wait-row{display:flex;align-items:center;justify-content:space-between;}
+.qs-wait-label{font-size:.72rem;color:#CC7A00;font-weight:600;}
+.qs-wait-val{font-size:1.8rem;font-weight:900;color:var(--text);}
+.qs-wait-unit{font-size:.68rem;color:var(--muted);}
+.qs-progress-steps{margin-top:14px;}
+.qp-item{display:flex;align-items:center;gap:10px;padding:6px 0;position:relative;}
+.qp-item:not(:last-child)::after{content:'';position:absolute;left:12px;top:32px;width:2px;height:calc(100% - 8px);background:#F0F0F0;}
+.qp-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:800;flex-shrink:0;z-index:1;}
+.qp-done .qp-dot{background:var(--teal);color:#fff;}
+.qp-active .qp-dot{background:var(--gold);color:#fff;animation:pulse 1.5s infinite;}
+.qp-wait .qp-dot{background:#F0F0F0;color:var(--muted);}
+.qp-text{font-size:.75rem;font-weight:700;}
+.qp-done .qp-text{color:var(--teal);}
+.qp-active .qp-text{color:var(--text);}
+.qp-wait .qp-text{color:var(--muted);}
+.qp-sub{font-size:.62rem;color:var(--muted);}
+.qp-time{font-size:.62rem;font-weight:700;color:var(--muted);margin-left:auto;}
+
+/* Quick actions */
+.qa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+.qa-card{background:var(--card);border-radius:16px;padding:18px 14px;text-align:center;border:1.5px solid var(--border);cursor:pointer;transition:all .2s;box-shadow:var(--shadow2);}
+.qa-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+.qa-icon{font-size:1.8rem;margin-bottom:10px;display:block;}
+.qa-title{font-size:.82rem;font-weight:800;color:var(--text);margin-bottom:3px;}
+.qa-sub{font-size:.65rem;color:var(--muted);}
+.qa-card.teal{border-color:rgba(0,201,167,.25);background:linear-gradient(135deg,var(--teal-light),#fff);}
+.qa-card.gold{border-color:rgba(255,179,71,.25);background:linear-gradient(135deg,var(--gold-light),#fff);}
+
+/* Visit cards */
+.visit-card{background:var(--card);border-radius:14px;padding:16px;border:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px;box-shadow:var(--shadow2);transition:all .2s;}
+.visit-card:hover{box-shadow:var(--shadow);}
+.vc-icon{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.vc-teal{background:var(--teal-light);}
+.vc-gold{background:var(--gold-light);}
+.vc-info{flex:1;flex:1;}
+.vc-clinic{font-size:.85rem;font-weight:800;color:var(--text);}
+.vc-date{font-size:.65rem;color:var(--muted);margin-top:1px;}
+.vc-right{text-align:right;}
+.vc-status{font-size:.6rem;font-weight:800;padding:3px 10px;border-radius:100px;display:inline-block;}
+.status-done{background:rgba(0,200,83,.1);color:var(--green);}
+.status-report{background:var(--teal-mid);color:var(--teal);}
+.vc-fee{font-size:.72rem;color:var(--muted);margin-top:4px;}
+.vc-actions{display:flex;gap:8px;width:100%;margin-top:4px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.vc-btn{padding:7px 12px;border-radius:9px;border:none;font-size:.68rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;white-space:nowrap;}
+.vc-btn-teal{background:var(--teal-light);color:var(--teal);}
+.vc-btn-gold{background:var(--gold-light);color:#CC7A00;}
+
+/* ══ BOOK SCREEN ══ */
+.book-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.bchip{padding:7px 16px;border-radius:100px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .2s;font-family:'Poppins',sans-serif;}
+.bchip.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+.clinic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.clinic-card{background:var(--card);border-radius:18px;padding:18px;border:1.5px solid var(--border);box-shadow:var(--shadow2);transition:all .2s;cursor:pointer;}
+.clinic-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+.cc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;}
+.cc-avatar{width:48px;height:48px;border-radius:14px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.cc-info{flex:1;}
+.cc-name{font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:2px;}
+.cc-spec{font-size:.65rem;color:var(--muted);margin-bottom:6px;}
+.cc-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.cc-tag{font-size:.55rem;font-weight:700;padding:2px 7px;border-radius:100px;background:var(--teal-mid);color:var(--teal);}
+.cc-tag.gold{background:rgba(255,179,71,.1);color:#CC7A00;}
+.cc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;border-top:1px solid #F5F5F5;padding-top:12px;margin-bottom:12px;}
+.cc-stat-val{font-size:.88rem;font-weight:800;color:var(--teal);text-align:center;}
+.cc-stat-label{font-size:.55rem;color:var(--muted);text-align:center;}
+.cc-book-btn{width:100%;padding:11px;background:var(--teal);color:#fff;border:none;border-radius:11px;font-family:'Poppins',sans-serif;font-size:.8rem;font-weight:800;cursor:pointer;transition:all .2s;}
+.cc-book-btn:hover{background:#00A88D;}
+
+/* ══ TRACKER SCREEN ══ */
+.tracker-layout{display:grid;grid-template-columns:1fr 1.2fr;gap:20px;}
+.token-hero{background:var(--card);border-radius:20px;padding:28px;text-align:center;box-shadow:var(--shadow);border:1.5px solid var(--border);animation:glow 3s ease-in-out infinite;position:relative;overflow:hidden;}
+.token-hero::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:var(--teal-mid);border-radius:50%;}
+.token-hero::after{content:'';position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;background:rgba(255,179,71,.07);border-radius:50%;}
+.th-label{font-size:.65rem;font-weight:800;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;position:relative;z-index:1;}
+.th-token{font-size:4.5rem;font-weight:900;color:var(--teal);line-height:1;position:relative;z-index:1;letter-spacing:-.03em;}
+.th-prefix{font-size:2rem;color:var(--gold);}
+.th-clinic{font-size:.92rem;font-weight:700;color:var(--text);margin-top:8px;position:relative;z-index:1;}
+.th-doctor{font-size:.72rem;color:var(--muted);position:relative;z-index:1;margin-top:3px;}
+
+.now-serving{background:linear-gradient(135deg,var(--gold-light),#FFFAF2);border:1.5px solid rgba(255,179,71,.25);border-radius:16px;padding:18px;margin-top:16px;}
+.ns-label{font-size:.6rem;font-weight:800;letter-spacing:.1em;color:#CC7A00;text-transform:uppercase;margin-bottom:4px;}
+.ns-token{font-size:2rem;font-weight:900;color:var(--gold);}
+.ns-name{font-size:.72rem;color:rgba(204,122,0,.8);}
+.ns-row{display:flex;align-items:center;justify-content:space-between;}
+.ns-wait-num{font-size:1.8rem;font-weight:900;color:var(--text);}
+.ns-wait-label{font-size:.62rem;color:var(--muted);}
+
+.arrive-alert{background:linear-gradient(135deg,var(--teal),var(--teal2));border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:12px;margin-top:16px;}
+.aa-icon{font-size:1.4rem;}
+.aa-title{font-size:.85rem;font-weight:800;color:#fff;margin-bottom:2px;}
+.aa-sub{font-size:.68rem;color:rgba(255,255,255,.8);}
+
+.queue-steps-card{background:var(--card);border-radius:18px;padding:22px;box-shadow:var(--shadow2);border:1px solid var(--border);}
+.qsc-title{font-size:.7rem;font-weight:800;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:18px;}
+.qs-list{display:flex;flex-direction:column;gap:0;}
+.qs-item{display:flex;align-items:center;gap:12px;padding:10px 0;position:relative;}
+.qs-item:not(:last-child)::after{content:'';position:absolute;left:14px;top:38px;width:2px;height:calc(100% - 6px);background:#F0F0F0;}
+.qs-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;z-index:1;}
+.qs-done .qs-dot{background:var(--teal);color:#fff;}
+.qs-active .qs-dot{background:var(--gold);color:#fff;animation:pulse 1.5s infinite;}
+.qs-wait .qs-dot{background:#F0F0F0;color:var(--muted);}
+.qs-text{flex:1;}
+.qs-name{font-size:.82rem;font-weight:700;}
+.qs-done .qs-name{color:var(--teal);}
+.qs-active .qs-name{color:var(--text);font-weight:800;}
+.qs-wait .qs-name{color:var(--muted);}
+.qs-sub{font-size:.62rem;color:var(--muted);}
+.qs-time{font-size:.65rem;font-weight:700;color:var(--muted);}
+
+/* ══ HISTORY SCREEN ══ */
+.history-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.month-label{font-size:.68rem;font-weight:800;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;margin-top:16px;grid-column:1/-1;}
+.history-card{background:var(--card);border-radius:16px;padding:18px;box-shadow:var(--shadow2);border:1px solid var(--border);}
+.hc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+.hc-icon{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.hc-teal{background:var(--teal-light);}
+.hc-gold{background:var(--gold-light);}
+.hc-info{flex:1;}
+.hc-clinic{font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:2px;}
+.hc-doctor{font-size:.68rem;color:var(--muted);margin-bottom:3px;}
+.hc-date{font-size:.65rem;color:var(--muted);}
+.hc-right{text-align:right;}
+.hc-fee{font-size:.9rem;font-weight:800;color:var(--text);}
+.hc-status{font-size:.6rem;font-weight:800;padding:3px 9px;border-radius:100px;margin-top:4px;display:inline-block;}
+.hc-actions{display:flex;gap:8px;}
+.hc-btn{flex:1;padding:9px;border-radius:10px;border:none;font-family:'Poppins',sans-serif;font-size:.72rem;font-weight:800;cursor:pointer;}
+.hc-btn-outline{background:var(--teal-light);color:var(--teal);}
+.hc-btn-gold{background:var(--gold-light);color:#CC7A00;}
+
+/* ══ PROFILE SCREEN ══ */
+.profile-layout{display:grid;grid-template-columns:300px 1fr;gap:20px;}
+.profile-left{display:flex;flex-direction:column;gap:16px;}
+.profile-card{background:var(--card);border-radius:20px;overflow:hidden;box-shadow:var(--shadow2);border:1px solid var(--border);}
+.pc-header{background:linear-gradient(135deg,var(--teal),#00A88D);padding:28px 20px;text-align:center;}
+.pc-avatar{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin:0 auto 12px;border:3px solid rgba(255,255,255,.3);}
+.pc-name{font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:3px;}
+.pc-phone{font-size:.75rem;color:rgba(255,255,255,.7);}
+.pc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid #F5F5F5;}
+.pc-stat{padding:16px 10px;text-align:center;border-right:1px solid #F5F5F5;}
+.pc-stat:last-child{border-right:none;}
+.pc-stat-val{font-size:1.3rem;font-weight:900;color:var(--teal);}
+.pc-stat-label{font-size:.58rem;color:var(--muted);margin-top:2px;}
+.profile-section{background:var(--card);border-radius:16px;box-shadow:var(--shadow2);border:1px solid var(--border);overflow:hidden;}
+.ps-header{padding:12px 16px;border-bottom:1px solid #F5F5F5;font-size:.65rem;font-weight:800;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
+.profile-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #F8F8F8;cursor:pointer;transition:background .15s;}
+.profile-item:last-child{border-bottom:none;}
+.profile-item:hover{background:#FAFAFA;}
+.pi-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.pi-teal{background:var(--teal-light);}
+.pi-gold{background:var(--gold-light);}
+.pi-red{background:rgba(255,107,107,.1);}
+.pi-text{flex:1;}
+.pi-title{font-size:.85rem;font-weight:700;color:var(--text);}
+.pi-sub{font-size:.65rem;color:var(--muted);margin-top:1px;}
+.pi-arrow{color:var(--muted);font-size:.85rem;}
+
+/* ══ PAYMENT MODAL ══ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.payment-modal{background:#fff;border-radius:24px;padding:32px;width:420px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.15);animation:fadeUp .3s ease;}
+.pm-handle{display:none;}
+.pm-title{font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px;}
+.pm-sub{font-size:.75rem;color:var(--muted);margin-bottom:22px;}
+.pm-amount{background:var(--teal-light);border-radius:14px;padding:16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.pm-amount-label{font-size:.78rem;color:var(--teal);font-weight:700;}
+.pm-amount-val{font-size:1.7rem;font-weight:900;color:var(--teal);}
+.pm-breakdown{margin-bottom:22px;}
+.pm-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F5F5F5;font-size:.8rem;}
+.pm-row:last-child{border-bottom:none;font-weight:800;}
+.pm-row-label{color:var(--muted);}
+.pm-row-val{color:var(--text);}
+.pm-pay-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border:none;border-radius:14px;font-family:'Poppins',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer;margin-bottom:12px;}
+.pm-upi-row{display:flex;gap:8px;justify-content:center;}
+.pm-upi{font-size:.65rem;color:var(--muted);padding:6px 12px;background:#F5F5F5;border-radius:8px;}
+.pm-close{position:absolute;top:16px;right:16px;width:32px;height:32px;background:#F5F5F5;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.8rem;}
+.payment-modal{position:relative;}
+
+/* ══ RESPONSIVE — fallback to mobile ══ */
+@media(max-width:900px){
+  .sidebar{display:none;}
+  .main{margin-left:0;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .two-col,.tracker-layout,.profile-layout{grid-template-columns:1fr;}
+  .three-col,.clinic-grid{grid-template-columns:1fr;}
+  .qa-grid{grid-template-columns:repeat(2,1fr);}
+  .history-grid{grid-template-columns:1fr;}
+}
+
+/* ══ MOBILE RESPONSIVE ══ */
+@media(max-width:768px){
+  .sidebar{display:none !important;}
+  .main{margin-left:0 !important;}
+  .content{padding:14px 14px 90px !important;}
+  .topbar{padding:0 14px !important;height:52px !important;}
+  .tb-search,.tb-date{display:none !important;}
+  .stats-row,.rev-cards-row,.kpi-row{grid-template-columns:repeat(2,1fr) !important;}
+  .two-col,.tracker-layout,.profile-layout,.analytics-layout,.home-layout,.staff-layout,.settings-layout,.billing-layout,.alerts-layout,.overview-layout{grid-template-columns:1fr !important;}
+  .three-col,.clinic-grid{grid-template-columns:1fr !important;}
+  .qa-grid,.quick-grid{grid-template-columns:repeat(2,1fr) !important;}
+  .history-grid,.rev-cards,.kpi-grid{grid-template-columns:1fr !important;}
+  .right-panel,.add-staff-panel{display:none !important;}
+}
+
+.mobile-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid #E8F5F2;
+  padding:8px 0 env(safe-area-inset-bottom,16px);
+  grid-template-columns:repeat(6,1fr);
+  box-shadow:0 -4px 20px rgba(0,0,0,0.08);
+  z-index:200;
+}
+@media(max-width:768px){
+}
+
+.mn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:6px 0;min-width:0;}
+.mn-icon{font-size:1.15rem;line-height:1;}
+.mn-label{font-size:.48rem;font-weight:700;color:#7A9E98;text-align:center;white-space:nowrap;}
+.mn-item.active .mn-label{color:#00C9A7;}
+.mn-item.active .mn-icon{filter:drop-shadow(0 0 3px rgba(0,201,167,.5));}
+
+}
+
+/* ══════════════════════════════════════
+   MOBILE RESPONSIVE — FINAL FIXES
+════════════════════════════════════════ */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+@media (max-width: 900px) {
+  /* Show mobile nav */
+  .mobile-nav { display: grid !important; }
+  /* Hide sidebar */
+  .sidebar { display: none !important; }
+  .main { margin-left: 0 !important; width: 100% !important; }
+  /* Content padding — account for bottom nav */
+  .content { padding: 14px 14px 90px !important; width: 100% !important; box-sizing: border-box !important; }
+  /* Topbar */
+  .topbar { padding: 0 14px !important; height: 52px !important; }
+  .tb-search, .tb-date { display: none !important; }
+  /* Stats row — 2 cols on mobile */
+  .stats-row { grid-template-columns: repeat(2,1fr) !important; }
+  /* Quick action grid — 2 cols */
+  .qa-grid { grid-template-columns: repeat(2,1fr) !important; }
+  /* Welcome banner — stack on very small */
+  .welcome-banner { padding: 20px 18px !important; }
+  .wb-token { padding: 12px 14px !important; }
+  /* Tracker, profile, history layouts */
+  .tracker-layout, .profile-layout, .two-col { grid-template-columns: 1fr !important; }
+  /* Book filters scroll */
+  .bk-filters { overflow-x: auto; scrollbar-width: none; }
+  /* Screen width */
+  .screen { width: 100% !important; box-sizing: border-box !important; overflow-x: hidden !important; }
+  /* Cards */
+  .history-card, .clinic-card { width: 100% !important; box-sizing: border-box !important; }
+}
+
+@media (max-width: 900px) {
+  .halsaa-logo-topbar { display: flex !important; }
+  .halsaa-title-group .tb-title { font-size: .82rem !important; }
+  .halsaa-title-group .tb-sub { font-size: .65rem !important; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-brand">HAL<span>SAA</span></div>
+    <div class="sb-tagline">Patient Portal</div>
+  </div>
+  <div class="sb-user">
+    <div class="sb-avatar">👤</div>
+    <div><div class="sb-uname" id="sbUserName">Ramesh Kumar</div><div class="sb-urole" id="sbUserMobile">+91 98765 43210</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <div class="sb-item active" onclick="showScreen('home');setSb(this)">
+      <div class="sb-icon">🏠</div><div class="sb-label">Dashboard</div>
+    </div>
+    <div class="sb-item" onclick="showScreen('book');setSb(this)">
+      <div class="sb-icon">➕</div><div class="sb-label">Book Token</div><div class="sb-badge">3</div>
+    </div>
+    <div class="sb-item" onclick="showScreen('tracker');setSb(this)">
+      <div class="sb-icon">📍</div><div class="sb-label">Live Tracker</div>
+    </div>
+    <div class="sb-section">Records</div>
+    <div class="sb-item" onclick="showScreen('history');setSb(this)">
+      <div class="sb-icon">📋</div><div class="sb-label">My Visits</div>
+    </div>
+    <div class="sb-item" onclick="showScreen('family');setSb(this)">
+      <div class="sb-icon">👨‍👩‍👧</div><div class="sb-label">Family</div>
+    </div>
+    <div class="sb-section">Account</div>
+    <div class="sb-item" onclick="showScreen('profile');setSb(this)">
+      <div class="sb-icon">👤</div><div class="sb-label">Profile</div>
+    </div>
+  </nav>
+  <div class="sb-bottom">
+    <div class="sb-token-live">
+      <div class="sb-token-label"><div class="live-dot"></div>Active Token</div>
+      <div class="sb-token-num"><span style="color:var(--gold);font-size:.9rem;">T-</span>026</div>
+      <div class="sb-token-sub">Sri Sai Hospital · ~18 min</div>
+    </div>
+    <div class="sb-logout" onclick="hlLogout()"><div class="sb-logout-icon">🚪</div><div class="sb-logout-text">Logout</div></div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <!-- HALSAA Logo — mobile only -->
+      <div class="halsaa-logo-topbar" style="display:none;align-items:center;gap:6px;">
+        <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#00C9A7,#FFB347);display:flex;align-items:center;justify-content:center;font-size:.9rem;">❤️</div>
+        <span style="font-size:.95rem;font-weight:900;background:linear-gradient(135deg,#00C9A7,#00A88D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;">HALSAA</span>
+      </div>
+      <div class="halsaa-title-group">
+        <div class="tb-title" id="topbar-title">Dashboard</div>
+        <div class="tb-sub">Welcome back, Ramesh!</div>
+      </div>
+    </div>
+    <div class="tb-right" style="display:flex;align-items:center;gap:10px;">
+      <div class="tb-search">🔍 Search clinics, doctors...</div>
+      <div class="tb-notif" onclick="openNotifPanel()" style="cursor:pointer;position:relative;">🔔<div class="notif-dot" id="notifDot"></div></div>
+      <div class="tb-date">Wed, 11 Mar 2026</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ══ HOME ══ -->
+    <div class="screen active" id="home">
+
+      <!-- Welcome banner -->
+      <div class="welcome-banner">
+        <div class="wb-bg1"></div><div class="wb-bg2"></div>
+        <div class="wb-text">
+          <div class="wb-hi">Good Morning 👋</div>
+          <div class="wb-name" id="wbName">Ramesh Kumar</div>
+          <div class="wb-sub" id="wbSub">+91 98765 43210 · Warangal, Telangana</div>
+        </div>
+        <div class="wb-token">
+          <div class="wb-token-label"><div class="live-dot"></div>Active Token</div>
+          <div class="wb-token-num"><span class="wb-token-prefix">T-</span>026</div>
+          <div class="wb-token-clinic">Sri Sai Hospital · 8 ahead</div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="sc-label">Current Token</div>
+          <div class="sc-val" style="color:var(--teal);">T-026</div>
+          <div class="sc-sub">Sri Sai Hospital</div>
+          <div class="sc-badge sc-live">● LIVE</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-label">Now Serving</div>
+          <div class="sc-val" style="color:var(--gold);">T-018</div>
+          <div class="sc-sub">8 tokens ahead</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-label">Est. Wait Time</div>
+          <div class="sc-val">~18m</div>
+          <div class="sc-sub">Leave in 10 minutes</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-label">Total Visits</div>
+          <div class="sc-val">14</div>
+          <div class="sc-sub">All time</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="qa-grid">
+        <div class="qa-card teal" onclick="showScreen('book');setSbById('nav1')">
+          <span class="qa-icon">🏥</span>
+          <div class="qa-title">Book Token</div>
+          <div class="qa-sub">Clinic or Lab</div>
+        </div>
+        <div class="qa-card gold" onclick="showScreen('tracker');setSbById('nav2')">
+          <span class="qa-icon">📍</span>
+          <div class="qa-title">Live Tracker</div>
+          <div class="qa-sub">Track your queue</div>
+        </div>
+        <div class="qa-card" onclick="showScreen('history');setSbById('nav3')">
+          <span class="qa-icon">📋</span>
+          <div class="qa-title">My Visits</div>
+          <div class="qa-sub">History & reports</div>
+        </div>
+        <div class="qa-card" onclick="showScreen('profile');setSbById('nav4')">
+          <span class="qa-icon">👤</span>
+          <div class="qa-title">My Profile</div>
+          <div class="qa-sub">Settings & info</div>
+        </div>
+      </div>
+
+      <!-- Active Token + Queue -->
+      <div class="two-col" style="margin-bottom:22px;">
+        <div>
+          <div class="sec-hdr"><div class="sec-hdr-title">Active Token</div><div class="sec-hdr-link" onclick="showScreen('tracker')">Track Live →</div></div>
+          <div class="active-token">
+            <div class="at-top">
+              <div class="at-label">Token Status</div>
+              <div class="at-live"><div class="live-dot"></div><span class="at-live-text">LIVE</span></div>
+            </div>
+            <div class="at-token"><span class="at-prefix">T-</span>026</div>
+            <div class="at-clinic">Sri Sai Hospital</div>
+            <div class="at-doctor">Dr. Ramesh Kumar · General Medicine</div>
+            <div class="at-progress-wrap"><div class="at-progress"></div></div>
+            <div class="at-progress-text">8 tokens ahead · ~18 min estimated wait</div>
+            <div class="at-btns">
+              <button class="at-btn at-btn-primary" onclick="showScreen('tracker')">📍 Track Live Queue</button>
+              <button class="at-btn at-btn-secondary">📞 Call Clinic</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="sec-hdr"><div class="sec-hdr-title">Queue Position</div></div>
+          <div class="queue-status">
+            <div class="qs-now">
+              <div class="qs-now-label">Now Serving</div>
+              <div class="qs-now-token">T-018</div>
+              <div class="qs-now-name">8 tokens before you</div>
+            </div>
+            <div class="qs-divider"></div>
+            <div class="qs-wait-row">
+              <div class="qs-wait-label">Your wait time</div>
+              <div><span class="qs-wait-val">~18</span> <span class="qs-wait-unit">min</span></div>
+            </div>
+            <div class="qs-progress-steps" style="margin-top:16px;">
+              <div class="qp-item qp-done"><div class="qp-dot">✓</div><div><div class="qp-text">Token Booked</div><div class="qp-sub">T-026 confirmed</div></div><div class="qp-time">9:10 AM</div></div>
+              <div class="qp-item qp-done"><div class="qp-dot">✓</div><div><div class="qp-text">Payment Done</div><div class="qp-sub">₹10 via UPI</div></div><div class="qp-time">9:11 AM</div></div>
+              <div class="qp-item qp-active"><div class="qp-dot">→</div><div><div class="qp-text">In Queue</div><div class="qp-sub">8 ahead of you</div></div><div class="qp-time">Now</div></div>
+              <div class="qp-item qp-wait"><div class="qp-dot">4</div><div><div class="qp-text">Your Turn</div><div class="qp-sub">~18 minutes</div></div><div class="qp-time">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Visits -->
+      <div class="sec-hdr"><div class="sec-hdr-title">Recent Visits</div><div class="sec-hdr-link" onclick="showScreen('history')">View All →</div></div>
+      <div class="visit-card">
+        <div class="vc-icon vc-teal">🏥</div>
+        <div class="vc-info"><div class="vc-clinic">Sri Sai Hospital</div><div class="vc-date">Dr. Ramesh Kumar · 5 Dec 2025</div></div>
+        <div class="vc-right"><div class="vc-status status-done">Completed</div><div class="vc-fee">₹310 paid</div></div>
+        <div class="vc-actions"><button class="vc-btn vc-btn-teal" onclick="showPrescription('sri-sai','Dr. Ramesh Kumar','General Medicine','5 Dec 2025')">📄 Prescription</button><button class="vc-btn vc-btn-gold" onclick="quickBookAgain('sri-sai','Dr. Ramesh Kumar','General Medicine',300)">🔁 Book Again</button></div>
+      </div>
+      <div class="visit-card">
+        <div class="vc-icon vc-gold">🧪</div>
+        <div class="vc-info"><div class="vc-clinic">Vijaya Diagnostics</div><div class="vc-date">Blood Test · 2 Dec 2025</div></div>
+        <div class="vc-right"><div class="vc-status status-report">Report Ready</div><div class="vc-fee">₹850 paid</div></div>
+        <div class="vc-actions"><button class="vc-btn vc-btn-teal" onclick="showReport('vijaya','Blood CBC + LFT + KFT','2 Dec 2025')">📊 View Report</button><button class="vc-btn vc-btn-gold" onclick="quickBookAgain('vijaya','Suresh Yadav','Blood Tests',150)">🔁 Book Again</button></div>
+      </div>
+    </div>
+
+    <!-- ══ BOOK ══ -->
+    <div class="screen" id="book">
+  <div style="margin-bottom:16px;">
+    <div style="font-size:1.1rem;font-weight:800;color:var(--text);">Book a Token</div>
+    <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">Find clinics and labs near you</div>
+  </div>
+  <!-- Search -->
+  <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:11px 16px;margin-bottom:14px;">
+    <span style="color:var(--muted);">🔍</span>
+    <input id="bookSearch" oninput="filterBookCards()" style="border:none;outline:none;font-family:'Poppins',sans-serif;font-size:.85rem;color:var(--text);flex:1;background:transparent;" placeholder="Search clinic, doctor, specialty..."/>
+  </div>
+  <!-- Filters -->
+  <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px;scrollbar-width:none;">
+    <button onclick="setBookFilter(this,'All')" class="bk-chip active" style="flex-shrink:0;padding:7px 16px;border-radius:100px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.72rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;white-space:nowrap;">All</button>
+    <button onclick="setBookFilter(this,'General')" class="bk-chip" style="flex-shrink:0;padding:7px 16px;border-radius:100px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.72rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;white-space:nowrap;">🏥 General</button>
+    <button onclick="setBookFilter(this,'Lab')" class="bk-chip" style="flex-shrink:0;padding:7px 16px;border-radius:100px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.72rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;white-space:nowrap;">🧪 Lab</button>
+    <button onclick="setBookFilter(this,'Dental')" class="bk-chip" style="flex-shrink:0;padding:7px 16px;border-radius:100px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.72rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;white-space:nowrap;">🦷 Dental</button>
+  </div>
+  <!-- Clinic Cards -->
+  <div id="bookClinicCards" style="display:flex;flex-direction:column;gap:14px;"></div>
+</div>
+
+<div class="screen" id="tracker">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:1.1rem;font-weight:800;color:var(--text);">Live Queue Tracker</div>
+        <div style="font-size:.72rem;color:var(--muted);">Real-time updates every few seconds</div>
+      </div>
+      <div class="tracker-layout">
+        <div>
+          <div class="token-hero">
+            <div class="th-label">Your Token</div>
+            <div class="th-token"><span class="th-prefix">T-</span>026</div>
+            <div class="th-clinic">Sri Sai Hospital</div>
+            <div class="th-doctor">Dr. Ramesh Kumar · General Medicine</div>
+          </div>
+          <div class="now-serving">
+            <div class="ns-label">Now Serving</div>
+            <div class="ns-row">
+              <div><div class="ns-token">T-018</div><div class="ns-name">8 tokens before you</div></div>
+              <div style="text-align:right;"><div class="ns-wait-num">~18m</div><div class="ns-wait-label">est. wait</div></div>
+            </div>
+          </div>
+          <div class="arrive-alert">
+            <div class="aa-icon">🚶</div>
+            <div>
+              <div class="aa-title">Start heading to clinic now!</div>
+              <div class="aa-sub">You are 8 tokens away — leave in 10 minutes</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="queue-steps-card">
+            <div class="qsc-title">Queue Progress</div>
+            <div class="qs-list">
+              <div class="qs-item qs-done"><div class="qs-dot">✓</div><div class="qs-text"><div class="qs-name">Token Booked</div><div class="qs-sub">T-026 confirmed</div></div><div class="qs-time">9:10 AM</div></div>
+              <div class="qs-item qs-done"><div class="qs-dot">✓</div><div class="qs-text"><div class="qs-name">Payment Done</div><div class="qs-sub">₹10 paid via UPI</div></div><div class="qs-time">9:11 AM</div></div>
+              <div class="qs-item qs-active"><div class="qs-dot">→</div><div class="qs-text"><div class="qs-name">In Queue</div><div class="qs-sub">8 tokens ahead of you</div></div><div class="qs-time">Now</div></div>
+              <div class="qs-item qs-wait"><div class="qs-dot">4</div><div class="qs-text"><div class="qs-name">Your Turn</div><div class="qs-sub">Doctor will call you</div></div><div class="qs-time">~18m</div></div>
+              <div class="qs-item qs-wait"><div class="qs-dot">5</div><div class="qs-text"><div class="qs-name">Consultation Done</div><div class="qs-sub">Get prescription / report</div></div><div class="qs-time">—</div></div>
+            </div>
+          </div>
+          <div style="margin-top:16px;background:var(--card);border-radius:16px;padding:18px;border:1px solid var(--border);box-shadow:var(--shadow2);">
+            <div style="font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Actions</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button onclick="callClinic('sri-sai')" style="width:100%;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:11px;font-family:'Poppins',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;">📞 Call Clinic</button>
+              <button onclick="shareToken()" style="width:100%;padding:12px;background:var(--teal-light);color:var(--teal);border:none;border-radius:11px;font-family:'Poppins',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;">📲 Share on WhatsApp</button>
+              <button onclick="cancelToken()" style="width:100%;padding:12px;background:rgba(255,107,107,.1);color:var(--red);border:none;border-radius:11px;font-family:'Poppins',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;">✖ Cancel Token</button>
+              <button onclick="directionsToClinic('sri-sai')" style="width:100%;padding:11px;background:#F7FFFE;color:#7A9E98;border:1px solid #E8F5F2;border-radius:11px;font-family:'Poppins',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;">🗺️ Directions</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ HISTORY ══ -->
+    <div class="screen" id="history">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:1.1rem;font-weight:800;color:var(--text);">My Visits</div>
+        <div style="font-size:.72rem;color:var(--muted);">All your clinic and lab visits</div>
+      </div>
+      <div class="history-grid">
+        <div class="month-label">December 2025</div>
+        <div class="history-card">
+          <div class="hc-top"><div class="hc-icon hc-teal">🏥</div><div class="hc-info"><div class="hc-clinic">Sri Sai Hospital</div><div class="hc-doctor">Dr. Ramesh Kumar · General</div><div class="hc-date">8 Dec 2025 · Token T-026</div></div><div class="hc-right"><div class="hc-fee">₹310</div><div class="hc-status status-done">Completed</div></div></div>
+          <div class="hc-actions"><button class="hc-btn hc-btn-outline" onclick="showPrescription('sri-sai','Dr. Ramesh Kumar','General Medicine','8 Dec 2025')">📄 Prescription</button><button class="hc-btn hc-btn-gold" onclick="bookAgain('sri-sai')">🔁 Book Again</button></div>
+          <div style="margin-top:6px;"><button onclick="directionsToClinic('sri-sai')" style="width:100%;padding:8px;border-radius:10px;border:1px solid #E8F5F2;background:#F7FFFE;color:#7A9E98;font-size:.7rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🗺️ Directions</button></div>
+        </div>
+        <div class="history-card">
+          <div class="hc-top"><div class="hc-icon hc-gold">🧪</div><div class="hc-info"><div class="hc-clinic">Vijaya Diagnostics</div><div class="hc-doctor">Blood CBC + LFT + KFT</div><div class="hc-date">2 Dec 2025 · Token T-008</div></div><div class="hc-right"><div class="hc-fee">₹860</div><div class="hc-status status-report">Report Ready</div></div></div>
+          <div class="hc-actions"><button class="hc-btn hc-btn-outline" onclick="showReport('vijaya','Blood CBC + LFT + KFT','2 Dec 2025')">📊 View Report</button><button class="hc-btn hc-btn-gold" onclick="downloadReport('vijaya')">⬇️ Download</button></div>
+          <div style="margin-top:6px;"><button onclick="directionsToClinic('vijaya')" style="width:100%;padding:8px;border-radius:10px;border:1px solid #E8F5F2;background:#F7FFFE;color:#7A9E98;font-size:.7rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🗺️ Directions</button></div>
+        </div>
+        <div class="month-label">November 2025</div>
+        <div class="history-card">
+          <div class="hc-top"><div class="hc-icon hc-teal">👁️</div><div class="hc-info"><div class="hc-clinic">Vision Eye Clinic</div><div class="hc-doctor">Dr. Priya Sharma · Eye Check</div><div class="hc-date">18 Nov 2025 · Token T-014</div></div><div class="hc-right"><div class="hc-fee">₹510</div><div class="hc-status status-done">Completed</div></div></div>
+          <div class="hc-actions"><button class="hc-btn hc-btn-outline" onclick="showPrescription('vision','Dr. Priya Sharma','Eye Check','18 Nov 2025')">📄 Prescription</button><button class="hc-btn hc-btn-gold" onclick="bookAgain('vision')">🔁 Book Again</button></div>
+          <div style="margin-top:6px;"><button onclick="directionsToClinic('vision')" style="width:100%;padding:8px;border-radius:10px;border:1px solid #E8F5F2;background:#F7FFFE;color:#7A9E98;font-size:.7rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🗺️ Directions</button></div>
+        </div>
+        <div class="history-card">
+          <div class="hc-top"><div class="hc-icon hc-teal">🦷</div><div class="hc-info"><div class="hc-clinic">City Dental Care</div><div class="hc-doctor">Dr. Arun Reddy · Dental</div><div class="hc-date">5 Nov 2025 · Token T-003</div></div><div class="hc-right"><div class="hc-fee">₹410</div><div class="hc-status status-done">Completed</div></div></div>
+          <div class="hc-actions"><button class="hc-btn hc-btn-outline" onclick="showPrescription('dental','Dr. Arun Reddy','Dental','5 Nov 2025')">📄 Prescription</button><button class="hc-btn hc-btn-gold" onclick="bookAgain('dental')">🔁 Book Again</button></div>
+          <div style="margin-top:6px;"><button onclick="directionsToClinic('dental')" style="width:100%;padding:8px;border-radius:10px;border:1px solid #E8F5F2;background:#F7FFFE;color:#7A9E98;font-size:.7rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🗺️ Directions</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROFILE ══ -->
+    
+<!-- ══ FAMILY SCREEN ══ -->
+<div class="screen" id="family">
+  <div style="margin-bottom:20px;">
+    <h2 style="font-size:1.1rem;font-weight:800;color:var(--text);">👨‍👩‍👧 Family Members</h2>
+    <p style="font-size:.75rem;color:var(--muted);margin-top:4px;">Manage family profiles — book tokens for them directly</p>
+  </div>
+
+  <!-- Add Member Button -->
+  <button onclick="openAddMember()" style="width:100%;padding:14px;border-radius:14px;border:2px dashed var(--teal);background:var(--teal-light);color:var(--teal);font-size:.85rem;font-weight:700;font-family:'Poppins',sans-serif;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;">
+    ➕ Add Family Member
+  </button>
+
+  <!-- Family List -->
+  <div id="familyMemberList" style="display:flex;flex-direction:column;gap:12px;"></div>
+</div>
+
+<!-- ══ ADD MEMBER SHEET ══ -->
+<div id="addMemberOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.7);backdrop-filter:blur(6px);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="addMemberSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:28px 24px 44px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <div style="font-size:1rem;font-weight:800;color:#0D2B26;" id="addMemberTitle">Add Family Member</div>
+        <div style="font-size:.72rem;color:#7A9E98;margin-top:2px;">Fill details to save profile</div>
+      </div>
+      <button onclick="closeAddMember()" style="background:none;border:none;font-size:1.2rem;color:#7A9E98;cursor:pointer;">✕</button>
+    </div>
+
+    <!-- Relation -->
+    <div style="margin-bottom:12px;">
+      <label style="font-size:.72rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:6px;">RELATION *</label>
+      <select id="amRelation" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;background:#fff;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'">
+        <option value="">Select Relation</option>
+        <option>Wife</option><option>Husband</option><option>Son</option><option>Daughter</option>
+        <option>Father</option><option>Mother</option><option>Grandfather</option><option>Grandmother</option>
+        <option>Brother</option><option>Sister</option><option>Uncle</option><option>Aunt</option><option>Friend</option><option>Other</option>
+      </select>
+    </div>
+
+    <!-- Name -->
+    <div style="margin-bottom:12px;">
+      <label style="font-size:.72rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:6px;">FULL NAME *</label>
+      <input id="amName" placeholder="e.g. Priya Devi" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+    </div>
+
+    <!-- DOB or Age -->
+    <div style="margin-bottom:12px;">
+      <label style="font-size:.72rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:6px;">DATE OF BIRTH / AGE *</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <button type="button" id="amDobToggle" onclick="amToggle('dob')" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.72rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">📅 Date of Birth</button>
+        <button type="button" id="amAgeToggle" onclick="amToggle('age')" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.72rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">🔢 Enter Age</button>
+      </div>
+      <div id="amDobField">
+        <input id="amDob" type="date" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+      </div>
+      <div id="amAgeField" style="display:none;">
+        <input id="amAge" type="number" min="0" max="120" placeholder="Age in years" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+      </div>
+    </div>
+
+    <!-- Gender -->
+    <div style="margin-bottom:12px;">
+      <label style="font-size:.72rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:6px;">GENDER *</label>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="am-gender-btn" onclick="amSetGender('Male',this)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #E0E0E0;background:#fff;font-size:.8rem;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer;">👨 Male</button>
+        <button type="button" class="am-gender-btn" onclick="amSetGender('Female',this)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #E0E0E0;background:#fff;font-size:.8rem;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer;">👩 Female</button>
+        <button type="button" class="am-gender-btn" onclick="amSetGender('Other',this)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #E0E0E0;background:#fff;font-size:.8rem;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer;">🧑 Other</button>
+      </div>
+    </div>
+
+    <!-- Blood Group -->
+    <div style="margin-bottom:20px;">
+      <label style="font-size:.72rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:6px;">BLOOD GROUP (optional)</label>
+      <select id="amBlood" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;background:#fff;">
+        <option value="">Select</option>
+        <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+        <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+      </select>
+    </div>
+
+    <button onclick="saveNewMember()" style="width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#00C9A7,#00A88D);color:#fff;font-size:.9rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;box-shadow:0 5px 18px rgba(0,201,167,.3);">
+      Save Member ✓
+    </button>
+
+    <input type="hidden" id="amEditId" value=""/>
+  </div>
+</div>
+
+<div class="screen" id="profile">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:1.1rem;font-weight:800;color:var(--text);">My Profile</div>
+        <div style="font-size:.72rem;color:var(--muted);">Manage your account</div>
+      </div>
+      <div class="profile-layout">
+        <div class="profile-left">
+          <div class="profile-card">
+            <div class="pc-header">
+              <div class="pc-avatar">👤</div>
+              <div class="pc-name">Ramesh Kumar</div>
+              <div class="pc-phone">+91 98765 43210</div>
+              <button onclick="openProfileEdit()" style="margin-top:12px;padding:8px 22px;border-radius:100px;border:1.5px solid var(--teal);background:var(--teal-light);color:var(--teal);font-size:.75rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;">✏️ Edit Profile</button>
+            </div>
+            <div class="pc-stats">
+              <div class="pc-stat" onclick="showStatDetail('visits')" style="cursor:pointer;"><div class="pc-stat-val">14</div><div class="pc-stat-label">Visits</div></div>
+              <div class="pc-stat" onclick="showStatDetail('clinics')" style="cursor:pointer;"><div class="pc-stat-val">3</div><div class="pc-stat-label">Clinics</div></div>
+              <div class="pc-stat" onclick="showStatDetail('reports')" style="cursor:pointer;"><div class="pc-stat-val">2</div><div class="pc-stat-label">Reports</div></div>
+            </div>
+          </div>
+          <div class="profile-section">
+            <div class="ps-header">Personal Info</div>
+            <div class="profile-item"><div class="pi-icon pi-teal">👤</div><div class="pi-text"><div class="pi-title">Ramesh Kumar</div><div class="pi-sub">Full Name</div></div><div class="pi-arrow">›</div></div>
+            <div class="profile-item"><div class="pi-icon pi-teal">📱</div><div class="pi-text"><div class="pi-title">+91 98765 43210</div><div class="pi-sub">Mobile</div></div><div class="pi-arrow">›</div></div>
+            <div class="profile-item"><div class="pi-icon pi-teal">🎂</div><div class="pi-text"><div class="pi-title">35 Years · Male</div><div class="pi-sub">Age & Gender</div></div><div class="pi-arrow">›</div></div>
+            <div class="profile-item"><div class="pi-icon pi-teal">📍</div><div class="pi-text"><div class="pi-title">Warangal, Telangana</div><div class="pi-sub">Location</div></div><div class="pi-arrow">›</div></div>
+            <div class="profile-item" onclick="openBloodEdit()" style="cursor:pointer;"><div class="pi-icon" style="background:#FFF0F0;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">🩸</div><div class="pi-text"><div class="pi-title" id="profileBloodGroup">B+ (Blood Group)</div><div class="pi-sub">Tap to update</div></div><div class="pi-arrow">›</div></div>
+          </div>
+          <!-- Emergency Contact -->
+          <div class="profile-section" style="margin-top:16px;">
+            <div class="ps-header" style="display:flex;justify-content:space-between;align-items:center;">Emergency Contact <button onclick="openEmergencyEdit()" style="font-size:.65rem;font-weight:700;color:var(--teal);background:var(--teal-light);border:none;border-radius:100px;padding:4px 12px;cursor:pointer;font-family:Poppins,sans-serif;">+ Edit</button></div>
+            <div class="profile-item" style="cursor:default;">
+              <div class="pi-icon" style="background:#FFF0E6;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">🆘</div>
+              <div class="pi-text">
+                <div class="pi-title" id="ecName">Suresh Kumar (Brother)</div>
+                <div class="pi-sub" id="ecPhone">+91 87654 32109</div>
+              </div>
+              <button onclick="callEmergency()" style="padding:8px 14px;border-radius:10px;border:none;background:#FF6B6B;color:#fff;font-size:.7rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">📞 Call</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="profile-section" style="margin-bottom:16px;">
+            <div class="ps-header">Preferences</div>
+            <div class="profile-item"><div class="pi-icon pi-gold">🔔</div><div class="pi-text"><div class="pi-title">Notifications</div><div class="pi-sub">SMS & WhatsApp alerts</div></div><div class="pi-arrow">›</div></div>
+            <div class="profile-item"><div class="pi-icon pi-gold">🌐</div><div class="pi-text"><div class="pi-title">Language</div><div class="pi-sub">Telugu / English</div></div><div class="pi-arrow">›</div></div>
+            <div class="profile-item"><div class="pi-icon pi-gold">🔒</div><div class="pi-text"><div class="pi-title">Privacy Settings</div><div class="pi-sub">Data & permissions</div></div><div class="pi-arrow">›</div></div>
+          </div>
+          <div class="profile-section">
+            <div class="ps-header">Support</div>
+            <div class="profile-item"><div class="pi-icon pi-teal">❓</div><div class="pi-text"><div class="pi-title">Help & FAQ</div><div class="pi-sub">How HALSAA works</div></div><div class="pi-arrow">›</div></div>
+            <div class="profile-item"><div class="pi-icon pi-teal">📞</div><div class="pi-text"><div class="pi-title">Contact Support</div><div class="pi-sub">Call or WhatsApp</div></div><div class="pi-arrow">›</div></div>
+            <div class="profile-item" onclick="hlLogout()" style="cursor:pointer;"><div class="pi-icon pi-red">🚪</div><div class="pi-text"><div class="pi-title">Logout</div><div class="pi-sub">Sign out of HALSAA</div></div><div class="pi-arrow">›</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Payment Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="hidePayment()">
+  <div class="payment-modal" onclick="event.stopPropagation()">
+    <div class="pm-close" onclick="hidePayment()">✕</div>
+    <div class="pm-title">Confirm Booking</div>
+    <div class="pm-sub" id="pm-clinic-info">Sri Sai Hospital · Dr. Ramesh Kumar</div>
+    <div class="pm-amount">
+      <div class="pm-amount-label">Total to Pay Now</div>
+      <div class="pm-amount-val">₹10</div>
+    </div>
+    <div class="pm-breakdown">
+      <div class="pm-row"><span class="pm-row-label">Consultation Fee</span><span class="pm-row-val">Pay at clinic</span></div>
+      <div class="pm-row"><span class="pm-row-label">HALSAA Platform Fee</span><span class="pm-row-val">₹10</span></div>
+      <div class="pm-row"><span class="pm-row-label">Total Now</span><span class="pm-row-val" style="color:var(--teal)">₹10</span></div>
+    </div>
+    <button class="pm-pay-btn" onclick="confirmBooking()">Pay ₹10 & Get Token 🎉</button>
+    <div class="pm-upi-row">
+      <div class="pm-upi">📱 UPI</div>
+      <div class="pm-upi">💳 Card</div>
+      <div class="pm-upi">🏦 Net Banking</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+const titleMap = {home:'Dashboard',book:'Book Token',tracker:'Live Tracker',history:'My Visits',family:'Family Members',profile:'My Profile'};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('topbar-title').textContent = titleMap[id] || id;
+  window.scrollTo(0,0);
+}
+
+function setSb(el) {
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function showPayment(clinic, doctor, fee) {
+  document.getElementById('pm-clinic-info').textContent = clinic + ' · ' + doctor;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function hidePayment() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function confirmBooking() {
+  hidePayment();
+  showScreen('tracker');
+  document.querySelectorAll('.sb-item').forEach((i,idx) => {
+    if(idx===2) i.classList.add('active');
+    else i.classList.remove('active');
+  });
+}
+
+// filter handled by setBookFilter()
+
+// ════ FAMILY MEMBERS ════
+var amGender = '';
+var familyMembers = [
+  {id:'m1', relation:'Wife', name:'Priya Devi', dob:'1990-05-14', age:'', gender:'Female', blood:'B+'},
+  {id:'m2', relation:'Son', name:'Arjun Kumar', dob:'', age:'8', gender:'Male', blood:'O+'},
+];
+
+function renderFamilyList() {
+  var list = document.getElementById('familyMemberList');
+  if (!list) return;
+  var icons = {Wife:'👩',Husband:'👨',Son:'👦',Daughter:'👧',Father:'👴',Mother:'👵',Grandfather:'👴',Grandmother:'👵',Brother:'👦',Sister:'👧',Friend:'🧑',Other:'👤'};
+  list.innerHTML = '';
+  if (familyMembers.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#7A9E98;"><div style="font-size:3rem;margin-bottom:12px;">👨‍👩‍👧</div><div style="font-size:.88rem;font-weight:600;">No family members added yet</div><div style="font-size:.72rem;margin-top:6px;">Add members to book tokens for them</div></div>';
+    return;
+  }
+  familyMembers.forEach(function(m) {
+    var icon = icons[m.relation] || '👤';
+    var ageText = m.dob ? calcFamilyAge(m.dob) + ' yrs' : (m.age ? m.age + ' yrs' : '');
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:flex;align-items:center;gap:14px;margin-bottom:12px;cursor:pointer;'; card.onclick = (function(id){ return function(e){ if(!e.target.closest('button')) showMemberDetail(id); }; })(m.id);
+    var editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.style.cssText = 'padding:8px 12px;border-radius:9px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.7rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;';
+    editBtn.onclick = (function(id){ return function(){ editMember(id); }; })(m.id);
+    var delBtn = document.createElement('button');
+    delBtn.textContent = '✕';
+    delBtn.style.cssText = 'padding:8px 12px;border-radius:9px;border:1.5px solid #FFE0E0;background:#FFF5F5;color:#FF6B6B;font-size:.7rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;';
+    delBtn.onclick = (function(id){ return function(){ deleteMember(id); }; })(m.id);
+    var info = document.createElement('div');
+    info.style.flex = '1';
+    info.innerHTML = '<div style="font-size:.88rem;font-weight:800;color:#1A2E2A;">' + m.name + '</div><div style="font-size:.7rem;color:#7A9E98;margin-top:2px;">' + m.relation + (ageText ? ' · ' + ageText : '') + ' · ' + m.gender + (m.blood ? ' · ' + m.blood : '') + '</div>';
+    var iconDiv = document.createElement('div');
+    iconDiv.style.cssText = 'width:48px;height:48px;border-radius:14px;background:#E6FAF6;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;';
+    iconDiv.textContent = icon;
+    var btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:8px;';
+    btns.appendChild(editBtn);
+    btns.appendChild(delBtn);
+    card.appendChild(iconDiv);
+    card.appendChild(info);
+    card.appendChild(btns);
+    list.appendChild(card);
+  });
+}
+function calcFamilyAge(dob) {
+  var today = new Date();
+  var birth = new Date(dob);
+  var age = today.getFullYear() - birth.getFullYear();
+  var m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+function openAddMember() {
+  amGender = '';
+  document.getElementById('amRelation').value = '';
+  document.getElementById('amName').value = '';
+  document.getElementById('amDob').value = '';
+  document.getElementById('amAge').value = '';
+  document.getElementById('amBlood').value = '';
+  document.getElementById('amEditId').value = '';
+  document.getElementById('addMemberTitle').textContent = 'Add Family Member';
+  document.querySelectorAll('.am-gender-btn').forEach(function(b) {
+    b.style.background = '#fff'; b.style.borderColor = '#E0E0E0'; b.style.color = '#0D2B26';
+  });
+  amToggle('dob');
+  var o = document.getElementById('addMemberOverlay'), s = document.getElementById('addMemberSheet');
+  o.style.opacity = '1'; o.style.pointerEvents = 'all';
+  setTimeout(function() { s.style.transform = 'translateY(0)'; }, 10);
+}
+
+function closeAddMember() {
+  var o = document.getElementById('addMemberOverlay'), s = document.getElementById('addMemberSheet');
+  s.style.transform = 'translateY(100%)';
+  setTimeout(function() { o.style.opacity = '0'; o.style.pointerEvents = 'none'; }, 380);
+}
+
+function amToggle(mode) {
+  if (mode === 'dob') {
+    document.getElementById('amDobField').style.display = 'block';
+    document.getElementById('amAgeField').style.display = 'none';
+    document.getElementById('amDobToggle').style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.72rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;';
+    document.getElementById('amAgeToggle').style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.72rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;';
+  } else {
+    document.getElementById('amDobField').style.display = 'none';
+    document.getElementById('amAgeField').style.display = 'block';
+    document.getElementById('amAgeToggle').style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.72rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;';
+    document.getElementById('amDobToggle').style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.72rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;';
+  }
+}
+
+function amSetGender(g, btn) {
+  amGender = g;
+  document.querySelectorAll('.am-gender-btn').forEach(function(b) {
+    b.style.background = '#fff'; b.style.borderColor = '#E0E0E0'; b.style.color = '#0D2B26';
+  });
+  btn.style.background = '#E8FAF7'; btn.style.borderColor = '#00C9A7'; btn.style.color = '#00C9A7';
+}
+
+function saveNewMember() {
+  var relation = document.getElementById('amRelation').value;
+  var name = document.getElementById('amName').value.trim();
+  var dob = document.getElementById('amDob').value;
+  var age = document.getElementById('amAge').value;
+  var blood = document.getElementById('amBlood').value;
+  var editId = document.getElementById('amEditId').value;
+
+  if (!relation || !name || (!dob && !age) || !amGender) {
+    alert('Please fill all required fields and select gender'); return;
+  }
+
+  if (editId) {
+    // Edit existing
+    var idx = familyMembers.findIndex(function(m) { return m.id === editId; });
+    if (idx >= 0) familyMembers[idx] = {id: editId, relation, name, dob, age, gender: amGender, blood};
+  } else {
+    // Add new
+    familyMembers.push({id: 'm' + Date.now(), relation, name, dob, age, gender: amGender, blood});
+  }
+  renderFamilyList();
+  closeAddMember();
+}
+
+function editMember(id) {
+  var m = familyMembers.find(function(x) { return x.id === id; });
+  if (!m) return;
+  document.getElementById('amRelation').value = m.relation;
+  document.getElementById('amName').value = m.name;
+  document.getElementById('amBlood').value = m.blood || '';
+  document.getElementById('amEditId').value = m.id;
+  document.getElementById('addMemberTitle').textContent = 'Edit — ' + m.name;
+  amGender = m.gender;
+  if (m.dob) {
+    amToggle('dob');
+    document.getElementById('amDob').value = m.dob;
+  } else {
+    amToggle('age');
+    document.getElementById('amAge').value = m.age;
+  }
+  document.querySelectorAll('.am-gender-btn').forEach(function(b) {
+    if (b.textContent.includes(m.gender)) {
+      b.style.background = '#E8FAF7'; b.style.borderColor = '#00C9A7'; b.style.color = '#00C9A7';
+    } else {
+      b.style.background = '#fff'; b.style.borderColor = '#E0E0E0'; b.style.color = '#0D2B26';
+    }
+  });
+  var o = document.getElementById('addMemberOverlay'), s = document.getElementById('addMemberSheet');
+  o.style.opacity = '1'; o.style.pointerEvents = 'all';
+  setTimeout(function() { s.style.transform = 'translateY(0)'; }, 10);
+}
+
+function deleteMember(id) {
+  if (!confirm('Remove this family member?')) return;
+  familyMembers = familyMembers.filter(function(m) { return m.id !== id; });
+  renderFamilyList();
+}
+
+// Close on overlay click
+var _amo = document.getElementById('addMemberOverlay');
+if (_amo) _amo.addEventListener('click', function(e) { if (e.target === this) closeAddMember(); });
+
+// Render on load
+renderFamilyList();
+
+window.openAddMember = openAddMember;
+window.closeAddMember = closeAddMember;
+window.amToggle = amToggle;
+window.amSetGender = amSetGender;
+window.saveNewMember = saveNewMember;
+window.editMember = editMember;
+window.deleteMember = deleteMember;
+
+// ════ BOOK SCREEN - CLINIC CARDS ════
+var bookClinicData = [
+  {id:'sri-sai', icon:'🏥', name:'Sri Sai Hospital', type:'Clinic + Lab', typeColor:'#00C9A7',
+   addr:'Plot 42, MG Road, Hanamkonda, Warangal', status:'open', queue:14, wait:'~25 min',
+   rating:4.7, reviews:214, timing:'8AM–1PM · 5PM–9PM', tag:'General',
+   doctors:[{name:'Dr. Ramesh Kumar',spec:'General Medicine',fee:300},{name:'Dr. Priya Sharma',spec:'Gynaecology',fee:400}]},
+  {id:'vijaya', icon:'🧪', name:'Vijaya Diagnostics', type:'Lab Only', typeColor:'#FFB347',
+   addr:'Near Bus Stand, Kazipet, Warangal', status:'open', queue:6, wait:'~5 min',
+   rating:4.3, reviews:98, timing:'7AM–11AM · 4PM–8PM', tag:'Lab',
+   doctors:[{name:'Suresh Yadav',spec:'DMLT · Blood Tests · X-Ray',fee:150}]},
+  {id:'dental', icon:'🦷', name:'City Dental Care', type:'Dental Clinic', typeColor:'#6366F1',
+   addr:'Main Road, Karimnagar', status:'closed', queue:0, wait:'—',
+   rating:4.5, reviews:132, timing:'9AM–1PM · 5PM–8PM', tag:'Dental',
+   doctors:[{name:'Dr. Arun Reddy',spec:'BDS, MDS · Orthodontics',fee:300}]},
+  {id:'nirmala', icon:'👩‍⚕️', name:"Nirmala Women's Clinic", type:'Clinic Only', typeColor:'#EC4899',
+   addr:'Main Road, Nizamabad', status:'open', queue:8, wait:'~15 min',
+   rating:4.8, reviews:176, timing:'9AM–2PM · 4PM–8PM', tag:'General',
+   doctors:[{name:'Dr. Sujatha Rao',spec:"MBBS, MS · Gynaecology",fee:350}]},
+];
+
+var bkCurrentFilter = 'All';
+
+function renderBookCards(data) {
+  var container = document.getElementById('bookClinicCards');
+  if (!container) return;
+  container.innerHTML = '';
+  data.forEach(function(c) {
+    var isOpen = c.status === 'open';
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:18px;padding:16px;box-shadow:0 2px 16px rgba(0,0,0,.07);';
+    card.innerHTML =
+      '<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;">' +
+        '<div style="width:46px;height:46px;border-radius:13px;background:' + (isOpen ? 'var(--teal-light)' : '#F5F5F5') + ';display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">' + c.icon + '</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:.9rem;font-weight:800;color:var(--text);">' + c.name + '</div>' +
+          '<div style="font-size:.7rem;color:var(--muted);margin-top:2px;">📍 ' + c.addr + '</div>' +
+          '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">' +
+            '<span style="padding:3px 10px;border-radius:100px;background:' + c.typeColor + '22;color:' + c.typeColor + ';font-size:.6rem;font-weight:700;">' + c.type + '</span>' +
+            '<span style="padding:3px 10px;border-radius:100px;background:' + (isOpen ? '#E8FAF7' : '#FFE8E8') + ';color:' + (isOpen ? '#00C9A7' : '#FF6B6B') + ';font-size:.6rem;font-weight:700;">' + (isOpen ? '🟢 Open' : '🔴 Closed') + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0;">' +
+          '<div style="font-size:1rem;font-weight:900;color:var(--teal);">' + (isOpen ? c.queue : '—') + '</div>' +
+          '<div style="font-size:.58rem;color:var(--muted);">in queue</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid #F0FAF8;">' +
+        '<div>' +
+          '<div style="font-size:.68rem;color:var(--muted);">⏱ Wait: <b style="color:var(--text);">' + c.wait + '</b></div>' +
+          '<div style="font-size:.68rem;color:var(--muted);">⭐ ' + c.rating + ' (' + c.reviews + ' reviews)</div>' +
+        '</div>' +
+        (isOpen
+          ? '<div style="display:flex;gap:8px;">' +
+            '<button data-call="' + c.id + '" style="padding:10px 14px;border-radius:11px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.78rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">📞 Call</button>' +
+            '<button data-cid="' + c.id + '" style="padding:10px 18px;border-radius:11px;border:none;background:linear-gradient(135deg,#00C9A7,#00A88D);color:#fff;font-size:.78rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;">🎫 Book Token</button>' +
+            '</div>'
+          : '<div style="padding:10px 16px;border-radius:11px;background:#F5F5F5;color:#B0B0B0;font-size:.78rem;font-weight:700;">Closed</div>'
+        ) +
+        '<div style="margin-top:8px;"><button data-dir="' + c.id + '" style="width:100%;padding:8px;border-radius:10px;border:1px solid #E8F5F2;background:#F7FFFE;color:#7A9E98;font-size:.7rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🗺️ Directions</button></div>' +
+      '</div>';
+    var bookBtn = card.querySelector('[data-cid]');
+    if (bookBtn) {
+      bookBtn.onclick = (function(cid){ return function(){ openBookingModal(cid); }; })(c.id);
+    }
+    var callBtn = card.querySelector('[data-call]');
+    if (callBtn) {
+      callBtn.onclick = (function(cid){ return function(){ callClinic(cid); }; })(c.id);
+    }
+    var dirBtn = card.querySelector('[data-dir]');
+    if (dirBtn) {
+      dirBtn.onclick = (function(cid){ return function(){ directionsToClinic(cid); }; })(c.id);
+    }
+    container.appendChild(card);
+  });
+}
+
+function setBookFilter(btn, filter) {
+  bkCurrentFilter = filter;
+  document.querySelectorAll('.bk-chip').forEach(function(b) {
+    b.style.background = '#fff'; b.style.borderColor = '#E0E0E0'; b.style.color = '#7A9E98';
+  });
+  btn.style.background = '#E8FAF7'; btn.style.borderColor = '#00C9A7'; btn.style.color = '#00C9A7';
+  filterBookCards();
+}
+
+function filterBookCards() {
+  var q = (document.getElementById('bookSearch') ? document.getElementById('bookSearch').value : '').toLowerCase();
+  var filtered = bookClinicData.filter(function(c) {
+    var matchFilter = bkCurrentFilter === 'All' || c.tag === bkCurrentFilter;
+    var matchSearch = !q || c.name.toLowerCase().includes(q) || c.addr.toLowerCase().includes(q) ||
+      c.doctors.some(function(d){ return d.name.toLowerCase().includes(q) || d.spec.toLowerCase().includes(q); });
+    return matchFilter && matchSearch;
+  });
+  renderBookCards(filtered);
+}
+
+function openBookingModal(clinicId) {
+  openWhoVisiting(clinicId);
+}
+
+// Init book cards on load
+renderBookCards(bookClinicData);
+window.setBookFilter = setBookFilter;
+window.filterBookCards = filterBookCards;
+window.openBookingModal = openBookingModal;
+window.renderBookCards = renderBookCards;
+
+// ════ MEMBER DETAIL SHEET ════
+function showMemberDetail(id) {
+  var m = familyMembers.find(function(x){ return x.id === id; });
+  if (!m) return;
+  currentBookingMember = m;  // store for booking flow
+  var icons = {Wife:'👩',Husband:'👨',Son:'👦',Daughter:'👧',Father:'👴',Mother:'👵',Grandfather:'👴',Grandmother:'👵',Brother:'👦',Sister:'👧',Friend:'🧑',Other:'👤'};
+  document.getElementById('mdIcon').textContent = icons[m.relation] || '👤';
+  document.getElementById('mdName').textContent = m.name;
+  document.getElementById('mdRelation').textContent = m.relation;
+  var ageText = m.dob ? calcFamilyAge(m.dob) + ' years old' : m.age + ' years old';
+  var details = document.getElementById('mdDetails');
+  details.innerHTML = '';
+  var rows = [
+    {icon:'🔗', label:'Relation', val:m.relation},
+    {icon:'🎂', label:'Age', val:ageText},
+    {icon:'⚧', label:'Gender', val:m.gender},
+    {icon:'🩸', label:'Blood Group', val:m.blood || 'Not added'},
+    {icon:'📅', label:'Date of Birth', val:m.dob || 'Not added'},
+  ];
+  rows.forEach(function(r) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px;background:#F7FFFE;border-radius:12px;';
+    row.innerHTML = '<span style="font-size:1.2rem;">' + r.icon + '</span>' +
+      '<div style="flex:1;"><div style="font-size:.7rem;color:#7A9E98;font-weight:600;">' + r.label + '</div>' +
+      '<div style="font-size:.88rem;font-weight:700;color:#0D2B26;margin-top:2px;">' + r.val + '</div></div>';
+    details.appendChild(row);
+  });
+  // Set edit button
+  document.getElementById('mdEditBtn').onclick = function(){ closeMemberDetail(); editMember(id); };
+  var o = document.getElementById('memberDetailOverlay'), s = document.getElementById('memberDetailSheet');
+  o.style.opacity = '1'; o.style.pointerEvents = 'all';
+  setTimeout(function(){ s.style.transform = 'translateY(0)'; }, 10);
+}
+
+function closeMemberDetail() {
+  var o = document.getElementById('memberDetailOverlay'), s = document.getElementById('memberDetailSheet');
+  s.style.transform = 'translateY(100%)';
+  setTimeout(function(){ o.style.opacity = '0'; o.style.pointerEvents = 'none'; }, 380);
+}
+
+// ════ BLOOD GROUP EDIT ════
+function openBloodEdit() {
+  var o = document.getElementById('bloodEditOverlay'), s = document.getElementById('bloodEditSheet');
+  o.style.opacity = '1'; o.style.pointerEvents = 'all';
+  setTimeout(function(){ s.style.transform = 'translateY(0)'; }, 10);
+}
+function closeBloodEdit() {
+  var o = document.getElementById('bloodEditOverlay'), s = document.getElementById('bloodEditSheet');
+  s.style.transform = 'translateY(100%)';
+  setTimeout(function(){ o.style.opacity = '0'; o.style.pointerEvents = 'none'; }, 380);
+}
+function setBloodGroup(bg) {
+  document.getElementById('profileBloodGroup').textContent = bg + ' (Blood Group)';
+  closeBloodEdit();
+}
+
+var _mdo = document.getElementById('memberDetailOverlay');
+if (_mdo) _mdo.addEventListener('click', function(e){ if(e.target===this) closeMemberDetail(); });
+var _beo = document.getElementById('bloodEditOverlay');
+if (_beo) _beo.addEventListener('click', function(e){ if(e.target===this) closeBloodEdit(); });
+
+window.showMemberDetail = showMemberDetail;
+window.closeMemberDetail = closeMemberDetail;
+window.openBloodEdit = openBloodEdit;
+window.closeBloodEdit = closeBloodEdit;
+window.setBloodGroup = setBloodGroup;
+
+// ══════════════════════════════════════════════
+//  ALL INTERACTIVE FUNCTIONS
+// ══════════════════════════════════════════════
+
+var currentBookClinicId = '';
+var currentVisitor = null;
+
+var clinicDB = {
+  'sri-sai': {name:'Sri Sai Hospital', doctor:'Dr. Ramesh Kumar', spec:'General Medicine', fee:300, phone:'9876543210'},
+  'vijaya':   {name:'Vijaya Diagnostics', doctor:'Suresh Yadav', spec:'Blood Tests · X-Ray', fee:150, phone:'8888888888'},
+  'dental':   {name:'City Dental Care', doctor:'Dr. Arun Reddy', spec:'BDS, MDS · Orthodontics', fee:300, phone:'7777777777'},
+  'nirmala':  {name:"Nirmala Women's Clinic", doctor:'Dr. Sujatha Rao', spec:'Gynaecology', fee:350, phone:'6666666666'},
+  'vision':   {name:'Vision Eye Clinic', doctor:'Dr. Priya Sharma', spec:'Eye Check', fee:250, phone:'5555555555'},
+};
+
+// ── SHEET OPEN/CLOSE HELPERS ──
+function openSheet(overlayId, sheetId) {
+  var o=document.getElementById(overlayId), s=document.getElementById(sheetId);
+  if(!o||!s) return;
+  o.style.opacity='1'; o.style.pointerEvents='all';
+  setTimeout(function(){ s.style.transform='translateY(0)'; }, 10);
+}
+function closeSheet(overlayId, sheetId) {
+  var o=document.getElementById(overlayId), s=document.getElementById(sheetId);
+  if(!o||!s) return;
+  s.style.transform='translateY(100%)';
+  setTimeout(function(){ o.style.opacity='0'; o.style.pointerEvents='none'; }, 380);
+}
+function openModal(overlayId) {
+  var o=document.getElementById(overlayId);
+  if(!o) return;
+  o.style.opacity='1'; o.style.pointerEvents='all';
+}
+function closeModal(overlayId) {
+  var o=document.getElementById(overlayId);
+  if(!o) return;
+  o.style.opacity='0'; o.style.pointerEvents='none';
+}
+
+// ── WHO IS VISITING (Book Again - skip mobile) ──
+function openWhoVisiting(clinicId) {
+  currentBookClinicId = clinicId || 'sri-sai';
+  var c = clinicDB[currentBookClinicId];
+  if (c) document.getElementById('wvClinicName').textContent = '🏥 ' + c.name;
+
+  // Render family members
+  var list = document.getElementById('wvFamilyList');
+  list.innerHTML = '';
+  familyMembers.forEach(function(m) {
+    var icons = {Wife:'👩',Husband:'👨',Son:'👦',Daughter:'👧',Father:'👴',Mother:'👵',Other:'👤'};
+    var icon = icons[m.relation] || '👤';
+    var ageText = m.dob ? calcFamilyAge(m.dob) + ' yrs' : m.age + ' yrs';
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;border:1.5px solid #E0E0E0;background:#fff;cursor:pointer;';
+    row.innerHTML = '<div style="width:42px;height:42px;border-radius:12px;background:#F7FFFE;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">' + icon + '</div>' +
+      '<div style="flex:1;"><div style="font-size:.88rem;font-weight:800;color:#0D2B26;">' + m.name + '</div><div style="font-size:.7rem;color:#7A9E98;">' + m.relation + ' · ' + ageText + ' · ' + m.gender + '</div></div>' +
+      '<div style="color:#00C9A7;font-size:1rem;">›</div>';
+    row.onclick = (function(mem){ return function(){ wvSelectMember(mem.id, mem.name, mem.gender, (mem.dob ? calcFamilyAge(mem.dob) + ' yrs' : mem.age + ' yrs')); }; })(m);
+    list.appendChild(row);
+  });
+  openSheet('whoVisitingOverlay','whoVisitingSheet');
+}
+function closeWhoVisiting() { closeSheet('whoVisitingOverlay','whoVisitingSheet'); }
+
+function wvSelectMember(id, name, gender, age) {
+  currentVisitor = {id:id, name:name, gender:gender, age:age};
+  // Also set currentBookingMember so fee confirm can show patient name
+  currentBookingMember = {id:id, name:name, gender:gender, age:age};
+  closeWhoVisiting();
+  // Go directly to doctor select for the chosen clinic
+  var hosp = hospitalData.find(function(h){ return h.id === currentBookClinicId; });
+  if (hosp) {
+    setTimeout(function(){ openDoctorSelect(hosp, true); }, 400);
+  } else {
+    setTimeout(function(){ openVisitorConfirm(); }, 400);
+  }
+}
+function wvAddNew() {
+  closeWhoVisiting();
+  setTimeout(function(){ showScreen('family'); setMobileNavByScreen('family'); openAddMember(); }, 400);
+}
+
+// ── VISITOR CONFIRM ──
+function openVisitorConfirm() {
+  var c = clinicDB[currentBookClinicId] || {};
+  var v = currentVisitor || {};
+  document.getElementById('vcClinicName').textContent = c.name || '';
+  document.getElementById('vcDoctorName').textContent = (c.doctor || '') + ' · ' + (c.spec || '');
+  document.getElementById('vcFee').textContent = '₹' + (c.fee || 0);
+  document.getElementById('vcDetails').innerHTML =
+    '<div style="display:flex;gap:12px;align-items:center;">' +
+    '<div style="font-size:2rem;">👤</div>' +
+    '<div><div style="font-size:.9rem;font-weight:800;color:#0D2B26;">' + (v.name||'') + '</div>' +
+    '<div style="font-size:.72rem;color:#7A9E98;">' + (v.gender||'') + ' · ' + (v.age||'') + '</div></div>' +
+    '<div style="margin-left:auto;padding:5px 12px;background:#E8FAF7;border-radius:100px;color:#00C9A7;font-size:.7rem;font-weight:700;">Known Patient ✓</div></div>';
+  openSheet('visitorConfirmOverlay','visitorConfirmSheet');
+}
+function closeVisitorConfirm() { closeSheet('visitorConfirmOverlay','visitorConfirmSheet'); }
+function vcConfirmBook() {
+  closeVisitorConfirm();
+  var c = clinicDB[currentBookClinicId] || {name:'Clinic'};
+  var v = currentVisitor || {name:'Patient'};
+  setTimeout(function(){
+    alert('🎫 Token Booked! Clinic: ' + c.name + ' | Patient: ' + v.name + ' | Token: T-' + (Math.floor(Math.random()*20)+20) + ' | WhatsApp notification will be sent!');
+  }, 400);
+}
+
+// ── BOOK AGAIN (from history / book screen) ──
+function bookAgain(clinicId) {
+  openWhoVisiting(clinicId);
+}
+window.bookAgain = bookAgain;
+
+// ── CALL CLINIC ──
+function callClinic(clinicId) {
+  var c = clinicDB[clinicId] || {};
+  var phone = c.phone || '9876543210';
+  var a = document.createElement('a');
+  a.href = 'tel:+91' + phone;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+window.callClinic = callClinic;
+
+// ── SHARE TOKEN ──
+function shareToken() {
+  var msg = encodeURIComponent('HALSAA Token Alert! Token: T-026 | Sri Sai Hospital | Dr. Ramesh Kumar | ~18 min wait | Booked via HALSAA');
+  window.open('https://wa.me/?text=' + msg, '_blank');
+}
+window.shareToken = shareToken;
+
+// ── CANCEL TOKEN ──
+function cancelToken() {
+  openModal('cancelTokenOverlay');
+}
+function closeCancelToken() {
+  closeModal('cancelTokenOverlay');
+}
+function confirmCancelToken() {
+  closeCancelToken();
+  var msg = encodeURIComponent('Token Cancelled: T-026 at Sri Sai Hospital has been cancelled. via HALSAA App');
+  setTimeout(function(){
+    if (confirm('Token cancelled! Share cancellation message on WhatsApp?')) {
+      window.open('https://wa.me/?text=' + msg, '_blank');
+    }
+  }, 300);
+}
+window.cancelToken = cancelToken;
+window.closeCancelToken = closeCancelToken;
+window.confirmCancelToken = confirmCancelToken;
+
+// ── PRESCRIPTION ──
+function showPrescription(clinicId, doctor, spec, date) {
+  document.getElementById('rxSubtitle').textContent = doctor + ' · ' + spec + ' · ' + date;
+  var meds = [
+    {name:'Tab. Paracetamol 650mg', dose:'1-0-1', days:'5 days', note:'After food'},
+    {name:'Cap. Amoxicillin 500mg', dose:'1-0-1', days:'5 days', note:'After food'},
+    {name:'Syp. Benadryl 10ml', dose:'0-0-1', days:'3 days', note:'At bedtime'},
+  ];
+  var medEl = document.getElementById('rxMeds');
+  medEl.innerHTML = '';
+  meds.forEach(function(m,i){
+    var el = document.createElement('div');
+    el.style.cssText = 'background:#F7FFFE;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;';
+    el.innerHTML = '<div style="width:28px;height:28px;border-radius:8px;background:#00C9A7;color:#fff;font-size:.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;">' + (i+1) + '</div>' +
+      '<div style="flex:1;"><div style="font-size:.82rem;font-weight:700;color:#0D2B26;">' + m.name + '</div>' +
+      '<div style="font-size:.68rem;color:#7A9E98;">' + m.dose + ' · ' + m.days + ' · ' + m.note + '</div></div>';
+    medEl.appendChild(el);
+  });
+  openModal('prescriptionOverlay');
+}
+function closePrescription() { closeModal('prescriptionOverlay'); }
+function downloadPrescription() {
+  alert('Downloading Prescription PDF... (In live app, PDF downloads automatically)');
+}
+function sharePrescription() {
+  var msg = encodeURIComponent('Prescription - Dr. Ramesh Kumar (Sri Sai Hospital): 1. Paracetamol 650mg x5d 2. Amoxicillin 500mg x5d - via HALSAA');
+  window.open('https://wa.me/?text=' + msg, '_blank');
+}
+window.showPrescription = showPrescription;
+window.closePrescription = closePrescription;
+window.downloadPrescription = downloadPrescription;
+window.sharePrescription = sharePrescription;
+
+// ── REPORT ──
+function showReport(clinicId, testName, date) {
+  document.getElementById('rpSubtitle').textContent = testName + ' · ' + date + ' · Vijaya Diagnostics';
+  var results = [
+    {test:'Haemoglobin', val:'13.2 g/dL', ref:'13.0 – 17.0', status:'normal'},
+    {test:'WBC Count', val:'9,800 /μL', ref:'4,500 – 11,000', status:'normal'},
+    {test:'Platelets', val:'1,85,000 /μL', ref:'1,50,000 – 4,50,000', status:'normal'},
+    {test:'SGPT (ALT)', val:'42 U/L', ref:'7 – 40', status:'high'},
+    {test:'Creatinine', val:'0.9 mg/dL', ref:'0.7 – 1.3', status:'normal'},
+  ];
+  var rpEl = document.getElementById('rpResults');
+  rpEl.innerHTML = '';
+  results.forEach(function(r){
+    var isHigh = r.status === 'high';
+    var el = document.createElement('div');
+    el.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px;background:' + (isHigh ? '#FFF5F5' : '#F7FFFE') + ';border-radius:12px;border-left:3px solid ' + (isHigh ? '#FF6B6B' : '#00C9A7') + ';';
+    el.innerHTML = '<div style="flex:1;"><div style="font-size:.82rem;font-weight:700;color:#0D2B26;">' + r.test + '</div><div style="font-size:.68rem;color:#7A9E98;">Ref: ' + r.ref + '</div></div>' +
+      '<div style="text-align:right;"><div style="font-size:.85rem;font-weight:800;color:' + (isHigh ? '#FF6B6B' : '#0D2B26') + ';">' + r.val + '</div>' +
+      '<div style="font-size:.6rem;font-weight:700;color:' + (isHigh ? '#FF6B6B' : '#00C9A7') + ';">' + (isHigh ? '⬆ HIGH' : '✓ NORMAL') + '</div></div>';
+    rpEl.appendChild(el);
+  });
+  openModal('reportOverlay');
+}
+function closeReport() { closeModal('reportOverlay'); }
+function downloadReport(clinicId) {
+  alert('Downloading Report PDF... (In live app, PDF downloads automatically)');
+}
+function downloadReport2() {
+  alert('Downloading Report PDF... (In live app, PDF downloads automatically)');
+}
+function shareReport() {
+  var msg = encodeURIComponent('Lab Report - Vijaya Diagnostics (2 Dec 2025): Haemoglobin 13.2 OK | WBC 9800 OK | SGPT 42 HIGH - via HALSAA');
+  window.open('https://wa.me/?text=' + msg, '_blank');
+}
+window.showReport = showReport;
+window.closeReport = closeReport;
+window.downloadReport = downloadReport;
+window.downloadReport2 = downloadReport2;
+window.shareReport = shareReport;
+
+// ── PROFILE EDIT ──
+var peGender = 'Male';
+function openProfileEdit() {
+  peGender = 'Male';
+  openSheet('profileEditOverlay','profileEditSheet');
+}
+function closeProfileEdit() { closeSheet('profileEditOverlay','profileEditSheet'); }
+function peSetGender(g, btn) {
+  peGender = g;
+  document.querySelectorAll('.pe-gender').forEach(function(b){
+    b.style.background='#fff'; b.style.borderColor='#E0E0E0'; b.style.color='#7A9E98';
+  });
+  btn.style.background='#E8FAF7'; btn.style.borderColor='#00C9A7'; btn.style.color='#00C9A7';
+}
+function saveProfileEdit() {
+  var name = document.getElementById('peName').value;
+  var blood = document.getElementById('peBlood').value;
+  if(name) {
+    document.querySelector('.pc-name').textContent = name;
+    document.getElementById('profileBloodGroup').textContent = blood + ' (Blood Group)';
+  }
+  closeProfileEdit();
+  setTimeout(function(){ alert('✅ Profile updated successfully!'); }, 400);
+}
+window.openProfileEdit = openProfileEdit;
+window.closeProfileEdit = closeProfileEdit;
+window.peSetGender = peSetGender;
+window.saveProfileEdit = saveProfileEdit;
+
+// ── STAT DETAIL ──
+var statData = {
+  visits: {
+    title:'14 Visits', sub:'All clinic & lab visits',
+    items:[
+      {icon:'🏥', label:'Sri Sai Hospital', sub:'Dr. Ramesh Kumar · 8 Dec 2025', right:'₹310'},
+      {icon:'🧪', label:'Vijaya Diagnostics', sub:'Blood CBC + LFT · 2 Dec 2025', right:'₹860'},
+      {icon:'👁️', label:'Vision Eye Clinic', sub:'Dr. Priya Sharma · 18 Nov 2025', right:'₹510'},
+      {icon:'🦷', label:'City Dental Care', sub:'Dr. Arun Reddy · 5 Nov 2025', right:'₹410'},
+      {icon:'🏥', label:'Sri Sai Hospital', sub:'Dr. Ramesh Kumar · 10 Oct 2025', right:'₹310'},
+    ]
+  },
+  clinics: {
+    title:'3 Clinics Visited', sub:'Unique clinics you have been to',
+    items:[
+      {icon:'🏥', label:'Sri Sai Hospital', sub:'Last visited: 8 Dec 2025 · 6 visits', right:''},
+      {icon:'🧪', label:'Vijaya Diagnostics', sub:'Last visited: 2 Dec 2025 · 4 visits', right:''},
+      {icon:'👁️', label:'Vision Eye Clinic', sub:'Last visited: 18 Nov 2025 · 2 visits', right:''},
+      {icon:'🦷', label:'City Dental Care', sub:'Last visited: 5 Nov 2025 · 2 visits', right:''},
+    ]
+  },
+  reports: {
+    title:'2 Reports', sub:'Lab reports available to download',
+    items:[
+      {icon:'📊', label:'Blood CBC + LFT + KFT', sub:'Vijaya Diagnostics · 2 Dec 2025', right:'⬇️', action:'report'},
+      {icon:'📊', label:'Urine Routine', sub:'Vijaya Diagnostics · 10 Oct 2025', right:'⬇️', action:'report2'},
+    ]
+  }
+};
+
+function showStatDetail(type) {
+  var d = statData[type];
+  if(!d) return;
+  document.getElementById('statDetailTitle').textContent = d.title;
+  document.getElementById('statDetailSub').textContent = d.sub;
+  var body = document.getElementById('statDetailBody');
+  body.innerHTML = '';
+  d.items.forEach(function(item){
+    var el = document.createElement('div');
+    el.style.cssText = 'display:flex;align-items:center;gap:12px;padding:14px;background:#F7FFFE;border-radius:14px;cursor:pointer;';
+    el.innerHTML = '<div style="width:40px;height:40px;border-radius:11px;background:#E6FAF6;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">' + item.icon + '</div>' +
+      '<div style="flex:1;"><div style="font-size:.85rem;font-weight:700;color:#0D2B26;">' + item.label + '</div><div style="font-size:.68rem;color:#7A9E98;">' + item.sub + '</div></div>' +
+      (item.right ? '<div style="font-size:.85rem;font-weight:800;color:#00C9A7;">' + item.right + '</div>' : '');
+    if(item.action === 'report' || item.action === 'report2') {
+      el.onclick = function(){ downloadReport2(); };
+    }
+    body.appendChild(el);
+  });
+  openSheet('statDetailOverlay','statDetailSheet');
+}
+function closeStatDetail() { closeSheet('statDetailOverlay','statDetailSheet'); }
+window.showStatDetail = showStatDetail;
+window.closeStatDetail = closeStatDetail;
+
+// ── OVERLAY CLOSE ON BG CLICK ──
+['whoVisitingOverlay','visitorConfirmOverlay','profileEditOverlay','statDetailOverlay'].forEach(function(id){
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('click', function(e){
+    var sheetId = id.replace('Overlay','Sheet');
+    if(e.target === this) closeSheet(id, sheetId);
+  });
+});
+['prescriptionOverlay','reportOverlay','cancelTokenOverlay'].forEach(function(id){
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('click', function(e){ if(e.target===this) closeModal(id); });
+});
+
+// ── EXPOSE ALL ──
+window.openWhoVisiting = openWhoVisiting;
+window.closeWhoVisiting = closeWhoVisiting;
+window.wvSelectMember = wvSelectMember;
+window.wvAddNew = wvAddNew;
+window.openVisitorConfirm = openVisitorConfirm;
+window.closeVisitorConfirm = closeVisitorConfirm;
+window.vcConfirmBook = vcConfirmBook;
+window.shareToken = shareToken;
+
+function setSbById(navId) {
+  // Map nav IDs to screen names for sidebar highlighting
+  var navMap = {nav1:'book', nav2:'tracker', nav3:'history', nav4:'profile'};
+  var screenName = navMap[navId] || navId;
+  // Update sidebar
+  document.querySelectorAll('.sb-item').forEach(function(i){ i.classList.remove('active'); });
+  var target = document.querySelector('.sb-item[onclick*="' + screenName + '"]');
+  if (target) target.classList.add('active');
+  // Update mobile nav
+  document.querySelectorAll('.mn-item').forEach(function(i){ i.classList.remove('active'); });
+  var mTarget = document.querySelector('.mn-item[onclick*="' + screenName + '"]');
+  if (mTarget) mTarget.classList.add('active');
+}
+window.setSbById = setSbById;
+
+function setMobileNavByScreen(screenName) {
+  document.querySelectorAll('.mn-item').forEach(function(i){ i.classList.remove('active'); });
+  var t = document.querySelector('.mn-item[onclick*="' + screenName + '"]');
+  if (t) t.classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(function(i){ i.classList.remove('active'); });
+  var st = document.querySelector('.sb-item[onclick*="' + screenName + '"]');
+  if (st) st.classList.add('active');
+}
+window.setMobileNavByScreen = setMobileNavByScreen;
+
+// ── MOBILE NAV HIGHLIGHT ──
+function setMobileNav(el) {
+  document.querySelectorAll('.mn-item').forEach(function(i){ i.classList.remove('active'); });
+  if (el) el.classList.add('active');
+}
+window.setMobileNav = setMobileNav;
+
+// ══════════════════════════════════════════════
+//  COMPLETE BOOKING FLOW (Family Member)
+// ══════════════════════════════════════════════
+
+var currentBookingMember = null;  // who is booking
+var currentBookingHospital = null;
+var currentBookingDoctor = null;
+var fcPayMethod = 'upi';
+
+var hospitalData = [
+  {id:'sri-sai', icon:'🏥', name:'Sri Sai Hospital', addr:'MG Road, Hanamkonda, Warangal',
+   status:'open', queue:14, wait:'~25 min', maps:'17.3850,78.4867',
+   doctors:[
+     {name:'Dr. Ramesh Kumar', spec:'General Medicine', fee:300, avail:'Available'},
+     {name:'Dr. Priya Sharma', spec:'Gynaecology', fee:400, avail:'Available'},
+   ]},
+  {id:'vijaya', icon:'🧪', name:'Vijaya Diagnostics', addr:'Near Bus Stand, Kazipet',
+   status:'open', queue:6, wait:'~5 min', maps:'17.4399,79.1288',
+   doctors:[
+     {name:'Suresh Yadav (DMLT)', spec:'Blood Tests · X-Ray · ECG', fee:150, avail:'Available'},
+   ]},
+  {id:'dental', icon:'🦷', name:'City Dental Care', addr:'Main Road, Karimnagar',
+   status:'closed', queue:0, wait:'—', maps:'18.4386,79.1288',
+   doctors:[
+     {name:'Dr. Arun Reddy', spec:'BDS, MDS · Orthodontics', fee:300, avail:'Closed Today'},
+   ]},
+  {id:'nirmala', icon:'👩‍⚕️', name:"Nirmala Women's Clinic", addr:'Main Road, Nizamabad',
+   status:'open', queue:8, wait:'~15 min', maps:'18.6725,78.0940',
+   doctors:[
+     {name:'Dr. Sujatha Rao', spec:"MS · Gynaecology & Obstetrics", fee:350, avail:'Available'},
+   ]},
+  {id:'vision', icon:'👁️', name:'Vision Eye Clinic', addr:'Eye Hospital Road, Warangal',
+   status:'open', queue:4, wait:'~10 min', maps:'17.3850,79.5941',
+   doctors:[
+     {name:'Dr. Priya Sharma', spec:'MS Ophthalmology · Eye Check', fee:250, avail:'Available'},
+   ]},
+];
+
+// ── Step 1: Book for member → Show hospital list ──
+function bookForMember() {
+  closeMemberDetail();
+  setTimeout(function(){ openHospitalSelect(currentBookingMember || {name:'Patient'}); }, 400);
+}
+
+function openHospitalSelect(member) {
+  currentBookingMember = member;
+  document.getElementById('hsPatientName').textContent = 'Booking for: ' + (member.name || 'Patient');
+  var list = document.getElementById('hospitalList');
+  list.innerHTML = '';
+  hospitalData.forEach(function(h) {
+    var isOpen = h.status === 'open';
+    var card = document.createElement('div');
+    card.style.cssText = 'background:' + (isOpen ? '#fff' : '#fafafa') + ';border-radius:16px;padding:14px;border:1.5px solid ' + (isOpen ? '#E8F5F2' : '#E0E0E0') + ';cursor:' + (isOpen ? 'pointer' : 'default') + ';';
+    card.innerHTML =
+      '<div style="display:flex;align-items:center;gap:12px;">' +
+        '<div style="width:44px;height:44px;border-radius:12px;background:' + (isOpen ? '#E8FAF7' : '#F5F5F5') + ';display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">' + h.icon + '</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:.88rem;font-weight:800;color:' + (isOpen ? '#0D2B26' : '#999') + ';">' + h.name + '</div>' +
+          '<div style="font-size:.68rem;color:#7A9E98;margin-top:2px;">📍 ' + h.addr + '</div>' +
+          '<div style="display:flex;gap:6px;margin-top:5px;">' +
+            '<span style="font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:100px;background:' + (isOpen ? '#E8FAF7' : '#FFE8E8') + ';color:' + (isOpen ? '#00C9A7' : '#FF6B6B') + ';">' + (isOpen ? '🟢 Open' : '🔴 Closed') + '</span>' +
+            (isOpen ? '<span style="font-size:.6rem;color:#7A9E98;">Queue: ' + h.queue + ' · Wait: ' + h.wait + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        (isOpen ? '<div style="color:#00C9A7;font-size:1.2rem;">›</div>' : '') +
+      '</div>';
+    if (isOpen) {
+      card.onclick = (function(hosp){ return function(){ openDoctorSelect(hosp); }; })(h);
+    }
+    list.appendChild(card);
+  });
+  openSheet('hospitalSelectOverlay','hospitalSelectSheet');
+}
+function closeHospitalSelect() { closeSheet('hospitalSelectOverlay','hospitalSelectSheet'); }
+
+// ── Step 2: Doctor select ──
+function openDoctorSelect(hospital, skipHospitalClose) {
+  currentBookingHospital = hospital;
+  if (!skipHospitalClose) closeHospitalSelect();
+  setTimeout(function(){
+    document.getElementById('dsHospitalName').textContent = hospital.icon + ' ' + hospital.name;
+    document.getElementById('dsPatientLine').textContent = 'Booking for: ' + (currentBookingMember ? currentBookingMember.name : 'Patient');
+    var list = document.getElementById('doctorList');
+    list.innerHTML = '';
+    hospital.doctors.forEach(function(d) {
+      var isAvail = d.avail === 'Available';
+      var card = document.createElement('div');
+      card.style.cssText = 'padding:16px;border-radius:14px;border:1.5px solid ' + (isAvail ? '#E8F5F2' : '#E0E0E0') + ';background:' + (isAvail ? '#fff' : '#fafafa') + ';cursor:' + (isAvail ? 'pointer' : 'default') + ';display:flex;align-items:center;gap:12px;';
+      card.innerHTML =
+        '<div style="width:44px;height:44px;border-radius:12px;background:' + (isAvail ? '#E8FAF7' : '#F5F5F5') + ';display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">👨‍⚕️</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:.88rem;font-weight:800;color:' + (isAvail ? '#0D2B26' : '#999') + ';">' + d.name + '</div>' +
+          '<div style="font-size:.68rem;color:#7A9E98;margin-top:2px;">' + d.spec + '</div>' +
+          '<div style="font-size:.68rem;margin-top:4px;"><span style="color:#00C9A7;font-weight:700;">₹' + d.fee + '</span><span style="color:#7A9E98;"> consultation fee</span></div>' +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0;">' +
+          '<div style="font-size:.6rem;font-weight:700;padding:3px 10px;border-radius:100px;background:' + (isAvail ? '#E8FAF7' : '#FFE8E8') + ';color:' + (isAvail ? '#00C9A7' : '#FF6B6B') + ';">' + d.avail + '</div>' +
+          (isAvail ? '<div style="color:#00C9A7;font-size:1.2rem;margin-top:6px;">›</div>' : '') +
+        '</div>';
+      if (isAvail) {
+        card.onclick = (function(doc){ return function(){ openPatientConfirm(doc); }; })(d);
+      }
+      list.appendChild(card);
+    });
+    openSheet('doctorSelectOverlay','doctorSelectSheet');
+  }, 380);
+}
+function closeDoctorSelect() { closeSheet('doctorSelectOverlay','doctorSelectSheet'); }
+
+// ── Step 3: Fee confirm ──
+function openFeeConfirm(doctor) {
+  currentBookingDoctor = doctor;
+  closeDoctorSelect();
+  fcPayMethod = 'upi';
+  setTimeout(function(){
+    var m = currentBookingMember || {name:'Patient'};
+    var h = currentBookingHospital || {name:'Clinic'};
+    var platform = 10;
+    // ── Follow-up validity check ──
+    var isFollowUp = checkFollowUpValidity(currentBookClinicId, doctor.name);
+    var consultFee = isFollowUp ? 0 : doctor.fee;
+    var total = consultFee + platform;
+    var followUpBanner = isFollowUp
+      ? '<div style="background:linear-gradient(135deg,#E8FAF7,#F0FFF8);border:1.5px solid #00C9A7;border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">' +
+          '<span style="font-size:1.2rem;">🔁</span>' +
+          '<div><div style="font-size:.78rem;font-weight:800;color:#00C9A7;">Follow-up Visit — Free!</div>' +
+          '<div style="font-size:.65rem;color:#7A9E98;">Within validity period · Consultation fee waived</div></div>' +
+        '</div>'
+      : '';
+    document.getElementById('fcContent').innerHTML =
+      followUpBanner +
+      '<div style="background:#F7FFFE;border-radius:14px;padding:14px;margin-bottom:12px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+          '<span style="font-size:.75rem;color:#7A9E98;">Patient</span>' +
+          '<span style="font-size:.82rem;font-weight:700;color:#0D2B26;">' + m.name + '</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+          '<span style="font-size:.75rem;color:#7A9E98;">Hospital</span>' +
+          '<span style="font-size:.82rem;font-weight:700;color:#0D2B26;">' + h.name + '</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+          '<span style="font-size:.75rem;color:#7A9E98;">Doctor</span>' +
+          '<span style="font-size:.82rem;font-weight:700;color:#0D2B26;">' + doctor.name + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">' +
+        '<div style="display:flex;justify-content:space-between;padding:10px 14px;background:#fff;border:1px solid #E8F5F2;border-radius:10px;">' +
+          '<span style="font-size:.8rem;color:#0D2B26;">Consultation Fee</span>' +
+          (isFollowUp
+            ? '<span style="font-size:.85rem;font-weight:700;"><s style=\"color:#ccc;\">₹' + doctor.fee + '</s> <span style=\"color:#00C9A7;\">FREE</span></span>'
+            : '<span style="font-size:.85rem;font-weight:700;color:#0D2B26;">₹' + consultFee + '</span>') +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;padding:10px 14px;background:#fff;border:1px solid #E8F5F2;border-radius:10px;">' +
+          '<span style="font-size:.8rem;color:#0D2B26;">HALSAA Platform Fee</span>' +
+          '<span style="font-size:.85rem;font-weight:700;color:#0D2B26;">₹' + platform + '</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;padding:12px 14px;background:linear-gradient(135deg,#E8FAF7,#F0FFF8);border-radius:10px;border:1.5px solid #00C9A7;">' +
+          '<span style="font-size:.85rem;font-weight:800;color:#0D2B26;">Total</span>' +
+          '<span style="font-size:.95rem;font-weight:900;color:#00C9A7;">₹' + total + '</span>' +
+        '</div>' +
+      '</div>';
+    // Reset pay buttons
+    document.querySelectorAll('.pay-btn').forEach(function(b){
+      b.style.borderColor='#E0E0E0'; b.style.background='#fff'; b.style.color='#7A9E98';
+    });
+    var upiBtn = document.querySelector('.pay-btn');
+    if (upiBtn){ upiBtn.style.borderColor='#00C9A7'; upiBtn.style.background='#E8FAF7'; upiBtn.style.color='#00C9A7'; }
+    openSheet('feeConfirmOverlay','feeConfirmSheet');
+  }, 380);
+}
+function closeFeeConfirm() { closeSheet('feeConfirmOverlay','feeConfirmSheet'); }
+
+function fcSelectPay(method, btn) {
+  fcPayMethod = method;
+  document.querySelectorAll('.pay-btn').forEach(function(b){
+    b.style.borderColor='#E0E0E0'; b.style.background='#fff'; b.style.color='#7A9E98';
+  });
+  btn.style.borderColor='#00C9A7'; btn.style.background='#E8FAF7'; btn.style.color='#00C9A7';
+}
+
+// ── Step 4: Success ──
+function fcConfirmBook() {
+  closeFeeConfirm();
+  setTimeout(function(){
+    var token = 'T-' + (Math.floor(Math.random()*30)+10).toString().padStart(3,'0');
+    var m = currentBookingMember || {name:'Patient'};
+    var h = currentBookingHospital || {name:'Clinic'};
+    var d = currentBookingDoctor || {name:'Doctor', fee:300};
+    document.getElementById('bsTokenNum').textContent = token;
+    var complaint = d.complaint ? '<br><span style="color:#00C9A7;font-size:.72rem;">📋 ' + d.complaint + '</span>' : '';
+    document.getElementById('bsDetails').innerHTML =
+      '<b>' + m.name + '</b><br>' + h.name + '<br>' + d.name + complaint + '<br>Queue: ~' + (Math.floor(Math.random()*15)+5) + ' ahead · Wait ~' + (Math.floor(Math.random()*20)+10) + ' min';
+    openModal('bookSuccessOverlay');
+  }, 380);
+}
+
+function closeBookSuccess() { closeModal('bookSuccessOverlay'); }
+
+// ── Direction to Clinic ──
+function directionsToClinic(clinicId) {
+  var h = hospitalData.find(function(x){ return x.id === clinicId; });
+  var coords = h ? h.maps : '17.3850,78.4867';
+  var name = h ? encodeURIComponent(h.name) : 'Clinic';
+  window.open('https://www.google.com/maps/search/?api=1&query=' + coords + '&query_place_id=' + name, '_blank');
+}
+
+// expose
+window.bookForMember = bookForMember;
+window.openHospitalSelect = openHospitalSelect;
+window.closeHospitalSelect = closeHospitalSelect;
+window.openDoctorSelect = openDoctorSelect;
+window.closeDoctorSelect = closeDoctorSelect;
+window.openFeeConfirm = openFeeConfirm;
+window.closeFeeConfirm = closeFeeConfirm;
+window.fcSelectPay = fcSelectPay;
+window.fcConfirmBook = fcConfirmBook;
+window.closeBookSuccess = closeBookSuccess;
+window.directionsToClinic = directionsToClinic;
+
+// overlay bg close
+['hospitalSelectOverlay','doctorSelectOverlay','feeConfirmOverlay'].forEach(function(id){
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('click', function(e){
+    if (e.target === this) closeSheet(id, id.replace('Overlay','Sheet'));
+  });
+});
+var bso = document.getElementById('bookSuccessOverlay');
+if (bso) bso.addEventListener('click', function(e){ if(e.target===this) closeModal('bookSuccessOverlay'); });
+
+// ════ EMERGENCY CONTACT ════
+function openEmergencyEdit() {
+  openSheet('emergencyEditOverlay','emergencyEditSheet');
+}
+function closeEmergencyEdit() {
+  closeSheet('emergencyEditOverlay','emergencyEditSheet');
+}
+function saveEmergencyContact() {
+  var name = document.getElementById('ecNameInput').value.trim();
+  var phone = document.getElementById('ecPhoneInput').value.trim();
+  var rel = document.getElementById('ecRelInput').value;
+  if (!name || !phone) { alert('Please fill name and phone'); return; }
+  document.getElementById('ecName').textContent = name + ' (' + rel + ')';
+  document.getElementById('ecPhone').textContent = '+91 ' + phone;
+  closeEmergencyEdit();
+}
+function callEmergency() {
+  var phone = document.getElementById('ecPhone').textContent.replace(/[^0-9]/g,'');
+  var a = document.createElement('a');
+  a.href = 'tel:+91' + phone;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+var _eeo = document.getElementById('emergencyEditOverlay');
+if (_eeo) _eeo.addEventListener('click', function(e){ if(e.target===this) closeEmergencyEdit(); });
+window.openEmergencyEdit = openEmergencyEdit;
+window.closeEmergencyEdit = closeEmergencyEdit;
+window.saveEmergencyContact = saveEmergencyContact;
+window.callEmergency = callEmergency;
+
+// ════════════════════════════════════════════
+//  QUICK BOOK AGAIN — Chief Complaint Flow
+// ════════════════════════════════════════════
+
+var qbClinicId = '';
+var qbDoctorName = '';
+var qbDoctorSpec = '';
+var qbDoctorFee = 0;
+
+// Called from Home Recent Visits or History "Book Again"
+function quickBookAgain(clinicId, doctorName, spec, fee) {
+  qbClinicId = clinicId;
+  qbDoctorName = doctorName;
+  qbDoctorSpec = spec;
+  qbDoctorFee = fee;
+
+  // Store for fee confirm sheet too
+  currentBookClinicId = clinicId;
+  currentBookingMember = {name:'Ramesh Kumar', gender:'Male', age:'35 yrs'};
+  currentVisitor = {id:'myself', name:'Ramesh Kumar', gender:'Male', age:'35 yrs'};
+
+  var h = hospitalData.find(function(x){ return x.id === clinicId; }) || {name: clinicId, icon:'🏥'};
+  currentBookingHospital = h;
+  currentBookingDoctor = {name: doctorName, spec: spec, fee: fee};
+
+  // Fill chief complaint sheet
+  document.getElementById('qbHospital').textContent = h.name || clinicId;
+  document.getElementById('qbDoctor').textContent = doctorName + ' · ' + spec;
+  document.getElementById('qbFee').textContent = '₹' + fee;
+  document.getElementById('qbIcon').textContent = h.icon || '🏥';
+  document.getElementById('chiefComplaintText').value = '';
+
+  openPatientConfirm(currentBookingDoctor);
+}
+
+function closeChiefComplaint() {
+  closeSheet('chiefComplaintOverlay', 'chiefComplaintSheet');
+}
+
+function addComplaint(text) {
+  var ta = document.getElementById('chiefComplaintText');
+  var cur = ta.value.trim();
+  ta.value = cur ? cur + ', ' + text : text;
+  ta.focus();
+}
+
+function ccProceedToFee() {
+  var complaint = document.getElementById('chiefComplaintText').value.trim();
+  if (!complaint) {
+    document.getElementById('chiefComplaintText').style.borderColor = '#FF6B6B';
+    document.getElementById('chiefComplaintText').placeholder = 'Please enter your chief complaint...';
+    return;
+  }
+  // Store complaint (would be sent to doctor in live app)
+  closeChiefComplaint();
+  // Open fee confirm with already-set currentBookingDoctor & currentBookingHospital
+  setTimeout(function(){ openFeeConfirm(currentBookingDoctor); }, 400);
+}
+
+// Also override bookAgain() from history page to use quickBookAgain
+// sri-sai → already mapped
+var bookAgainMap = {
+  'sri-sai':  {doctor:'Dr. Ramesh Kumar', spec:'General Medicine', fee:300},
+  'vijaya':   {doctor:'Suresh Yadav', spec:'Blood Tests · X-Ray', fee:150},
+  'dental':   {doctor:'Dr. Arun Reddy', spec:'BDS, MDS · Orthodontics', fee:300},
+  'nirmala':  {doctor:'Dr. Sujatha Rao', spec:'Gynaecology', fee:350},
+  'vision':   {doctor:'Dr. Priya Sharma', spec:'Eye Check', fee:250},
+};
+
+function bookAgain(clinicId) {
+  var map = bookAgainMap[clinicId];
+  if (map) {
+    quickBookAgain(clinicId, map.doctor, map.spec, map.fee);
+  } else {
+    openWhoVisiting(clinicId);
+  }
+}
+
+var _cco = document.getElementById('chiefComplaintOverlay');
+if (_cco) _cco.addEventListener('click', function(e){ if(e.target===this) closeChiefComplaint(); });
+
+window.quickBookAgain = quickBookAgain;
+window.closeChiefComplaint = closeChiefComplaint;
+window.addComplaint = addComplaint;
+window.ccProceedToFee = ccProceedToFee;
+window.bookAgain = bookAgain;
+
+// ════════════════════════════════════════════
+//  PATIENT CONFIRM + CHIEF COMPLAINT (Central)
+// ════════════════════════════════════════════
+
+// Patient profile data (would come from login session in live app)
+var patientProfile = {
+  name: 'Ramesh Kumar',
+  mobile: '+91 98765 43210',
+  location: 'Warangal, Telangana',
+  age: '35',
+  gender: 'Male',
+  blood: 'B+'
+};
+
+function openPatientConfirm(doctor) {
+  currentBookingDoctor = doctor;
+  var h = currentBookingHospital || {};
+  var m = currentBookingMember || patientProfile;
+
+  // Fill doctor/hospital strip
+  document.getElementById('pcDocIcon').textContent = h.icon || '🏥';
+  document.getElementById('pcHospitalName').textContent = h.name || '';
+  document.getElementById('pcDoctorName').textContent = (doctor.name || '') + ' · ' + (doctor.spec || '');
+  document.getElementById('pcFeeDisplay').textContent = '₹' + (doctor.fee || 0);
+
+  // Fill patient details
+  var name = m.name || patientProfile.name;
+  var mobile = patientProfile.mobile;
+  var location = m.location || patientProfile.location;
+  var age = m.age || patientProfile.age;
+  var gender = m.gender || patientProfile.gender;
+  var blood = m.blood || patientProfile.blood || 'Not added';
+
+  document.getElementById('pcPatName').textContent = name;
+  document.getElementById('pcPatSub').textContent = (m.relation ? m.relation + ' of Ramesh Kumar' : 'Self');
+  document.getElementById('pcMobile').textContent = mobile;
+  document.getElementById('pcLocation').textContent = location;
+  document.getElementById('pcAgeGender').textContent = age + ' yrs · ' + gender;
+  document.getElementById('pcBlood').textContent = blood;
+
+  // Pre-fill edit fields
+  document.getElementById('pcEditName').value = name;
+  document.getElementById('pcEditLocation').value = location;
+  document.getElementById('pcEditAge').value = age;
+  document.getElementById('pcEditGender').value = gender;
+  document.getElementById('pcEditBlood').value = blood !== 'Not added' ? blood : '';
+
+  // Reset complaint + show view mode
+  document.getElementById('pcComplaint').value = '';
+  document.getElementById('pcComplaint').style.borderColor = '#E0E0E0';
+  pcSwitchView();
+
+  // Close doctor select sheet if open
+  closeSheet('doctorSelectOverlay','doctorSelectSheet');
+
+  setTimeout(function(){
+    openSheet('patientConfirmOverlay','patientConfirmSheet');
+  }, 380);
+}
+
+function closePatientConfirm() {
+  closeSheet('patientConfirmOverlay','patientConfirmSheet');
+}
+
+// Switch between view and edit mode
+function pcSwitchEdit() {
+  document.getElementById('pcViewMode').style.display = 'none';
+  document.getElementById('pcEditMode').style.display = 'block';
+}
+
+function pcSwitchView() {
+  // Save edits back to view
+  var name = document.getElementById('pcEditName').value.trim();
+  var loc  = document.getElementById('pcEditLocation').value.trim();
+  var age  = document.getElementById('pcEditAge').value.trim();
+  var gen  = document.getElementById('pcEditGender').value;
+  var blood= document.getElementById('pcEditBlood').value;
+
+  if (name) document.getElementById('pcPatName').textContent = name;
+  if (loc)  document.getElementById('pcLocation').textContent = loc;
+  if (age || gen) document.getElementById('pcAgeGender').textContent = (age||'?') + ' yrs · ' + gen;
+  if (blood) document.getElementById('pcBlood').textContent = blood;
+
+  document.getElementById('pcViewMode').style.display = 'block';
+  document.getElementById('pcEditMode').style.display = 'none';
+}
+
+function pcAddComplaint(text) {
+  var ta = document.getElementById('pcComplaint');
+  var cur = ta.value.trim();
+  ta.value = cur ? cur + ', ' + text : text;
+  ta.focus();
+}
+
+function pcConfirm() {
+  // If in edit mode, save first
+  if (document.getElementById('pcEditMode').style.display !== 'none') {
+    pcSwitchView();
+  }
+  var complaint = document.getElementById('pcComplaint').value.trim();
+  if (!complaint) {
+    document.getElementById('pcComplaint').style.borderColor = '#FF6B6B';
+    document.getElementById('pcComplaint').placeholder = 'Please enter your chief complaint...';
+    document.getElementById('pcComplaint').focus();
+    return;
+  }
+  // Store complaint for doctor to see
+  if (currentBookingDoctor) currentBookingDoctor.complaint = complaint;
+
+  closePatientConfirm();
+  setTimeout(function(){ openFeeConfirm(currentBookingDoctor); }, 400);
+}
+
+// Also update quickBookAgain to use openPatientConfirm flow properly
+// (already redirected above — just make sure currentBookingHospital is set)
+
+var _pco = document.getElementById('patientConfirmOverlay');
+if (_pco) _pco.addEventListener('click', function(e){ if(e.target===this) closePatientConfirm(); });
+
+window.openPatientConfirm = openPatientConfirm;
+window.closePatientConfirm = closePatientConfirm;
+window.pcSwitchEdit = pcSwitchEdit;
+window.pcSwitchView = pcSwitchView;
+window.pcAddComplaint = pcAddComplaint;
+window.pcConfirm = pcConfirm;
+
+// ════════════════════════════════════════════
+//  FOLLOW-UP VALIDITY CHECK
+//  Clinic admin sets: clinicId + doctorName + validityDays
+//  Patient's last visit date is checked against validity window
+// ════════════════════════════════════════════
+
+// Simulated DB: clinic admin-set follow-up validity per doctor
+// In live app, this comes from Supabase via API
+var followUpSettings = {
+  'sri-sai': {
+    'Dr. Ramesh Kumar':  { validityDays: 15 },
+    'Dr. Priya Sharma':  { validityDays: 10 },
+  },
+  'vijaya': {
+    'Suresh Yadav':      { validityDays: 7  },
+  },
+  'nirmala': {
+    'Dr. Sujatha Rao':   { validityDays: 30 },
+  },
+  'vision': {
+    'Dr. Priya Sharma':  { validityDays: 14 },
+  },
+};
+
+// Patient's last visit dates per clinic+doctor (from visit history)
+// In live app, fetched from DB on login
+var lastVisitDates = {
+  'sri-sai__Dr. Ramesh Kumar': new Date('2026-03-08'),
+  'vijaya__Suresh Yadav':      new Date('2025-12-02'),
+};
+
+function checkFollowUpValidity(clinicId, doctorName) {
+  if (!clinicId || !doctorName) return false;
+  var settings = (followUpSettings[clinicId] || {})[doctorName];
+  if (!settings) return false;
+  var lastVisit = lastVisitDates[clinicId + '__' + doctorName];
+  if (!lastVisit) return false;
+  var today = new Date();
+  var daysDiff = Math.floor((today - lastVisit) / (1000 * 60 * 60 * 24));
+  return daysDiff <= settings.validityDays;
+}
+
+// ════════════════════════════════════════════
+//  CALL BUTTON — UNIVERSAL FIX
+//  Uses <a href="tel:"> anchor click — works on Android WebView
+// ════════════════════════════════════════════
+function dialPhone(number) {
+  // Remove all non-digit chars, ensure +91 prefix
+  var clean = String(number).replace(/[^0-9]/g, '');
+  if (clean.length === 10) clean = '91' + clean;
+  var a = document.createElement('a');
+  a.href = 'tel:+' + clean;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ document.body.removeChild(a); }, 300);
+}
+
+// Override callClinic to use dialPhone
+function callClinic(clinicId) {
+  var phones = {
+    'sri-sai': '9876543210',
+    'vijaya':  '8888888888',
+    'dental':  '7777777777',
+    'nirmala': '9090909090',
+    'vision':  '9191919191',
+  };
+  dialPhone(phones[clinicId] || '9876543210');
+}
+window.callClinic = callClinic;
+window.dialPhone = dialPhone;
+window.checkFollowUpValidity = checkFollowUpValidity;
+
+// ════════════════════════════════════════════
+//  NOTIFICATION SYSTEM — Live Token Alerts
+// ════════════════════════════════════════════
+
+var notifications = [
+  {
+    id:1, unread:true, time:'2 min ago', icon:'🟡',
+    title:'3 tokens ahead of you!',
+    body:'T-026 at Sri Sai Hospital · Est. wait ~9 min. Get ready!',
+    type:'alert'
+  },
+  {
+    id:2, unread:true, time:'9:11 AM', icon:'✅',
+    title:'Payment confirmed ₹10',
+    body:'Token T-026 booked at Sri Sai Hospital · Dr. Ramesh Kumar',
+    type:'payment'
+  },
+  {
+    id:3, unread:false, time:'9:08 AM', icon:'🎫',
+    title:'Token booked successfully',
+    body:'T-026 · Sri Sai Hospital · Chief complaint: Follow-up',
+    type:'booking'
+  },
+  {
+    id:4, unread:false, time:'5 Dec 2025', icon:'📄',
+    title:'Prescription ready',
+    body:'Dr. Ramesh Kumar uploaded your prescription · Tap to view',
+    type:'prescription'
+  },
+  {
+    id:5, unread:false, time:'2 Dec 2025', icon:'📊',
+    title:'Lab report ready',
+    body:'Vijaya Diagnostics · Blood CBC + LFT · Tap to view',
+    type:'report'
+  },
+];
+
+function renderNotifs() {
+  var list = document.getElementById('notifList');
+  if (!list) return;
+  var unreadCount = notifications.filter(function(n){ return n.unread; }).length;
+  // Update bell dot
+  var dot = document.getElementById('notifDot');
+  if (dot) dot.style.display = unreadCount > 0 ? 'block' : 'none';
+
+  list.innerHTML = notifications.map(function(n) {
+    return '<div onclick="readNotif(' + n.id + ')" style="background:' + (n.unread ? '#F7FFFE' : '#fff') + ';border:1.5px solid ' + (n.unread ? '#00C9A7' : '#F0F0F0') + ';border-radius:13px;padding:12px 14px;cursor:pointer;transition:all .2s;">' +
+      '<div style="display:flex;align-items:flex-start;gap:10px;">' +
+        '<div style="width:36px;height:36px;border-radius:10px;background:' + (n.unread ? '#E8FAF7' : '#F5F5F5') + ';display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">' + n.icon + '</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">' +
+            '<div style="font-size:.78rem;font-weight:' + (n.unread ? '800' : '600') + ';color:#0D2B26;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">' + n.title + '</div>' +
+            '<div style="font-size:.6rem;color:#B0B0B0;flex-shrink:0;margin-left:6px;">' + n.time + '</div>' +
+          '</div>' +
+          '<div style="font-size:.68rem;color:#7A9E98;line-height:1.4;">' + n.body + '</div>' +
+        '</div>' +
+        (n.unread ? '<div style="width:8px;height:8px;border-radius:50%;background:#00C9A7;flex-shrink:0;margin-top:4px;"></div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openNotifPanel() {
+  renderNotifs();
+  var overlay = document.getElementById('notifPanelOverlay');
+  var panel = document.getElementById('notifPanel');
+  if (!overlay || !panel) return;
+  overlay.style.opacity = '1';
+  overlay.style.pointerEvents = 'auto';
+  panel.style.transform = 'translateX(0)';
+}
+
+function closeNotifPanel() {
+  var overlay = document.getElementById('notifPanelOverlay');
+  var panel = document.getElementById('notifPanel');
+  if (!overlay || !panel) return;
+  panel.style.transform = 'translateX(100%)';
+  setTimeout(function(){
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+  }, 320);
+}
+
+function readNotif(id) {
+  notifications = notifications.map(function(n){
+    return n.id === id ? Object.assign({}, n, {unread: false}) : n;
+  });
+  renderNotifs();
+}
+
+function markAllRead() {
+  notifications = notifications.map(function(n){
+    return Object.assign({}, n, {unread: false});
+  });
+  renderNotifs();
+}
+
+var _npo = document.getElementById('notifPanelOverlay');
+if (_npo) _npo.addEventListener('click', function(e){ if(e.target===this) closeNotifPanel(); });
+
+window.openNotifPanel = openNotifPanel;
+window.closeNotifPanel = closeNotifPanel;
+window.readNotif = readNotif;
+window.markAllRead = markAllRead;
+
+// Init bell dot on load
+setTimeout(renderNotifs, 100);
+
+// ══ AUTH ══
+function hlLogout(){
+  sessionStorage.removeItem('halsaa_session');
+  window.location.href='index.html';
+}
+// Load logged-in patient profile from localStorage/session
+(function initPatientSession(){
+  try{
+    var s=sessionStorage.getItem('halsaa_session');
+    var u=s?JSON.parse(s):null;
+    if(!u){
+      var lm=localStorage.getItem('halsaa_last_mobile');
+      if(lm){ var lv=localStorage.getItem('halsaa_user_'+lm); if(lv) u=JSON.parse(lv); }
+    }
+    if(u){
+      patientProfile.name    = u.name     || patientProfile.name;
+      patientProfile.mobile  = u.mobile   ? '+91 '+u.mobile : patientProfile.mobile;
+      patientProfile.location= u.location || patientProfile.location;
+      patientProfile.age     = u.age      || patientProfile.age;
+      patientProfile.gender  = u.gender   || patientProfile.gender;
+      patientProfile.blood   = u.blood    || patientProfile.blood;
+      var mob = u.mobile ? '+91 '+u.mobile : patientProfile.mobile;
+      // Sidebar
+      var sn=document.getElementById('sbUserName');   if(sn) sn.textContent=u.name;
+      var sm=document.getElementById('sbUserMobile'); if(sm) sm.textContent=mob;
+      // Welcome banner
+      var wn=document.getElementById('wbName'); if(wn) wn.textContent=u.name;
+      var ws=document.getElementById('wbSub');  if(ws) ws.textContent=mob+' · '+(u.location||'');
+      // Topbar sub
+      var ts=document.querySelector('.tb-sub'); if(ts) ts.textContent='Welcome back, '+u.name.split(' ')[0]+'!';
+    }
+  }catch(e){}
+})();
+</script>
+
+<nav class="mobile-nav" id="mobileNav">
+  <div class="mn-item active" onclick="showScreen('home');setMobileNav(this)"><div class="mn-icon">🏠</div><div class="mn-label">Home</div></div>
+  <div class="mn-item" onclick="showScreen('book');setMobileNav(this)"><div class="mn-icon">➕</div><div class="mn-label">Book</div></div>
+  <div class="mn-item" onclick="showScreen('tracker');setMobileNav(this)"><div class="mn-icon">📍</div><div class="mn-label">Tracker</div></div>
+  <div class="mn-item" onclick="showScreen('history');setMobileNav(this)"><div class="mn-icon">📋</div><div class="mn-label">Visits</div></div>
+  <div class="mn-item" onclick="showScreen('family');setMobileNav(this)"><div class="mn-icon">👨‍👩‍👧</div><div class="mn-label">Family</div></div>
+  <div class="mn-item" onclick="showScreen('profile');setMobileNav(this)"><div class="mn-icon">👤</div><div class="mn-label">Profile</div></div>
+</nav>
+
+<!-- ══ MEMBER DETAIL SHEET ══ -->
+<div id="memberDetailOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.7);backdrop-filter:blur(6px);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="memberDetailSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:28px 24px 44px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <div style="text-align:center;margin-bottom:24px;">
+      <div id="mdIcon" style="font-size:3rem;margin-bottom:8px;">👤</div>
+      <div id="mdName" style="font-size:1.2rem;font-weight:800;color:#0D2B26;"></div>
+      <div id="mdRelation" style="font-size:.75rem;color:#7A9E98;margin-top:4px;"></div>
+    </div>
+    <div id="mdDetails" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeMemberDetail();openAddMember();" id="mdEditBtn" style="flex:1;padding:13px;border-radius:13px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.85rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">✏️ Edit</button>
+      <button onclick="bookForMember()" style="flex:1;padding:13px;border-radius:13px;border:none;background:linear-gradient(135deg,#00C9A7,#00A88D);color:#fff;font-size:.85rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">🎫 Book Token</button>
+    </div>
+    <button onclick="closeMemberDetail()" style="position:absolute;top:20px;right:20px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+  </div>
+</div>
+
+<!-- ══ BLOOD GROUP EDIT SHEET ══ -->
+<div id="bloodEditOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.7);backdrop-filter:blur(6px);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="bloodEditSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:28px 24px 44px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <div style="font-size:1rem;font-weight:800;color:#0D2B26;margin-bottom:6px;">🩸 Update Blood Group</div>
+    <div style="font-size:.75rem;color:#7A9E98;margin-bottom:20px;">Select your blood group</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;">
+      <button onclick="setBloodGroup('A+')" class="bg-btn" style="padding:14px 8px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;font-size:.9rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">A+</button>
+      <button onclick="setBloodGroup('A-')" class="bg-btn" style="padding:14px 8px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;font-size:.9rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">A-</button>
+      <button onclick="setBloodGroup('B+')" class="bg-btn" style="padding:14px 8px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;font-size:.9rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">B+</button>
+      <button onclick="setBloodGroup('B-')" class="bg-btn" style="padding:14px 8px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;font-size:.9rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">B-</button>
+      <button onclick="setBloodGroup('O+')" class="bg-btn" style="padding:14px 8px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;font-size:.9rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">O+</button>
+      <button onclick="setBloodGroup('O-')" class="bg-btn" style="padding:14px 8px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;font-size:.9rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">O-</button>
+      <button onclick="setBloodGroup('AB+')" class="bg-btn" style="padding:14px 8px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;font-size:.9rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">AB+</button>
+      <button onclick="setBloodGroup('AB-')" class="bg-btn" style="padding:14px 8px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;font-size:.9rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">AB-</button>
+    </div>
+    <button onclick="closeBloodEdit()" style="position:absolute;top:20px;right:20px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ALL MODALS / BOTTOM SHEETS
+════════════════════════════════════════ -->
+
+<!-- WHO IS VISITING SHEET (Book Again - skip mobile) -->
+<div id="whoVisitingOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="whoVisitingSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:28px 24px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);max-height:85vh;overflow-y:auto;position:relative;">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <button onclick="closeWhoVisiting()" style="position:absolute;top:20px;right:20px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+    <div style="margin-bottom:20px;">
+      <div id="wvClinicName" style="font-size:1rem;font-weight:800;color:#0D2B26;">Book Token</div>
+      <div style="font-size:.72rem;color:#7A9E98;margin-top:4px;">Who is visiting the doctor?</div>
+    </div>
+    <!-- Myself -->
+    <div onclick="wvSelectMember('myself','Ramesh Kumar','Male','35 yrs')" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;border:1.5px solid #00C9A7;background:#E8FAF7;margin-bottom:10px;cursor:pointer;">
+      <div style="width:42px;height:42px;border-radius:12px;background:#00C9A7;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">👤</div>
+      <div style="flex:1;"><div style="font-size:.88rem;font-weight:800;color:#0D2B26;">Myself</div><div style="font-size:.7rem;color:#7A9E98;">Ramesh Kumar · Male · 35 yrs</div></div>
+      <div style="color:#00C9A7;font-size:1rem;">›</div>
+    </div>
+    <!-- Family members -->
+    <div id="wvFamilyList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
+    <!-- Add new -->
+    <button onclick="wvAddNew()" style="width:100%;padding:13px;border-radius:13px;border:2px dashed #00C9A7;background:#F7FFFE;color:#00C9A7;font-size:.82rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">➕ Add New Member</button>
+  </div>
+</div>
+
+<!-- VISITOR CONFIRM SHEET (after selecting who) -->
+<div id="visitorConfirmOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:650;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="visitorConfirmSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:28px 24px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);position:relative;">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <button onclick="closeVisitorConfirm()" style="position:absolute;top:20px;right:20px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+    <div style="margin-bottom:20px;">
+      <div style="font-size:1rem;font-weight:800;color:#0D2B26;">Confirm Details</div>
+      <div style="font-size:.72rem;color:#7A9E98;margin-top:4px;">Booking token for:</div>
+    </div>
+    <div id="vcDetails" style="background:#F7FFFE;border-radius:14px;padding:16px;margin-bottom:20px;"></div>
+    <div id="vcClinicInfo" style="background:#fff;border:1.5px solid #E8F5F2;border-radius:14px;padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+      <div style="font-size:1.4rem;">🏥</div>
+      <div><div id="vcClinicName" style="font-size:.88rem;font-weight:800;color:#0D2B26;"></div><div id="vcDoctorName" style="font-size:.7rem;color:#7A9E98;"></div></div>
+      <div style="margin-left:auto;text-align:right;"><div id="vcFee" style="font-size:.9rem;font-weight:800;color:#00C9A7;"></div><div style="font-size:.62rem;color:#7A9E98;">+ ₹10 platform</div></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeVisitorConfirm();openWhoVisiting(currentBookClinicId);" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.8rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">← Change</button>
+      <button onclick="vcConfirmBook()" style="flex:2;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#00C9A7,#00A88D);color:#fff;font-size:.85rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;">✓ Confirm & Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRESCRIPTION MODAL -->
+<div id="prescriptionOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:460px;max-height:85vh;overflow-y:auto;position:relative;">
+    <div style="padding:20px 20px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #F0FAF8;padding-bottom:16px;margin-bottom:16px;">
+      <div><div style="font-size:.9rem;font-weight:800;color:#0D2B26;">📄 Prescription</div><div id="rxSubtitle" style="font-size:.68rem;color:#7A9E98;margin-top:2px;"></div></div>
+      <button onclick="closePrescription()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+    </div>
+    <div style="padding:0 20px 20px;">
+      <div style="background:#F7FFFE;border-radius:12px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:.7rem;font-weight:700;color:#7A9E98;margin-bottom:8px;">DIAGNOSIS</div>
+        <div style="font-size:.85rem;font-weight:600;color:#0D2B26;" id="rxDiagnosis">Viral Fever + Upper Respiratory Tract Infection</div>
+      </div>
+      <div style="font-size:.7rem;font-weight:700;color:#7A9E98;margin-bottom:10px;">MEDICINES</div>
+      <div id="rxMeds" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+      <div style="background:#FFF4E6;border-radius:12px;padding:12px;margin-bottom:16px;">
+        <div style="font-size:.7rem;font-weight:700;color:#FFB347;margin-bottom:4px;">📋 ADVICE</div>
+        <div style="font-size:.78rem;color:#0D2B26;">Rest for 3 days. Drink plenty of fluids. Avoid cold food. Follow-up after 5 days if fever persists.</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="downloadPrescription()" style="flex:1;padding:12px;border-radius:11px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.78rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">⬇️ Download</button>
+        <button onclick="sharePrescription()" style="flex:1;padding:12px;border-radius:11px;border:none;background:#25D366;color:#fff;font-size:.78rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">📲 WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div id="reportOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:460px;max-height:85vh;overflow-y:auto;position:relative;">
+    <div style="padding:20px 20px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #F0FAF8;padding-bottom:16px;margin-bottom:16px;">
+      <div><div style="font-size:.9rem;font-weight:800;color:#0D2B26;">📊 Lab Report</div><div id="rpSubtitle" style="font-size:.68rem;color:#7A9E98;margin-top:2px;"></div></div>
+      <button onclick="closeReport()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+    </div>
+    <div style="padding:0 20px 20px;">
+      <div id="rpResults" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="downloadReport2()" style="flex:1;padding:12px;border-radius:11px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.78rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">⬇️ Download PDF</button>
+        <button onclick="shareReport()" style="flex:1;padding:12px;border-radius:11px;border:none;background:#25D366;color:#fff;font-size:.78rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">📲 WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE EDIT SHEET -->
+<div id="profileEditOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="profileEditSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:28px 24px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);max-height:90vh;overflow-y:auto;position:relative;">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <button onclick="closeProfileEdit()" style="position:absolute;top:20px;right:20px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+    <div style="font-size:1rem;font-weight:800;color:#0D2B26;margin-bottom:4px;">✏️ Edit Profile</div>
+    <div style="font-size:.72rem;color:#7A9E98;margin-bottom:20px;">Update your personal information</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:.68rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:5px;">FULL NAME</label>
+        <input id="peName" value="Ramesh Kumar" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:Poppins,sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+      </div>
+      <div>
+        <label style="font-size:.68rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:5px;">MOBILE (cannot change)</label>
+        <input value="+91 98765 43210" disabled style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:Poppins,sans-serif;background:#F5F5F5;color:#999;box-sizing:border-box;"/>
+      </div>
+      <div>
+        <label style="font-size:.68rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:5px;">DATE OF BIRTH</label>
+        <input id="peDob" type="date" value="1990-03-15" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:Poppins,sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+      </div>
+      <div>
+        <label style="font-size:.68rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:5px;">GENDER</label>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="pe-gender" onclick="peSetGender('Male',this)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.8rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">👨 Male</button>
+          <button type="button" class="pe-gender" onclick="peSetGender('Female',this)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.8rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">👩 Female</button>
+          <button type="button" class="pe-gender" onclick="peSetGender('Other',this)" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.8rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">🧑 Other</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:.68rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:5px;">LOCATION</label>
+        <input id="peLocation" value="Warangal, Telangana" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:Poppins,sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+      </div>
+      <div>
+        <label style="font-size:.68rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:5px;">BLOOD GROUP</label>
+        <select id="peBlood" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:Poppins,sans-serif;outline:none;background:#fff;">
+          <option>A+</option><option>A-</option><option selected>B+</option><option>B-</option>
+          <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+        </select>
+      </div>
+    </div>
+    <button onclick="saveProfileEdit()" style="width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#00C9A7,#00A88D);color:#fff;font-size:.9rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;box-shadow:0 5px 18px rgba(0,201,167,.3);margin-top:20px;">Save Changes ✓</button>
+  </div>
+</div>
+
+<!-- STAT DETAIL SHEET -->
+<div id="statDetailOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="statDetailSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:28px 24px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);max-height:85vh;overflow-y:auto;position:relative;">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <button onclick="closeStatDetail()" style="position:absolute;top:20px;right:20px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+    <div id="statDetailTitle" style="font-size:1rem;font-weight:800;color:#0D2B26;margin-bottom:4px;"></div>
+    <div id="statDetailSub" style="font-size:.72rem;color:#7A9E98;margin-bottom:20px;"></div>
+    <div id="statDetailBody" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+</div>
+
+<!-- CANCEL TOKEN CONFIRM -->
+<div id="cancelTokenOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:380px;padding:28px 24px;text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:12px;">⚠️</div>
+    <div style="font-size:1rem;font-weight:800;color:#0D2B26;margin-bottom:8px;">Cancel Token?</div>
+    <div style="font-size:.78rem;color:#7A9E98;margin-bottom:20px;">Your Token <b style="color:#FF6B6B;">T-026</b> at <b>Sri Sai Hospital</b> will be cancelled. This cannot be undone.</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeCancelToken()" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.85rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">Keep Token</button>
+      <button onclick="confirmCancelToken()" style="flex:1;padding:13px;border-radius:12px;border:none;background:#FF6B6B;color:#fff;font-size:.85rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HOSPITAL SELECT SHEET (Book for family member) ══ -->
+<div id="hospitalSelectOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:700;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="hospitalSelectSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:24px 20px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);max-height:88vh;overflow-y:auto;position:relative;">
+    <div style="display:flex;justify-content:center;margin-bottom:16px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <button onclick="closeHospitalSelect()" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+    <div style="margin-bottom:4px;font-size:1rem;font-weight:800;color:#0D2B26;">🏥 Select Hospital</div>
+    <div id="hsPatientName" style="font-size:.72rem;color:#7A9E98;margin-bottom:18px;"></div>
+    <div id="hospitalList" style="display:flex;flex-direction:column;gap:12px;"></div>
+  </div>
+</div>
+
+<!-- ══ DOCTOR SELECT SHEET ══ -->
+<div id="doctorSelectOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:710;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="doctorSelectSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:24px 20px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);max-height:88vh;overflow-y:auto;position:relative;">
+    <div style="display:flex;justify-content:center;margin-bottom:16px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <button onclick="closeDoctorSelect()" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+    <div id="dsHospitalName" style="font-size:1rem;font-weight:800;color:#0D2B26;margin-bottom:4px;"></div>
+    <div id="dsPatientLine" style="font-size:.72rem;color:#7A9E98;margin-bottom:18px;"></div>
+    <div style="font-size:.68rem;font-weight:700;color:#7A9E98;letter-spacing:.08em;margin-bottom:10px;">SELECT DOCTOR</div>
+    <div id="doctorList" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+</div>
+
+<!-- ══ FEE CONFIRM SHEET ══ -->
+<div id="feeConfirmOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:720;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="feeConfirmSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:24px 20px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);position:relative;">
+    <div style="display:flex;justify-content:center;margin-bottom:16px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <button onclick="closeFeeConfirm()" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+    <div style="font-size:1rem;font-weight:800;color:#0D2B26;margin-bottom:18px;">💳 Fee Breakup</div>
+    <div id="fcContent" style="margin-bottom:20px;"></div>
+    <!-- Payment method -->
+    <div style="font-size:.68rem;font-weight:700;color:#7A9E98;letter-spacing:.08em;margin-bottom:10px;">PAYMENT METHOD</div>
+    <div style="display:flex;gap:10px;margin-bottom:20px;">
+      <button onclick="fcSelectPay('upi',this)" class="pay-btn" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.8rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">📱 UPI</button>
+      <button onclick="fcSelectPay('cash',this)" class="pay-btn" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid #E0E0E0;background:#fff;color:#7A9E98;font-size:.8rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">💵 Cash</button>
+    </div>
+    <button onclick="fcConfirmBook()" style="width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#00C9A7,#00A88D);color:#fff;font-size:.9rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;box-shadow:0 5px 18px rgba(0,201,167,.3);">✓ Confirm Booking</button>
+  </div>
+</div>
+
+<!-- ══ BOOKING SUCCESS SHEET ══ -->
+<div id="bookSuccessOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:730;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div style="background:#fff;border-radius:24px;width:100%;max-width:380px;padding:32px 24px;text-align:center;">
+    <div style="font-size:3.5rem;margin-bottom:12px;">🎉</div>
+    <div style="font-size:1.3rem;font-weight:900;color:#0D2B26;margin-bottom:6px;">Token Booked!</div>
+    <div id="bsTokenNum" style="font-size:2.5rem;font-weight:900;color:#00C9A7;margin:16px 0;letter-spacing:.05em;"></div>
+    <div id="bsDetails" style="font-size:.78rem;color:#7A9E98;margin-bottom:20px;line-height:1.6;"></div>
+    <div style="background:#F7FFFE;border-radius:14px;padding:14px;margin-bottom:20px;">
+      <div style="font-size:.7rem;color:#7A9E98;margin-bottom:4px;">WhatsApp notification sent to</div>
+      <div style="font-size:.85rem;font-weight:700;color:#0D2B26;">+91 98765 43210 📲</div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeBookSuccess();showScreen('tracker');setMobileNavByScreen('tracker');" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid #00C9A7;background:#E8FAF7;color:#00C9A7;font-size:.78rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">📍 Track Queue</button>
+      <button onclick="closeBookSuccess()" style="flex:1;padding:12px;border-radius:12px;border:none;background:#0D2B26;color:#fff;font-size:.78rem;font-weight:700;font-family:Poppins,sans-serif;cursor:pointer;">Done ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EMERGENCY CONTACT EDIT SHEET ══ -->
+<div id="emergencyEditOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="emergencyEditSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:28px 24px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);position:relative;">
+    <div style="display:flex;justify-content:center;margin-bottom:18px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <button onclick="closeEmergencyEdit()" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+    <div style="font-size:1rem;font-weight:800;color:#0D2B26;margin-bottom:4px;">🆘 Emergency Contact</div>
+    <div style="font-size:.72rem;color:#7A9E98;margin-bottom:20px;">This person will be contacted in emergencies</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <label style="font-size:.68rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:5px;">CONTACT NAME</label>
+        <input id="ecNameInput" value="Suresh Kumar" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:Poppins,sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+      </div>
+      <div>
+        <label style="font-size:.68rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:5px;">MOBILE NUMBER</label>
+        <input id="ecPhoneInput" value="8765432109" type="tel" maxlength="10" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:Poppins,sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+      </div>
+      <div>
+        <label style="font-size:.68rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:5px;">RELATION</label>
+        <select id="ecRelInput" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;font-family:Poppins,sans-serif;outline:none;background:#fff;">
+          <option>Brother</option><option>Sister</option><option>Father</option><option>Mother</option>
+          <option>Wife</option><option>Husband</option><option>Son</option><option>Daughter</option>
+          <option>Friend</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <button onclick="saveEmergencyContact()" style="width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#FF6B6B,#FF4444);color:#fff;font-size:.9rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;box-shadow:0 5px 18px rgba(255,107,107,.3);margin-top:20px;">Save Emergency Contact 🆘</button>
+  </div>
+</div>
+
+<!-- ══ QUICK BOOK AGAIN — CHIEF COMPLAINT SHEET ══ -->
+<div id="chiefComplaintOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.78);backdrop-filter:blur(6px);z-index:750;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="chiefComplaintSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:26px 22px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);position:relative;">
+    <div style="display:flex;justify-content:center;margin-bottom:16px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <button onclick="closeChiefComplaint()" style="position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+
+    <!-- Confirmed details banner -->
+    <div style="background:#F7FFFE;border-radius:14px;padding:14px;margin-bottom:18px;border:1.5px solid #E8F5F2;">
+      <div style="font-size:.65rem;font-weight:700;color:#7A9E98;letter-spacing:.08em;margin-bottom:8px;">BOOKING FOR</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:1.3rem;">👤</span>
+        <div>
+          <div style="font-size:.88rem;font-weight:800;color:#0D2B26;">Ramesh Kumar</div>
+          <div style="font-size:.68rem;color:#7A9E98;">+91 98765 43210 · Male · 35 yrs</div>
+        </div>
+        <div style="margin-left:auto;background:#E8FAF7;color:#00C9A7;font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:100px;">Known Patient ✓</div>
+      </div>
+      <div style="height:1px;background:#E8F5F2;margin:8px 0;"></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="qbIcon" style="font-size:1.3rem;">🏥</span>
+        <div style="flex:1;">
+          <div id="qbHospital" style="font-size:.82rem;font-weight:800;color:#0D2B26;"></div>
+          <div id="qbDoctor" style="font-size:.68rem;color:#7A9E98;"></div>
+        </div>
+        <div style="text-align:right;">
+          <div id="qbFee" style="font-size:.85rem;font-weight:800;color:#00C9A7;"></div>
+          <div style="font-size:.58rem;color:#7A9E98;">+ ₹10 platform</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chief Complaint -->
+    <div style="margin-bottom:18px;">
+      <label style="font-size:.72rem;font-weight:700;color:#7A9E98;display:block;margin-bottom:8px;">CHIEF COMPLAINT <span style="color:#FF6B6B;">*</span></label>
+      <textarea id="chiefComplaintText" placeholder="e.g. Fever since 2 days, Headache, Cold &amp; Cough, Knee pain..." rows="3" style="width:100%;padding:12px 14px;border:1.5px solid #E0E0E0;border-radius:12px;font-size:.85rem;font-family:Poppins,sans-serif;outline:none;resize:none;box-sizing:border-box;line-height:1.5;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"></textarea>
+      <!-- Quick complaint chips -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+        <button onclick="addComplaint('Fever')" class="cc-chip" style="padding:5px 12px;border-radius:100px;border:1px solid #E0E0E0;background:#F7FFFE;color:#7A9E98;font-size:.68rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🌡️ Fever</button>
+        <button onclick="addComplaint('Cold & Cough')" class="cc-chip" style="padding:5px 12px;border-radius:100px;border:1px solid #E0E0E0;background:#F7FFFE;color:#7A9E98;font-size:.68rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🤧 Cold &amp; Cough</button>
+        <button onclick="addComplaint('Headache')" class="cc-chip" style="padding:5px 12px;border-radius:100px;border:1px solid #E0E0E0;background:#F7FFFE;color:#7A9E98;font-size:.68rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🤕 Headache</button>
+        <button onclick="addComplaint('Stomach Pain')" class="cc-chip" style="padding:5px 12px;border-radius:100px;border:1px solid #E0E0E0;background:#F7FFFE;color:#7A9E98;font-size:.68rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🤢 Stomach Pain</button>
+        <button onclick="addComplaint('Body Pain')" class="cc-chip" style="padding:5px 12px;border-radius:100px;border:1px solid #E0E0E0;background:#F7FFFE;color:#7A9E98;font-size:.68rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">💪 Body Pain</button>
+        <button onclick="addComplaint('Follow-up')" class="cc-chip" style="padding:5px 12px;border-radius:100px;border:1px solid #FFB347;background:#FFF4E6;color:#FFB347;font-size:.68rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🔁 Follow-up</button>
+      </div>
+    </div>
+
+    <button onclick="ccProceedToFee()" style="width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#00C9A7,#00A88D);color:#fff;font-size:.9rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;box-shadow:0 5px 18px rgba(0,201,167,.3);">Continue to Payment →</button>
+  </div>
+</div>
+
+<!-- ══ PATIENT CONFIRM + CHIEF COMPLAINT SHEET ══ -->
+<div id="patientConfirmOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.78);backdrop-filter:blur(6px);z-index:750;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;">
+  <div id="patientConfirmSheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;padding:24px 20px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);max-height:92vh;overflow-y:auto;position:relative;">
+    <div style="display:flex;justify-content:center;margin-bottom:14px;"><div style="width:40px;height:4px;border-radius:2px;background:#E0E0E0;"></div></div>
+    <button onclick="closePatientConfirm()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#7A9E98;">✕</button>
+
+    <!-- Doctor + Hospital strip -->
+    <div style="background:linear-gradient(135deg,#E8FAF7,#F0FFF8);border-radius:14px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+      <span id="pcDocIcon" style="font-size:1.5rem;">🏥</span>
+      <div style="flex:1;">
+        <div id="pcHospitalName" style="font-size:.82rem;font-weight:800;color:#0D2B26;"></div>
+        <div id="pcDoctorName" style="font-size:.68rem;color:#7A9E98;"></div>
+      </div>
+      <div style="text-align:right;">
+        <div id="pcFeeDisplay" style="font-size:.88rem;font-weight:900;color:#00C9A7;"></div>
+        <div style="font-size:.58rem;color:#7A9E98;">+ ₹10 platform</div>
+      </div>
+    </div>
+
+    <!-- Patient Details — View Mode -->
+    <div id="pcViewMode">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:.68rem;font-weight:700;color:#7A9E98;letter-spacing:.08em;">PATIENT DETAILS</div>
+        <button onclick="pcSwitchEdit()" style="font-size:.68rem;font-weight:700;color:#00C9A7;background:#E8FAF7;border:none;border-radius:100px;padding:4px 12px;cursor:pointer;font-family:Poppins,sans-serif;">✏️ Edit</button>
+      </div>
+      <div style="background:#F7FFFE;border-radius:13px;padding:14px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:40px;height:40px;border-radius:11px;background:#E8FAF7;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">👤</div>
+          <div style="flex:1;">
+            <div id="pcPatName" style="font-size:.9rem;font-weight:800;color:#0D2B26;"></div>
+            <div id="pcPatSub" style="font-size:.68rem;color:#7A9E98;"></div>
+          </div>
+          <div style="background:#E8FAF7;color:#00C9A7;font-size:.58rem;font-weight:700;padding:3px 10px;border-radius:100px;">Known ✓</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:#fff;border-radius:9px;padding:8px 10px;">
+            <div style="font-size:.6rem;color:#7A9E98;">Mobile</div>
+            <div id="pcMobile" style="font-size:.75rem;font-weight:700;color:#0D2B26;"></div>
+          </div>
+          <div style="background:#fff;border-radius:9px;padding:8px 10px;">
+            <div style="font-size:.6rem;color:#7A9E98;">Location</div>
+            <div id="pcLocation" style="font-size:.75rem;font-weight:700;color:#0D2B26;"></div>
+          </div>
+          <div style="background:#fff;border-radius:9px;padding:8px 10px;">
+            <div style="font-size:.6rem;color:#7A9E98;">Age / Gender</div>
+            <div id="pcAgeGender" style="font-size:.75rem;font-weight:700;color:#0D2B26;"></div>
+          </div>
+          <div style="background:#fff;border-radius:9px;padding:8px 10px;">
+            <div style="font-size:.6rem;color:#7A9E98;">Blood Group</div>
+            <div id="pcBlood" style="font-size:.75rem;font-weight:700;color:#0D2B26;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patient Details — Edit Mode (hidden by default) -->
+    <div id="pcEditMode" style="display:none;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:.68rem;font-weight:700;color:#7A9E98;letter-spacing:.08em;">EDIT DETAILS</div>
+        <button onclick="pcSwitchView()" style="font-size:.68rem;font-weight:700;color:#7A9E98;background:#F5F5F5;border:none;border-radius:100px;padding:4px 12px;cursor:pointer;font-family:Poppins,sans-serif;">✓ Done</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <input id="pcEditName" placeholder="Full Name" style="width:100%;padding:11px 13px;border:1.5px solid #E0E0E0;border-radius:10px;font-size:.82rem;font-family:Poppins,sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+        <input id="pcEditLocation" placeholder="City, State" style="width:100%;padding:11px 13px;border:1.5px solid #E0E0E0;border-radius:10px;font-size:.82rem;font-family:Poppins,sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+        <div style="display:flex;gap:8px;">
+          <input id="pcEditAge" placeholder="Age" type="number" style="flex:1;padding:11px 13px;border:1.5px solid #E0E0E0;border-radius:10px;font-size:.82rem;font-family:Poppins,sans-serif;outline:none;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"/>
+          <select id="pcEditGender" style="flex:1;padding:11px 13px;border:1.5px solid #E0E0E0;border-radius:10px;font-size:.82rem;font-family:Poppins,sans-serif;outline:none;background:#fff;">
+            <option>Male</option><option>Female</option><option>Other</option>
+          </select>
+          <select id="pcEditBlood" style="flex:1;padding:11px 13px;border:1.5px solid #E0E0E0;border-radius:10px;font-size:.82rem;font-family:Poppins,sans-serif;outline:none;background:#fff;">
+            <option value="">Blood</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chief Complaint -->
+    <div style="margin-bottom:16px;">
+      <label style="font-size:.68rem;font-weight:700;color:#7A9E98;letter-spacing:.08em;display:block;margin-bottom:8px;">CHIEF COMPLAINT <span style="color:#FF6B6B;">*</span></label>
+      <textarea id="pcComplaint" placeholder="e.g. Fever since 2 days, Headache, Stomach pain..." rows="3" style="width:100%;padding:12px 13px;border:1.5px solid #E0E0E0;border-radius:12px;font-size:.82rem;font-family:Poppins,sans-serif;outline:none;resize:none;box-sizing:border-box;line-height:1.5;" onfocus="this.style.borderColor='#00C9A7'" onblur="this.style.borderColor='#E0E0E0'"></textarea>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+        <button onclick="pcAddComplaint('Fever')" style="padding:5px 11px;border-radius:100px;border:1px solid #E0E0E0;background:#F7FFFE;color:#7A9E98;font-size:.65rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🌡️ Fever</button>
+        <button onclick="pcAddComplaint('Cold & Cough')" style="padding:5px 11px;border-radius:100px;border:1px solid #E0E0E0;background:#F7FFFE;color:#7A9E98;font-size:.65rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🤧 Cold & Cough</button>
+        <button onclick="pcAddComplaint('Headache')" style="padding:5px 11px;border-radius:100px;border:1px solid #E0E0E0;background:#F7FFFE;color:#7A9E98;font-size:.65rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🤕 Headache</button>
+        <button onclick="pcAddComplaint('Stomach Pain')" style="padding:5px 11px;border-radius:100px;border:1px solid #E0E0E0;background:#F7FFFE;color:#7A9E98;font-size:.65rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🤢 Stomach Pain</button>
+        <button onclick="pcAddComplaint('Body Pain')" style="padding:5px 11px;border-radius:100px;border:1px solid #E0E0E0;background:#F7FFFE;color:#7A9E98;font-size:.65rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">💪 Body Pain</button>
+        <button onclick="pcAddComplaint('Follow-up')" style="padding:5px 11px;border-radius:100px;border:1px solid #FFB347;background:#FFF4E6;color:#FFB347;font-size:.65rem;font-weight:600;font-family:Poppins,sans-serif;cursor:pointer;">🔁 Follow-up</button>
+      </div>
+    </div>
+
+    <button onclick="pcConfirm()" style="width:100%;padding:14px;border-radius:13px;border:none;background:linear-gradient(135deg,#00C9A7,#00A88D);color:#fff;font-size:.9rem;font-weight:800;font-family:Poppins,sans-serif;cursor:pointer;box-shadow:0 5px 18px rgba(0,201,167,.3);">Continue to Payment →</button>
+  </div>
+</div>
+
+<!-- ══ NOTIFICATION PANEL ══ -->
+<div id="notifPanelOverlay" style="position:fixed;inset:0;background:rgba(10,22,40,.6);backdrop-filter:blur(4px);z-index:800;display:flex;align-items:flex-start;justify-content:flex-end;opacity:0;pointer-events:none;transition:opacity .25s;">
+  <div id="notifPanel" style="background:#fff;width:320px;max-width:92vw;height:100vh;padding:0;transform:translateX(100%);transition:transform .32s cubic-bezier(.32,1.15,.7,1);overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,.15);">
+    <!-- Header -->
+    <div style="position:sticky;top:0;background:#fff;z-index:2;padding:20px 18px 14px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:.95rem;font-weight:800;color:#0D2B26;">Notifications</div>
+        <div style="font-size:.65rem;color:#7A9E98;">Live updates for your tokens</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="markAllRead()" style="font-size:.65rem;font-weight:700;color:#00C9A7;background:#E8FAF7;border:none;border-radius:100px;padding:4px 10px;cursor:pointer;font-family:Poppins,sans-serif;">Mark all read</button>
+        <button onclick="closeNotifPanel()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:#7A9E98;">✕</button>
+      </div>
+    </div>
+
+    <!-- Notifications list -->
+    <div id="notifList" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HALSAA — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --teal:#00C9A7;--teal2:#00E8C0;--teal-light:#E6FAF6;--teal-mid:rgba(0,201,167,0.12);
+  --gold:#FFB347;--gold-light:#FFF4E6;--gold2:#FFC86B;
+  --bg:#F4FDFB;--card:#fff;--text:#1A2E2A;--muted:#7A9E98;
+  --border:rgba(0,201,167,0.15);--shadow:0 4px 20px rgba(0,201,167,0.10);--shadow2:0 2px 12px rgba(0,0,0,0.06);
+  --red:#FF6B6B;--green:#00C853;--blue:#3B82F6;--purple:#8B5CF6;
+  --sidebar:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+button,input,select,textarea{font-family:'Poppins',sans-serif;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,201,167,0.4)}50%{box-shadow:0 0 0 8px rgba(0,201,167,0)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* ══ APP LAYOUT ══ */
+.app{display:flex;min-height:100vh;}
+
+/* ══ SIDEBAR (desktop) ══ */
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;
+  background:linear-gradient(180deg,#003D33 0%,#007A66 55%,var(--teal) 100%);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;z-index:100;
+  box-shadow:4px 0 24px rgba(0,0,0,0.14);
+}
+.sb-logo{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+.sb-brand{font-size:1.45rem;font-weight:900;color:#fff;letter-spacing:.01em;}
+.sb-brand span{color:var(--gold);}
+.sb-role{font-size:.54rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:3px;}
+.sb-clinic{padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+.sb-clinic-icon{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.sb-cname{font-size:.8rem;font-weight:800;color:#fff;}
+.sb-cloc{font-size:.58rem;color:rgba(255,255,255,.5);}
+.sb-open{display:flex;align-items:center;gap:5px;background:rgba(0,200,83,.2);border:1px solid rgba(0,200,83,.3);border-radius:100px;padding:3px 10px;margin-top:4px;width:fit-content;}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;flex-shrink:0;}
+.sb-open-text{font-size:.55rem;font-weight:800;color:#00F065;}
+.sb-nav{flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:2px;}
+.sb-sec{font-size:.54rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:10px 12px 4px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:all .2s;border:1px solid transparent;}
+.sb-item:hover{background:rgba(255,255,255,.08);}
+.sb-item.active{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.1);}
+.sb-icon{font-size:1rem;width:22px;text-align:center;flex-shrink:0;}
+.sb-lbl{font-size:.78rem;font-weight:700;color:rgba(255,255,255,.6);}
+.sb-item.active .sb-lbl{color:#fff;}
+.sb-bottom{padding:14px 12px;}
+.sb-rev-box{background:rgba(255,179,71,.18);border:1px solid rgba(255,179,71,.25);border-radius:12px;padding:12px;margin-bottom:10px;}
+.sb-rev-lbl{font-size:.55rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,179,71,.8);margin-bottom:5px;}
+.sb-rev-amt{font-size:1.4rem;font-weight:900;color:var(--gold);line-height:1;}
+.sb-rev-sub{font-size:.58rem;color:rgba(255,255,255,.4);margin-top:2px;}
+.sb-logout{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;cursor:pointer;transition:background .2s;}
+.sb-logout:hover{background:rgba(255,107,107,.12);}
+.sb-logout span{font-size:.73rem;font-weight:600;color:rgba(255,255,255,.4);}
+
+/* ══ MAIN ══ */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+/* ══ TOPBAR ══ */
+.topbar{
+  background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+  box-shadow:0 2px 12px rgba(0,201,167,.06);
+}
+.tb-left{display:flex;align-items:center;gap:14px;}
+.tb-title{font-size:.95rem;font-weight:800;color:var(--text);}
+.tb-sub{font-size:.65rem;color:var(--muted);}
+.tb-live{display:flex;align-items:center;gap:5px;background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.2);border-radius:100px;padding:4px 12px;}
+.tb-live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+.tb-live-text{font-size:.62rem;font-weight:800;color:var(--green);}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.tb-date{font-size:.68rem;color:var(--muted);font-weight:600;}
+.tb-qr{display:flex;align-items:center;gap:6px;background:var(--teal-light);border:1px solid var(--border);border-radius:100px;padding:5px 14px;cursor:pointer;}
+.tb-qr-text{font-size:.62rem;font-weight:800;color:var(--teal);}
+.tb-notif{width:36px;height:36px;background:var(--teal-light);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.notif-dot{position:absolute;top:7px;right:7px;width:6px;height:6px;background:var(--gold);border-radius:50%;border:2px solid #fff;}
+
+/* ══ CONTENT ══ */
+.content{padding:20px 24px;flex:1;}
+.screen{display:none;animation:fadeUp .3s ease both;}
+.screen.active{display:block;}
+
+/* ══ STATS ROW ══ */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.stat-card{background:var(--card);border-radius:16px;padding:16px 18px;border:1.5px solid var(--border);box-shadow:var(--shadow2);animation:fadeUp .4s ease both;cursor:pointer;transition:all .2s;}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.sc-icon{font-size:1.4rem;margin-bottom:6px;display:block;}
+.sc-val{font-size:1.8rem;font-weight:900;line-height:1;margin-bottom:3px;}
+.sc-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+
+/* ══ HOME SCREEN ══ */
+.home-layout{display:grid;grid-template-columns:1fr 320px;gap:18px;}
+
+/* Revenue hero */
+.rev-hero{background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:20px;padding:22px;position:relative;overflow:hidden;margin-bottom:16px;box-shadow:0 8px 32px rgba(255,179,71,.25);}
+.rev-hero::before{content:'';position:absolute;top:-25px;right:-25px;width:120px;height:120px;background:rgba(255,255,255,.1);border-radius:50%;}
+.rev-hero::after{content:'';position:absolute;bottom:-15px;left:-15px;width:80px;height:80px;background:rgba(255,255,255,.07);border-radius:50%;}
+.rh-label{font-size:.6rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.75);margin-bottom:6px;position:relative;z-index:1;}
+.rh-amount{font-size:2.4rem;font-weight:900;color:#fff;letter-spacing:-.02em;margin-bottom:3px;position:relative;z-index:1;}
+.rh-sub{font-size:.68rem;color:rgba(255,255,255,.75);position:relative;z-index:1;margin-bottom:14px;}
+.rh-chips{display:flex;gap:10px;position:relative;z-index:1;}
+.rh-chip{flex:1;background:rgba(255,255,255,.22);border-radius:12px;padding:11px 8px;text-align:center;}
+.rh-chip-val{font-size:.95rem;font-weight:800;color:#fff;}
+.rh-chip-lbl{font-size:.55rem;color:rgba(255,255,255,.75);margin-top:2px;}
+
+/* Quick grid */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.qa-card{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--shadow2);cursor:pointer;transition:all .2s;animation:fadeUp .4s ease both;border:1.5px solid transparent;}
+.qa-card:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.qa-card.teal{border-color:var(--border);background:linear-gradient(135deg,var(--teal-light),#fff);}
+.qa-card.gold{border-color:rgba(255,179,71,.2);background:linear-gradient(135deg,var(--gold-light),#fff);}
+.qa-card.red{border-color:rgba(255,107,107,.15);background:linear-gradient(135deg,rgba(255,107,107,.06),#fff);}
+.qa-card.purple{border-color:rgba(139,92,246,.15);background:linear-gradient(135deg,rgba(139,92,246,.06),#fff);}
+.qa-icon{font-size:1.6rem;margin-bottom:8px;display:block;}
+.qa-title{font-size:.85rem;font-weight:800;color:var(--text);margin-bottom:2px;}
+.qa-sub{font-size:.62rem;color:var(--muted);}
+
+/* Doctor cards */
+.doc-card{background:var(--bg);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:8px;border-left:4px solid transparent;transition:all .2s;animation:slideIn .35s ease both;cursor:pointer;}
+.doc-card:hover{background:#F0FAF8;transform:translateX(3px);}
+.doc-card.available{border-left-color:var(--teal);}
+.doc-card.busy{border-left-color:var(--gold);}
+.doc-card.off{border-left-color:#E0E0E0;}
+.doc-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;}
+.av-teal{background:var(--teal-light);}
+.av-gold{background:var(--gold-light);}
+.av-gray{background:#F5F5F5;}
+.doc-name{font-size:.8rem;font-weight:700;color:var(--teal);}
+.doc-spec{font-size:.6rem;color:var(--muted);margin-top:1px;}
+.doc-status{font-size:.56rem;font-weight:700;padding:2px 8px;border-radius:100px;white-space:nowrap;}
+.st-available{background:rgba(0,200,83,.1);color:var(--green);}
+.st-busy{background:rgba(255,179,71,.15);color:#CC7A00;}
+.st-off{background:#F0F0F0;color:var(--muted);}
+.doc-patients{font-size:.58rem;color:var(--muted);margin-top:2px;}
+
+/* Right panel */
+.right-panel{display:flex;flex-direction:column;gap:14px;}
+.panel-card{background:var(--card);border-radius:18px;padding:18px;box-shadow:var(--shadow2);border:1px solid var(--border);}
+.panel-title{font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.status-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #F8F8F8;}
+.status-row:last-child{border-bottom:none;}
+.sr-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.icon-teal-sm{background:var(--teal-light);}
+.icon-gold-sm{background:var(--gold-light);}
+.icon-red-sm{background:rgba(255,107,107,.1);}
+.sr-lbl{flex:1;font-size:.78rem;font-weight:600;color:var(--text);}
+.sr-val{font-size:.72rem;font-weight:700;}
+
+/* ══ ANALYTICS ══ */
+.period-tabs{display:flex;gap:8px;margin-bottom:18px;}
+.period-tab{padding:7px 18px;border-radius:100px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .2s;}
+.period-tab.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+.analytics-layout{display:grid;grid-template-columns:1fr 300px;gap:18px;}
+.a-card{background:var(--card);border-radius:18px;padding:20px;border:1px solid var(--border);box-shadow:var(--shadow2);margin-bottom:16px;}
+.a-card-title{font-size:.64rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+.rev-cards-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.rc{background:var(--card);border-radius:14px;padding:14px;box-shadow:var(--shadow2);border:1px solid var(--border);}
+.rc-icon{font-size:1.2rem;margin-bottom:6px;display:block;}
+.rc-val{font-size:1.4rem;font-weight:800;margin-bottom:2px;}
+.rc-lbl{font-size:.6rem;color:var(--muted);}
+.bar-chart{display:flex;align-items:flex-end;gap:10px;height:120px;margin-bottom:8px;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bar{width:100%;border-radius:6px 6px 0 0;background:var(--teal-mid);position:relative;min-height:4px;}
+.bar.hl{background:var(--teal);}
+.bar-v{font-size:.56rem;font-weight:800;color:var(--teal);position:absolute;top:-16px;left:50%;transform:translateX(-50%);white-space:nowrap;}
+.bar-lbl{font-size:.58rem;color:var(--muted);}
+.bk-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #F8F8F8;}
+.bk-row:last-child{border-bottom:none;}
+.bk-left{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600;}
+.bk-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.bk-val{font-size:.85rem;font-weight:800;}
+
+/* HALSAA billing cards */
+.bill-card{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--shadow2);border:1px solid var(--border);margin-bottom:10px;}
+.bc-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.bc-month{font-size:.88rem;font-weight:800;color:var(--text);}
+.bc-patients{font-size:.65rem;color:var(--muted);margin-top:2px;}
+.bc-amt{font-size:1rem;font-weight:900;color:var(--teal);}
+.bc-status{font-size:.6rem;font-weight:800;padding:3px 9px;border-radius:100px;margin-top:3px;display:inline-block;}
+.bc-paid{background:rgba(0,200,83,.1);color:var(--green);}
+.bc-pending{background:rgba(255,179,71,.15);color:#CC7A00;}
+.bc-actions{display:flex;gap:8px;}
+.bca-btn{flex:1;padding:9px;border-radius:10px;border:none;font-size:.7rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.bca-btn:hover{opacity:.85;}
+.bca-teal{background:var(--teal-light);color:var(--teal);}
+.bca-gold{background:var(--gold-light);color:#CC7A00;}
+.bca-green{background:rgba(0,200,83,.1);color:var(--green);}
+
+/* ══ STAFF ══ */
+.staff-layout{display:grid;grid-template-columns:1fr 300px;gap:18px;}
+.staff-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.staff-header-info{font-size:1rem;font-weight:800;color:var(--text);}
+.staff-header-sub{font-size:.7rem;color:var(--muted);}
+.add-btn{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border:none;border-radius:12px;padding:10px 18px;font-size:.78rem;font-weight:800;cursor:pointer;}
+.staff-card{background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow2);border:1px solid var(--border);display:flex;align-items:center;gap:12px;margin-bottom:10px;animation:slideIn .35s ease both;transition:all .2s;}
+.staff-card:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.staff-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;flex-shrink:0;}
+.staff-name{font-size:.88rem;font-weight:800;color:var(--text);}
+.staff-role{font-size:.63rem;color:var(--muted);margin-top:2px;}
+.staff-status{font-size:.6rem;font-weight:700;padding:3px 9px;border-radius:100px;}
+.staff-actions{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end;}
+.sab{padding:6px 12px;border-radius:8px;border:none;font-size:.65rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.sab-edit{background:var(--teal-light);color:var(--teal);}
+.sab-stats{background:rgba(139,92,246,.1);color:var(--purple);}
+.add-staff-panel{background:var(--card);border-radius:18px;padding:20px;box-shadow:var(--shadow2);border:1px solid var(--border);position:sticky;top:80px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:6px;display:block;}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid #E0EEE8;border-radius:11px;font-size:.85rem;color:var(--text);outline:none;transition:border .2s;background:#FAFFFE;}
+.form-input:focus{border-color:var(--teal);}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.role-chip{padding:12px 8px;border-radius:12px;border:1.5px solid #E0EEE8;text-align:center;cursor:pointer;transition:all .2s;}
+.role-chip.sel{border-color:var(--teal);background:var(--teal-light);}
+.role-chip-icon{font-size:1.1rem;margin-bottom:4px;}
+.role-chip-label{font-size:.66rem;font-weight:700;color:var(--muted);}
+.role-chip.sel .role-chip-label{color:var(--teal);}
+.save-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border:none;border-radius:12px;font-size:.85rem;font-weight:800;cursor:pointer;}
+
+/* ══ SETTINGS ══ */
+.settings-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.settings-section{background:var(--card);border-radius:18px;box-shadow:var(--shadow2);border:1px solid var(--border);overflow:hidden;margin-bottom:16px;}
+.ss-hdr{padding:14px 18px;border-bottom:1px solid #F5F5F5;font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.setting-row{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid #F8F8F8;cursor:pointer;transition:background .15s;}
+.setting-row:last-child{border-bottom:none;}
+.setting-row:hover{background:#FAFFFE;}
+.srow-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.ico-teal{background:var(--teal-light);}
+.ico-gold{background:var(--gold-light);}
+.ico-red{background:rgba(255,107,107,.1);}
+.ico-purple{background:rgba(139,92,246,.1);}
+.ico-green{background:rgba(0,200,83,.1);}
+.srow-text{flex:1;}
+.srow-title{font-size:.82rem;font-weight:700;color:var(--text);}
+.srow-sub{font-size:.62rem;color:var(--muted);margin-top:1px;}
+.srow-right{display:flex;align-items:center;gap:8px;}
+.srow-val{font-size:.72rem;font-weight:700;color:var(--teal);}
+.srow-arrow{color:var(--muted);}
+.toggle{width:44px;height:24px;border-radius:12px;background:#E0E0E0;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle.on{background:var(--teal);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.15);}
+.toggle.on::after{transform:translateX(20px);}
+
+/* Announcement */
+.ann-chip{font-size:.68rem;font-weight:700;padding:5px 12px;border-radius:100px;background:var(--bg);border:1.5px solid var(--border);cursor:pointer;transition:all .2s;color:var(--text);}
+.ann-chip:hover{border-color:var(--teal);color:var(--teal);}
+.lang-btn{padding:6px 14px;border-radius:100px;font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .2s;}
+.lang-btn.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+
+/* ══ SHEET OVERLAY ══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.sheet{background:var(--card);border-radius:24px 24px 0 0;width:100%;max-width:600px;padding:20px 20px 32px;max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);}
+.sh-handle{display:flex;justify-content:center;margin-bottom:16px;}
+.sh-bar{width:40px;height:4px;border-radius:2px;background:#E0E0E0;}
+.sh-close{position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);}
+.sh-title{font-size:1rem;font-weight:800;margin-bottom:16px;}
+
+/* Doctor detail sheet */
+.dd-period-btn{padding:6px 14px;border-radius:100px;font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .2s;}
+.dd-period-btn.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+
+/* Stat popup */
+.stat-popup-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;}
+.stat-popup{background:#fff;border-radius:20px;width:100%;max-width:420px;padding:22px;max-height:80vh;overflow-y:auto;animation:fadeUp .25s ease;}
+.stat-popup-title{font-size:.9rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+
+/* Toast */
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#1A2E2A;color:#fff;padding:11px 22px;border-radius:100px;font-size:.78rem;font-weight:700;z-index:999;display:none;white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,.2);}
+.toast.show{display:block;animation:toastIn .3s ease;}
+
+/* ══ MOBILE BOTTOM NAV ══ */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);z-index:100;box-shadow:0 -4px 20px rgba(0,201,167,.08);}
+.mn-row{display:flex;}
+.mn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 10px;cursor:pointer;transition:all .2s;border:none;background:none;}
+.mn-icon{font-size:1.2rem;}
+.mn-label{font-size:.52rem;font-weight:700;color:var(--muted);}
+.mn-item.active .mn-label{color:var(--teal);}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:900px){
+  .sidebar{display:none;}
+  .main{margin-left:0;}
+  .mobile-nav{display:block;}
+  .content{padding:14px 14px 80px;}
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .rev-cards-row{grid-template-columns:repeat(2,1fr);}
+  .home-layout,.analytics-layout,.staff-layout,.settings-layout,.broadcast-layout{grid-template-columns:1fr;}
+  .topbar{padding:0 14px;}
+  .tb-date{display:none;}
+  .tb-sub{display:none;}
+  .add-staff-panel{position:static;}
+}
+@media(min-width:901px){
+  .sheet{border-radius:20px;bottom:auto;top:50%;left:50%;transform:translate(-50%,-40%);width:520px;max-height:85vh;}
+  .overlay{align-items:center;justify-content:center;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div>
+      <div class="sb-brand">HAL<span>SAA</span></div>
+      <div class="sb-role">Admin Portal</div>
+    </div>
+  </div>
+  <div class="sb-clinic">
+    <div class="sb-clinic-icon">🏥</div>
+    <div>
+      <div class="sb-cname">Sri Sai Hospital</div>
+      <div class="sb-cloc">Hanamkonda, Warangal</div>
+      <div class="sb-open"><div class="live-dot"></div><span class="sb-open-text">CLINIC OPEN</span></div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <div class="sb-item active" onclick="showScreen('home');setSb(this)"><div class="sb-icon">🏠</div><div class="sb-lbl">Dashboard</div></div>
+    <div class="sb-sec">Business</div>
+    <div class="sb-item" onclick="showScreen('analytics');setSb(this)"><div class="sb-icon">📊</div><div class="sb-lbl">Analytics & Revenue</div></div>
+    <div class="sb-sec">Management</div>
+    <div class="sb-item" onclick="showScreen('queue');setSb(this)"><div class="sb-icon">📋</div><div class="sb-lbl">Queue Monitor</div><div class="sb-badge" id="sbQueueBadge">6</div></div>
+    <div class="sb-item" onclick="showScreen('staff');setSb(this)"><div class="sb-icon">👥</div><div class="sb-lbl">Staff</div></div>
+    <div class="sb-sec">Communication</div>
+    <div class="sb-item" onclick="showScreen('broadcast');setSb(this)"><div class="sb-icon">📣</div><div class="sb-lbl">Broadcast</div></div>
+    <div class="sb-item" onclick="showScreen('settings');setSb(this)"><div class="sb-icon">⚙️</div><div class="sb-lbl">Settings</div></div>
+  </nav>
+  <div class="sb-bottom">
+    <div class="sb-rev-box">
+      <div class="sb-rev-lbl">💰 Today's Revenue</div>
+      <div class="sb-rev-amt" id="sbRevAmt">₹4,850</div>
+      <div class="sb-rev-sub">+12% vs last week</div>
+    </div>
+    <div class="sb-logout" onclick="hlLogout()"><span>🚪</span><span>Logout</span></div>
+  </div>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <div>
+        <div class="tb-title" id="tbTitle">Dashboard</div>
+        <div class="tb-sub">Sri Sai Hospital · Suresh Patel</div>
+      </div>
+      <div class="tb-live" id="clinicStatusBadge" onclick="toggleClinicStatus()" style="cursor:pointer;" title="Click to open/close clinic"><div class="tb-live-dot" id="clinicDot"></div><span class="tb-live-text" id="clinicStatusTxt">CLINIC OPEN</span></div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-qr" onclick="openSheet('qrSheetOv','qrSheetSh')"><span>📲</span><span class="tb-qr-text">Share QR</span></div>
+      <div class="tb-date" id="tbDate"></div>
+      <div class="tb-notif" onclick="showToast('🔔 No new notifications')">🔔<div class="notif-dot"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ HOME ══ -->
+    <div class="screen active" id="home">
+      <div class="stats-row">
+        <div class="stat-card" onclick="openStatPopup('bookings')" style="animation-delay:.04s">
+          <span class="sc-icon">👥</span>
+          <div class="sc-val" style="color:var(--teal)" id="st-bookings">24</div>
+          <div class="sc-lbl">Total Bookings</div>
+        </div>
+        <div class="stat-card" onclick="openStatPopup('seen')" style="animation-delay:.08s">
+          <span class="sc-icon">✅</span>
+          <div class="sc-val" style="color:var(--green)" id="st-seen">17</div>
+          <div class="sc-lbl">Seen</div>
+        </div>
+        <div class="stat-card" onclick="openStatPopup('pending')" style="animation-delay:.12s">
+          <span class="sc-icon">⏳</span>
+          <div class="sc-val" style="color:var(--gold)" id="st-pending">6</div>
+          <div class="sc-lbl">In Queue</div>
+        </div>
+        <div class="stat-card" onclick="openStatPopup('noshow')" style="animation-delay:.16s">
+          <span class="sc-icon">❌</span>
+          <div class="sc-val" style="color:var(--red)" id="st-noshow">1</div>
+          <div class="sc-lbl">No Show</div>
+        </div>
+      </div>
+
+      <div class="home-layout">
+        <div>
+          <!-- Revenue hero -->
+          <div class="rev-hero">
+            <div class="rh-label">💰 Today's Revenue</div>
+            <div class="rh-amount">₹4,850</div>
+            <div class="rh-sub">Consultation fees · HALSAA platform fee collected separately</div>
+            <div class="rh-chips">
+              <div class="rh-chip"><div class="rh-chip-val">₹3,200</div><div class="rh-chip-lbl">Cash</div></div>
+              <div class="rh-chip"><div class="rh-chip-val">₹1,650</div><div class="rh-chip-lbl">UPI</div></div>
+              <div class="rh-chip" onclick="showScreen('analytics');setSb(document.querySelectorAll('.sb-item')[1])" style="cursor:pointer;"><div class="rh-chip-val">→ Revenue</div><div class="rh-chip-lbl">Full Details</div></div>
+            </div>
+          </div>
+
+          <!-- Quick actions -->
+          <div class="quick-grid">
+            <div class="qa-card teal" onclick="showScreen('analytics');setSb(document.querySelectorAll('.sb-item')[1])" style="animation-delay:.04s">
+              <span class="qa-icon">📊</span><div class="qa-title">Analytics & Revenue</div><div class="qa-sub">View business trends</div>
+            </div>
+            <div class="qa-card gold" onclick="showScreen('staff');setSb(document.querySelectorAll('.sb-item')[2])" style="animation-delay:.08s">
+              <span class="qa-icon">👥</span><div class="qa-title">Staff Management</div><div class="qa-sub">Manage team</div>
+            </div>
+            <div class="qa-card red" onclick="openSheet('qrSheetOv','qrSheetSh')" style="animation-delay:.12s">
+              <span class="qa-icon">📲</span><div class="qa-title">Share QR Code</div><div class="qa-sub">Print or share</div>
+            </div>
+            <div class="qa-card purple" onclick="showScreen('settings');setSb(document.querySelectorAll('.sb-item')[3])" style="animation-delay:.16s">
+              <span class="qa-icon">⚙️</span><div class="qa-title">Clinic Settings</div><div class="qa-sub">Configure everything</div>
+            </div>
+          </div>
+
+          <!-- Today's Patients -->
+          <div style="font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">
+            📊 Today's Patients — All Doctors
+          </div>
+          <div id="todayPatientsChart"></div>
+
+          <!-- Doctors Today -->
+          <div style="font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 10px;">
+            Doctors Today <span style="background:var(--teal-mid);color:var(--teal);font-size:.6rem;padding:2px 9px;border-radius:100px;margin-left:6px;" id="docCountBadge">2 active</span>
+          </div>
+          <div id="docCardsList"></div>
+        </div>
+
+        <!-- Right panel -->
+        <div class="right-panel">
+          <div class="panel-card">
+            <div class="panel-title">Live Clinic Status</div>
+            <div class="status-row"><div class="sr-ico icon-teal-sm">🩺</div><div class="sr-lbl">Queue Status</div><span class="sr-val" style="color:var(--green);">Active ●</span></div>
+            <div class="status-row"><div class="sr-ico icon-teal-sm">📺</div><div class="sr-lbl">TV Display</div><span class="sr-val" style="color:var(--green);">Live ●</span></div>
+            <div class="status-row"><div class="sr-ico icon-gold-sm">📲</div><div class="sr-lbl">WhatsApp Alerts</div><span class="sr-val" style="color:var(--green);">Active</span></div>
+            <div class="status-row"><div class="sr-ico icon-teal-sm">🔊</div><div class="sr-lbl">Voice Announce</div><span class="sr-val" style="color:var(--green);">ON</span></div>
+            <div class="status-row"><div class="sr-ico icon-red-sm">⚠️</div><div class="sr-lbl">No-show Rate</div><span class="sr-val" style="color:var(--red);">4.2% today</span></div>
+          </div>
+          <div class="panel-card">
+            <div class="panel-title">Today at a Glance</div>
+            <div class="status-row"><div class="sr-lbl">Total Tokens Issued</div><span class="sr-val" style="color:var(--teal);">24</span></div>
+            <div class="status-row"><div class="sr-lbl">Online Bookings</div><span class="sr-val" style="color:var(--blue);">11</span></div>
+            <div class="status-row"><div class="sr-lbl">Walk-ins</div><span class="sr-val" style="color:var(--gold);">13</span></div>
+            <div class="status-row"><div class="sr-lbl">Avg Wait Time</div><span class="sr-val" style="color:var(--teal);">18 min</span></div>
+          </div>
+          <div class="panel-card" style="background:linear-gradient(135deg,var(--teal-light),#fff);">
+            <div class="panel-title" style="color:var(--teal);">💡 Insights</div>
+            <div style="font-size:.75rem;color:var(--text);font-weight:600;line-height:1.8;">
+              Peak hours: 9–11 AM (40% of patients)<br>
+              Dr. Ramesh handles 67% of today's load<br>
+              WhatsApp delivery rate: 98% ✅<br>
+              Revenue up 12% vs last week
+            </div>
+          </div>
+          <div class="panel-card" style="background:#FAFFFE;">
+            <div class="panel-title">🕐 Last Login</div>
+            <div style="font-size:.82rem;font-weight:700;color:var(--text);" id="lastLoginTime">Today, 8:52 AM</div>
+            <div style="font-size:.62rem;color:var(--muted);margin-top:3px;">Suresh Patel · Admin</div>
+            <div style="font-size:.6rem;color:var(--muted);margin-top:2px;">📱 From Mobile · Hanamkonda</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient Flow Timeline -->
+      <div style="margin-top:18px;">
+        <div style="font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">⏱️ Today's Patient Flow — Hour by Hour</div>
+        <div class="panel-card" style="padding:16px 20px;">
+          <div id="hourlyTimeline"></div>
+        </div>
+      </div>
+    </div><!-- /home -->
+
+    <!-- ══ ANALYTICS ══ -->
+    <div class="screen" id="analytics">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+        <div class="period-tabs" style="margin-bottom:0;">
+          <button class="period-tab active" onclick="switchPeriod('today',this)">Today</button>
+          <button class="period-tab" onclick="switchPeriod('week',this)">This Week</button>
+          <button class="period-tab" onclick="switchPeriod('month',this)">This Month</button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="exportReport('pdf')" style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:100px;border:1.5px solid var(--border);background:#fff;font-size:.72rem;font-weight:700;cursor:pointer;color:var(--red);">📄 PDF</button>
+          <button onclick="exportReport('excel')" style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:100px;border:1.5px solid var(--border);background:#fff;font-size:.72rem;font-weight:700;cursor:pointer;color:var(--green);">📊 Excel</button>
+        </div>
+      </div>
+      <div class="rev-cards-row">
+        <div class="rc" style="animation-delay:.04s"><span class="rc-icon">💰</span><div class="rc-val" style="color:var(--teal)" id="rc-total">₹4,850</div><div class="rc-lbl">Total Revenue</div></div>
+        <div class="rc" style="animation-delay:.08s"><span class="rc-icon">👥</span><div class="rc-val" style="color:var(--gold)" id="rc-patients">24</div><div class="rc-lbl">Patients</div></div>
+        <div class="rc" style="animation-delay:.12s"><span class="rc-icon">💜</span><div class="rc-val" style="color:var(--purple)" id="rc-platform">₹240</div><div class="rc-lbl">HALSAA Fees</div></div>
+        <div class="rc" style="animation-delay:.16s"><span class="rc-icon">📈</span><div class="rc-val" style="color:var(--green)" id="rc-growth">+12%</div><div class="rc-lbl" id="rc-growth-lbl">vs Yesterday</div></div>
+      </div>
+
+      <!-- HALSAA Platform Fee Hero -->
+      <div style="background:linear-gradient(135deg,var(--purple),#6D43BF);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 8px 28px rgba(139,92,246,.2);">
+        <div style="font-size:.58rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:6px;">HALSAA PLATFORM FEES — Collected on Behalf of HALSAA</div>
+        <div style="font-size:2rem;font-weight:900;color:#fff;" id="platformFeeHero">₹240</div>
+        <div style="display:flex;gap:18px;margin-top:10px;">
+          <div><div style="font-size:.55rem;color:rgba(255,255,255,.55);">PER PATIENT</div><div style="font-size:.85rem;font-weight:800;color:#fff;">₹10</div></div>
+          <div><div style="font-size:.55rem;color:rgba(255,255,255,.55);">PATIENTS</div><div style="font-size:.85rem;font-weight:800;color:#fff;" id="platformPtsHero">24</div></div>
+          <div><div style="font-size:.55rem;color:rgba(255,255,255,.55);">DUE TO HALSAA</div><div style="font-size:.85rem;font-weight:800;color:#fff;" id="platformDueHero">₹240</div></div>
+        </div>
+        <div style="margin-top:8px;font-size:.6rem;color:rgba(255,255,255,.5);">Monthly invoice from HALSAA · Settle by end of month</div>
+      </div>
+
+      <div class="analytics-layout">
+        <div>
+          <div class="a-card">
+            <div class="a-card-title">Patients This Week</div>
+            <div class="bar-chart" id="barChart"></div>
+            <div style="display:flex;gap:10px;" id="barLabels"></div>
+          </div>
+          <div class="a-card">
+            <div class="a-card-title">Revenue Breakdown</div>
+            <div class="bk-row"><div class="bk-left"><div class="bk-dot" style="background:var(--teal)"></div>Consultation Fees</div><div class="bk-val" style="color:var(--teal)" id="revBreak-cons">₹4,610</div></div>
+            <div class="bk-row"><div class="bk-left"><div class="bk-dot" style="background:var(--green)"></div>Cash Collected</div><div class="bk-val" style="color:var(--green)" id="revBreak-cash">₹3,200</div></div>
+            <div class="bk-row"><div class="bk-left"><div class="bk-dot" style="background:var(--blue)"></div>UPI Collected</div><div class="bk-val" style="color:var(--blue)" id="revBreak-upi">₹1,650</div></div>
+            <div style="height:1px;background:#F5F5F5;margin:6px 0;"></div>
+            <div class="bk-row"><div class="bk-left"><div class="bk-dot" style="background:var(--purple)"></div><b>HALSAA Platform Fee</b></div><div class="bk-val" style="color:var(--purple)" id="revBreak-platform">₹240</div></div>
+            <div style="font-size:.6rem;color:var(--muted);padding-top:4px;">Collected on behalf of HALSAA · 24 patients × ₹10</div>
+          </div>
+
+          <div style="font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:4px 0 12px;">HALSAA Monthly Bills</div>
+          <div class="bill-card">
+            <div class="bc-top">
+              <div style="width:40px;height:40px;border-radius:11px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📄</div>
+              <div style="flex:1;"><div class="bc-month">February 2026</div><div class="bc-patients">520 tokens · ₹5 clinic + ₹10 platform</div></div>
+              <div style="text-align:right;"><div class="bc-amt">₹7,800</div><div class="bc-status bc-paid">Paid ✓</div></div>
+            </div>
+            <div class="bc-actions"><button class="bca-btn bca-teal" onclick="showToast('📥 Invoice downloaded!')">📥 Invoice</button><button class="bca-btn bca-gold" onclick="openBillDetail('Feb 2026')">📊 Details</button></div>
+            <div class="bc-top">
+              <div style="width:40px;height:40px;border-radius:11px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📄</div>
+              <div style="flex:1;"><div class="bc-month">March 2026</div><div class="bc-patients">24 tokens · ₹5 clinic + ₹10 platform</div></div>
+              <div style="text-align:right;"><div class="bc-amt" style="color:var(--gold);">₹360</div><div class="bc-status bc-pending">Due 1 Apr</div></div>
+            </div>
+            <div class="bc-actions"><button class="bca-btn bca-teal" onclick="showToast('📥 Invoice downloaded!')">📥 Invoice</button><button class="bca-btn bca-gold" onclick="openBillDetail('Mar 2026')">📊 Details</button><button class="bca-btn bca-green" onclick="openBillDetail('Mar 2026')">💳 Pay Now</button></div>
+          </div>
+        </div>
+        <div>
+          <div class="a-card">
+            <div class="a-card-title">Doctor-wise Load</div>
+            <div id="doctorRevList"></div>
+          </div>
+          <div class="a-card">
+            <div class="a-card-title">Booking Channels</div>
+            <div class="bk-row"><div class="bk-left"><div class="bk-dot" style="background:var(--teal)"></div>HALSAA App</div><div class="bk-val" style="color:var(--teal)">26%</div></div>
+            <div class="bk-row"><div class="bk-left"><div class="bk-dot" style="background:var(--gold)"></div>Walk-in</div><div class="bk-val" style="color:var(--gold)">54%</div></div>
+            <div class="bk-row"><div class="bk-left"><div class="bk-dot" style="background:var(--blue)"></div>WhatsApp Self-Book</div><div class="bk-val" style="color:var(--blue)">20%</div></div>
+          </div>
+          <div class="a-card">
+            <div class="a-card-title">Quick Stats</div>
+            <div class="bk-row"><div class="bk-left">Peak Hour</div><div class="bk-val" style="color:var(--blue)">9–11 AM</div></div>
+            <div class="bk-row"><div class="bk-left">Avg Wait</div><div class="bk-val" style="color:var(--teal)">18 min</div></div>
+            <div class="bk-row"><div class="bk-left">Show Rate</div><div class="bk-val" style="color:var(--green)">95.8%</div></div>
+            <div class="bk-row"><div class="bk-left">WhatsApp Delivery</div><div class="bk-val" style="color:var(--green)">98% ✅</div></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /analytics -->
+
+    <!-- ══ STAFF ══ -->
+    <div class="screen" id="staff">
+      <div class="staff-header-row">
+        <div><div class="staff-header-info">Staff Management</div><div class="staff-header-sub" id="staffSubHeader">4 members · 2 Doctors · 2 Receptionists</div></div>
+        <button class="add-btn" onclick="openSheet('addStaffOv','addStaffSh')">➕ Add Staff</button>
+      </div>
+      <div id="staffList"></div>
+    </div><!-- /staff -->
+
+    <!-- ══ SETTINGS ══ -->
+    <div class="screen" id="settings">
+      <div style="margin-bottom:20px;"><div style="font-size:1rem;font-weight:800;">Clinic Settings</div><div style="font-size:.7rem;color:var(--muted);">Configure your clinic on HALSAA</div></div>
+      <div class="settings-layout">
+        <div>
+          <div class="settings-section">
+            <div class="ss-hdr">Clinic Configuration</div>
+            <div class="setting-row" onclick="openSheet('clinicEditOv','clinicEditSh')">
+              <div class="srow-icon ico-teal">🏥</div><div class="srow-text"><div class="srow-title">Clinic Name</div><div class="srow-sub">Sri Sai Hospital</div></div><div class="srow-right"><span class="srow-arrow">›</span></div>
+            </div>
+            <div class="setting-row" onclick="showToast('📍 Location: Hanamkonda, Warangal')">
+              <div class="srow-icon ico-gold">📍</div><div class="srow-text"><div class="srow-title">Location</div><div class="srow-sub">Hanamkonda, Warangal</div></div><div class="srow-right"><span class="srow-arrow">›</span></div>
+            </div>
+            <div class="setting-row" onclick="showToast('⏰ Timings: 9 AM – 7 PM')">
+              <div class="srow-icon ico-teal">⏰</div><div class="srow-text"><div class="srow-title">Clinic Hours</div><div class="srow-sub">9 AM – 7 PM · Mon–Sat</div></div><div class="srow-right"><span class="srow-arrow">›</span></div>
+            </div>
+            <div class="setting-row" onclick="openSheet('feeEditOv','feeEditSh')">
+              <div class="srow-icon ico-gold">💰</div><div class="srow-text"><div class="srow-title">Consultation Fee</div><div class="srow-sub">Per doctor · tap to edit</div></div><div class="srow-right"><span class="srow-val">₹200</span><span class="srow-arrow">›</span></div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="ss-hdr">Queue & Display</div>
+            <div class="setting-row">
+              <div class="srow-icon ico-teal">📺</div><div class="srow-text"><div class="srow-title">TV Display Mode</div><div class="srow-sub">Show queue on waiting room TV</div></div>
+              <div class="srow-right"><div class="toggle on" id="tog-tv" onclick="flipToggle('tv')"></div></div>
+            </div>
+            <div class="setting-row">
+              <div class="srow-icon ico-gold">🔊</div><div class="srow-text"><div class="srow-title">Voice Announcements</div><div class="srow-sub">Auto-call tokens in Telugu / English</div></div>
+              <div class="srow-right"><div class="toggle on" id="tog-voice" onclick="flipToggle('voice')"></div></div>
+            </div>
+            <div class="setting-row">
+              <div class="srow-icon ico-teal">📲</div><div class="srow-text"><div class="srow-title">WhatsApp Alerts</div><div class="srow-sub">Token confirmation to patients</div></div>
+              <div class="srow-right"><div class="toggle on" id="tog-wa" onclick="flipToggle('wa')"></div></div>
+            </div>
+          </div>
+          <!-- Announcement -->
+          <div class="settings-section">
+            <div class="ss-hdr">📢 Clinic Announcement</div>
+            <div style="padding:16px 18px;">
+              <div style="display:flex;gap:7px;margin-bottom:12px;">
+                <button class="lang-btn active" id="lang-en" onclick="setLang('en',this)">English</button>
+                <button class="lang-btn" id="lang-te" onclick="setLang('te',this)">తెలుగు</button>
+                <button class="lang-btn" id="lang-hi" onclick="setLang('hi',this)">हिंदी</button>
+              </div>
+              <div id="announcePreview" style="background:var(--teal-light);border-radius:10px;padding:10px 12px;font-size:.75rem;font-weight:700;color:var(--teal);margin-bottom:10px;border:1px solid var(--border);line-height:1.5;">
+                Today's clinic will close at 7 PM. Thank you for visiting Sri Sai Hospital.
+              </div>
+              <textarea id="announceText" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:.8rem;outline:none;resize:none;margin-bottom:8px;" placeholder="Type announcement...">Today's clinic will close at 7 PM. Thank you for visiting Sri Sai Hospital.</textarea>
+              <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <button onclick="saveAnnouncement()" style="flex:2;padding:10px;border-radius:10px;border:none;background:var(--teal);color:#fff;font-size:.78rem;font-weight:800;cursor:pointer;">📢 Save & Broadcast</button>
+                <button onclick="clearAnnouncement()" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.72rem;font-weight:700;cursor:pointer;">🗑️ Clear</button>
+              </div>
+              <div style="font-size:.62rem;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.06em;">QUICK TEMPLATES</div>
+              <div style="display:flex;flex-wrap:wrap;gap:7px;">
+                <span class="ann-chip" onclick="useTemplate(this)">Clinic closed today</span>
+                <span class="ann-chip" onclick="useTemplate(this)">Doctor on leave today</span>
+                <span class="ann-chip" onclick="useTemplate(this)">Extended hours till 9 PM</span>
+                <span class="ann-chip" onclick="useTemplate(this)">Holiday — closed tomorrow</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="settings-section">
+            <div class="ss-hdr">HALSAA Integration</div>
+            <div class="setting-row" onclick="openSheet('qrSheetOv','qrSheetSh')">
+              <div class="srow-icon ico-teal">📲</div><div class="srow-text"><div class="srow-title">QR Code & Booking Link</div><div class="srow-sub">Share with patients</div></div><div class="srow-right"><span class="srow-arrow">›</span></div>
+            </div>
+            <div class="setting-row" onclick="openSheet('paymentOv','paymentSh')">
+              <div class="srow-icon ico-green">💳</div><div class="srow-text"><div class="srow-title">Payment Settings</div><div class="srow-sub">Bank account · IFSC</div></div><div class="srow-right"><span class="srow-val" style="color:var(--green);">Linked ✓</span><span class="srow-arrow">›</span></div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="ss-hdr">Admin Profile</div>
+            <div class="setting-row" onclick="showToast('👤 Profile editing...')">
+              <div class="srow-icon ico-purple">👤</div><div class="srow-text"><div class="srow-title">Suresh Patel</div><div class="srow-sub">Clinic Manager · Admin</div></div><div class="srow-right"><span class="srow-arrow">›</span></div>
+            </div>
+            <div class="setting-row" onclick="showToast('📱 Mobile: 9876543210')">
+              <div class="srow-icon ico-teal">📱</div><div class="srow-text"><div class="srow-title">Contact</div><div class="srow-sub">9876543210</div></div><div class="srow-right"><span class="srow-arrow">›</span></div>
+            </div>
+            <div class="setting-row" onclick="openSheet('pwdOv','pwdSh')">
+              <div class="srow-icon ico-gold">🔑</div><div class="srow-text"><div class="srow-title">Change Password</div><div class="srow-sub">Update login credentials</div></div><div class="srow-right"><span class="srow-arrow">›</span></div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="ss-hdr">Danger Zone</div>
+            <div class="setting-row" onclick="showToast('🔴 Queue closed for today!')">
+              <div class="srow-icon ico-red">🔴</div><div class="srow-text"><div class="srow-title">Close Queue for Today</div><div class="srow-sub">Stop new token issuance</div></div>
+            </div>
+            <div class="setting-row" onclick="hlLogout()">
+              <div class="srow-icon ico-red">🚪</div><div class="srow-text"><div class="srow-title">Logout</div><div class="srow-sub">Sign out from admin portal</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /settings -->
+
+    <!-- ══ QUEUE MONITOR ══ -->
+    <div class="screen" id="queue">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:1rem;font-weight:800;">📋 Queue Monitor</div>
+          <div style="font-size:.7rem;color:var(--muted);">Live read-only view · Auto-refreshes</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:flex;align-items:center;gap:6px;background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.2);border-radius:100px;padding:5px 12px;">
+            <div style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;"></div>
+            <span style="font-size:.62rem;font-weight:800;color:var(--green);">LIVE</span>
+          </div>
+          <!-- Search -->
+          <div style="position:relative;">
+            <input id="queueSearch" oninput="filterQueueMonitor()" placeholder="🔍 Search patient..." style="padding:7px 12px 7px 32px;border:1.5px solid var(--border);border-radius:100px;font-size:.75rem;outline:none;background:#fff;width:180px;"/>
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.75rem;">🔍</span>
+          </div>
+        </div>
+      </div>
+      <!-- Summary chips -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <div style="background:var(--teal-light);border-radius:100px;padding:6px 16px;font-size:.72rem;font-weight:700;color:var(--teal);">Total: <b id="qm-total">24</b></div>
+        <div style="background:#E8FFE8;border-radius:100px;padding:6px 16px;font-size:.72rem;font-weight:700;color:var(--green);">✅ Seen: <b id="qm-seen">17</b></div>
+        <div style="background:var(--gold-light);border-radius:100px;padding:6px 16px;font-size:.72rem;font-weight:700;color:#CC7A00;">⏳ Waiting: <b id="qm-waiting">6</b></div>
+        <div style="background:#FFEDED;border-radius:100px;padding:6px 16px;font-size:.72rem;font-weight:700;color:var(--red);">❌ No Show: <b id="qm-noshow">1</b></div>
+      </div>
+      <!-- Filter tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button class="period-tab active" onclick="filterQueueMonitor('all',this)">All</button>
+        <button class="period-tab" onclick="filterQueueMonitor('waiting',this)">⏳ Waiting</button>
+        <button class="period-tab" onclick="filterQueueMonitor('seen',this)">✅ Seen</button>
+        <button class="period-tab" onclick="filterQueueMonitor('noshow',this)">❌ No Show</button>
+      </div>
+      <div id="queueMonitorList"></div>
+    </div><!-- /queue -->
+
+    <!-- ══ BROADCAST ══ -->
+    <div class="screen" id="broadcast">
+      <div style="margin-bottom:18px;">
+        <div style="font-size:1rem;font-weight:800;">📣 WhatsApp Broadcast</div>
+        <div style="font-size:.7rem;color:var(--muted);">Send messages to patients via WhatsApp</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" class="broadcast-layout">
+        <div>
+          <!-- Compose -->
+          <div class="a-card">
+            <div class="a-card-title">Compose Message</div>
+            <div style="display:flex;gap:7px;margin-bottom:12px;">
+              <button class="lang-btn active" id="bc-lang-en" onclick="setBCLang('en',this)">English</button>
+              <button class="lang-btn" id="bc-lang-te" onclick="setBCLang('te',this)">తెలుగు</button>
+              <button class="lang-btn" id="bc-lang-hi" onclick="setBCLang('hi',this)">हिंदी</button>
+            </div>
+            <textarea id="bcMessage" rows="5" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:12px;font-size:.85rem;outline:none;resize:none;margin-bottom:12px;" placeholder="Type your message..."></textarea>
+            <!-- Quick templates -->
+            <div style="font-size:.62rem;font-weight:800;color:var(--muted);letter-spacing:.06em;margin-bottom:8px;">QUICK TEMPLATES</div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;">
+              <span class="ann-chip" onclick="useBCTemplate(this)">Clinic closed today</span>
+              <span class="ann-chip" onclick="useBCTemplate(this)">Doctor on leave today</span>
+              <span class="ann-chip" onclick="useBCTemplate(this)">Extended hours till 9 PM</span>
+              <span class="ann-chip" onclick="useBCTemplate(this)">Holiday — closed tomorrow</span>
+              <span class="ann-chip" onclick="useBCTemplate(this)">Your appointment is confirmed ✅</span>
+              <span class="ann-chip" onclick="useBCTemplate(this)">Please arrive 10 min early</span>
+            </div>
+            <!-- Target -->
+            <div style="font-size:.7rem;font-weight:700;color:var(--text);margin-bottom:8px;">Send To</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+              <div class="role-chip sel" id="bc-all" onclick="selectBCTarget(this,'all')"><div class="role-chip-icon">👥</div><div class="role-chip-label">All Today</div></div>
+              <div class="role-chip" id="bc-waiting" onclick="selectBCTarget(this,'waiting')"><div class="role-chip-icon">⏳</div><div class="role-chip-label">Waiting</div></div>
+              <div class="role-chip" id="bc-seen" onclick="selectBCTarget(this,'seen')"><div class="role-chip-icon">✅</div><div class="role-chip-label">Seen Today</div></div>
+            </div>
+            <button class="save-btn" onclick="sendBroadcast()">📣 Send WhatsApp Broadcast</button>
+          </div>
+        </div>
+        <!-- History -->
+        <div>
+          <div class="a-card">
+            <div class="a-card-title">Recent Broadcasts</div>
+            <div id="broadcastHistory"></div>
+          </div>
+          <!-- WA notification preferences -->
+          <div class="a-card">
+            <div class="a-card-title">WhatsApp Notifications</div>
+            <div class="bk-row">
+              <div class="bk-left" style="flex:1;flex-direction:column;align-items:flex-start;gap:2px;">
+                <span style="font-size:.8rem;font-weight:700;">Token Confirmation</span>
+                <span style="font-size:.6rem;color:var(--muted);">When patient books</span>
+              </div>
+              <div class="toggle on" id="tog-notif-book" onclick="flipToggle('notif-book')"></div>
+            </div>
+            <div class="bk-row">
+              <div class="bk-left" style="flex:1;flex-direction:column;align-items:flex-start;gap:2px;">
+                <span style="font-size:.8rem;font-weight:700;">Turn Reminder</span>
+                <span style="font-size:.6rem;color:var(--muted);">When 2 patients before their turn</span>
+              </div>
+              <div class="toggle on" id="tog-notif-turn" onclick="flipToggle('notif-turn')"></div>
+            </div>
+            <div class="bk-row">
+              <div class="bk-left" style="flex:1;flex-direction:column;align-items:flex-start;gap:2px;">
+                <span style="font-size:.8rem;font-weight:700;">No Show Alert</span>
+                <span style="font-size:.6rem;color:var(--muted);">Admin alerted on no-shows</span>
+              </div>
+              <div class="toggle" id="tog-notif-noshow" onclick="flipToggle('notif-noshow')"></div>
+            </div>
+            <div class="bk-row" style="border-bottom:none;">
+              <div class="bk-left" style="flex:1;flex-direction:column;align-items:flex-start;gap:2px;">
+                <span style="font-size:.8rem;font-weight:700;">Daily Summary</span>
+                <span style="font-size:.6rem;color:var(--muted);">End-of-day report to admin</span>
+              </div>
+              <div class="toggle on" id="tog-notif-summary" onclick="flipToggle('notif-summary')"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /broadcast -->
+
+
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ══ MOBILE BOTTOM NAV ══ -->
+<nav class="mobile-nav">
+  <div class="mn-row">
+    <button class="mn-item active" id="mn-home" onclick="showScreen('home');setMN('home')"><span class="mn-icon">🏠</span><span class="mn-label">Home</span></button>
+    <button class="mn-item" id="mn-analytics" onclick="showScreen('analytics');setMN('analytics')"><span class="mn-icon">📊</span><span class="mn-label">Revenue</span></button>
+    <button class="mn-item" id="mn-queue" onclick="showScreen('queue');setMN('queue')"><span class="mn-icon">📋</span><span class="mn-label">Queue</span></button>
+    <button class="mn-item" id="mn-broadcast" onclick="showScreen('broadcast');setMN('broadcast')"><span class="mn-icon">📣</span><span class="mn-label">Broadcast</span></button>
+    <button class="mn-item" id="mn-settings" onclick="showScreen('settings');setMN('settings')"><span class="mn-icon">⚙️</span><span class="mn-label">Settings</span></button>
+  </div>
+</nav>
+
+<!-- ══ ADD STAFF SHEET (mobile) ══ -->
+<div class="overlay" id="addStaffOv" onclick="if(event.target===this)closeSheet('addStaffOv','addStaffSh')">
+  <div class="sheet" id="addStaffSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('addStaffOv','addStaffSh')">✕</button>
+    <div class="sh-title">➕ Add Staff Member</div>
+    <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="newNameM" placeholder="Dr. Ramesh Kumar"/></div>
+    <div class="form-group"><label class="form-label">Mobile *</label><input class="form-input" id="newMobileM" placeholder="10-digit number"/></div>
+    <div class="role-grid" style="margin-bottom:14px;">
+      <div class="role-chip sel" data-role="doctor" onclick="selectRoleM(this)"><div class="role-chip-icon">👨‍⚕️</div><div class="role-chip-label">Doctor</div></div>
+      <div class="role-chip" data-role="receptionist" onclick="selectRoleM(this)"><div class="role-chip-icon">🗂️</div><div class="role-chip-label">Reception</div></div>
+      <div class="role-chip" data-role="admin" onclick="selectRoleM(this)"><div class="role-chip-icon">🛡️</div><div class="role-chip-label">Admin</div></div>
+      <div class="role-chip" data-role="lab" onclick="selectRoleM(this)"><div class="role-chip-icon">🧪</div><div class="role-chip-label">Lab Tech</div></div>
+    </div>
+    <div class="form-group"><label class="form-label">Username *</label><input class="form-input" id="newUserM" placeholder="login username"/></div>
+    <div class="form-group"><label class="form-label">Password *</label><input class="form-input" id="newPassM" type="password" placeholder="set password"/></div>
+    <button class="save-btn" onclick="addStaffMobile()">➕ Add to Team</button>
+  </div>
+</div>
+
+<!-- ══ DOCTOR DETAIL SHEET ══ -->
+<div class="overlay" id="docDetailOv" onclick="if(event.target===this)closeSheet('docDetailOv','docDetailSh')">
+  <div class="sheet" id="docDetailSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('docDetailOv','docDetailSh')">✕</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div style="width:52px;height:52px;border-radius:14px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">👨‍⚕️</div>
+      <div style="flex:1;">
+        <div style="font-size:1rem;font-weight:900;" id="dd-name"></div>
+        <div style="font-size:.68rem;color:var(--muted);" id="dd-qual"></div>
+        <div style="font-size:.62rem;color:var(--muted);" id="dd-spec"></div>
+      </div>
+      <div id="dd-status" style="font-size:.65rem;font-weight:800;padding:4px 12px;border-radius:100px;"></div>
+    </div>
+    <div style="display:flex;gap:7px;margin-bottom:14px;">
+      <button class="dd-period-btn active" id="dd-today" onclick="switchDDPeriod('today',this)">Today</button>
+      <button class="dd-period-btn" id="dd-week" onclick="switchDDPeriod('week',this)">Week</button>
+      <button class="dd-period-btn" id="dd-month" onclick="switchDDPeriod('month',this)">Month</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;" id="dd-stats"></div>
+    <div style="background:linear-gradient(135deg,var(--teal),#00A88D);border-radius:14px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:.6rem;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:3px;">REVENUE GENERATED</div>
+      <div style="font-size:1.6rem;font-weight:900;color:#fff;" id="dd-rev"></div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <div><div style="font-size:.55rem;color:rgba(255,255,255,.6);">PLATFORM</div><div style="font-size:.8rem;font-weight:800;color:#fff;" id="dd-platform"></div></div>
+        <div><div style="font-size:.55rem;color:rgba(255,255,255,.6);">AVG/PATIENT</div><div style="font-size:.8rem;font-weight:800;color:#fff;" id="dd-avg-rev"></div></div>
+        <div><div style="font-size:.55rem;color:rgba(255,255,255,.6);">AVG WAIT</div><div style="font-size:.8rem;font-weight:800;color:#fff;" id="dd-avg-wait"></div></div>
+      </div>
+    </div>
+    <div style="font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:8px;" id="dd-list-label">TODAY'S PATIENTS</div>
+    <div id="dd-patient-list"></div>
+  </div>
+</div>
+
+<!-- ══ STAT POPUP ══ -->
+<div class="stat-popup-ov" id="statPopupOv" onclick="if(event.target===this)closeStatPopup()">
+  <div class="stat-popup">
+    <div class="stat-popup-title">
+      <span id="stTitle">Patients</span>
+      <button onclick="closeStatPopup()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+    <div id="stList"></div>
+  </div>
+</div>
+
+<!-- ══ CLINIC EDIT SHEET ══ -->
+<div class="overlay" id="clinicEditOv" onclick="if(event.target===this)closeSheet('clinicEditOv','clinicEditSh')">
+  <div class="sheet" id="clinicEditSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('clinicEditOv','clinicEditSh')">✕</button>
+    <div class="sh-title">🏥 Edit Clinic Information</div>
+    <div class="form-group"><label class="form-label">Clinic Name *</label><input class="form-input" value="Sri Sai Hospital" id="editClinicName"/></div>
+    <div class="form-group"><label class="form-label">Address *</label><input class="form-input" value="Hanamkonda, Warangal" id="editClinicAddr"/></div>
+    <div class="form-group"><label class="form-label">Mobile Number</label><input class="form-input" value="9876543210" id="editClinicMobile" type="tel"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label class="form-label">Opens At</label><input class="form-input" value="09:00" id="editOpenTime" type="time"/></div>
+      <div class="form-group"><label class="form-label">Closes At</label><input class="form-input" value="19:00" id="editCloseTime" type="time"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Working Days</label>
+      <select class="form-input" id="editDays"><option>Mon – Sat</option><option>Mon – Sun</option><option>Mon – Fri</option></select>
+    </div>
+    <button class="save-btn" onclick="saveClinicInfo()">💾 Save Changes</button>
+  </div>
+</div>
+
+<!-- ══ CONSULTATION FEE SHEET ══ -->
+<div class="overlay" id="feeEditOv" onclick="if(event.target===this)closeSheet('feeEditOv','feeEditSh')">
+  <div class="sheet" id="feeEditSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('feeEditOv','feeEditSh')">✕</button>
+    <div class="sh-title">💰 Consultation Fee — Per Doctor</div>
+    <div style="font-size:.7rem;color:var(--muted);margin-bottom:16px;">Select a doctor to edit their consultation fee</div>
+    <div id="feeDocList"></div>
+    <div id="feeFormWrap" style="display:none;margin-top:16px;">
+      <div style="background:var(--teal-light);border-radius:12px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.2rem;">👨‍⚕️</span>
+        <div><div style="font-size:.85rem;font-weight:800;" id="feeDocName">Dr. Ramesh Kumar</div><div style="font-size:.62rem;color:var(--muted);" id="feeDocSpec">General Medicine</div></div>
+      </div>
+      <div class="form-group"><label class="form-label">Consultation Fee (₹) *</label>
+        <input class="form-input" id="feeInput" type="number" placeholder="e.g. 200" style="font-size:1.1rem;font-weight:800;"/>
+      </div>
+      <div style="font-size:.68rem;color:var(--muted);margin-bottom:14px;">💡 Patient pays ₹10 HALSAA platform fee separately (collected by receptionist)</div>
+      <div style="display:flex;gap:10px;">
+        <button style="flex:1;padding:12px;border-radius:11px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.8rem;font-weight:700;cursor:pointer;" onclick="hideFeeForm()">← Back</button>
+        <button class="save-btn" style="flex:2;" onclick="saveFee()">✅ Confirm & Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QR SHEET ══ -->
+<div class="overlay" id="qrSheetOv" onclick="if(event.target===this)closeSheet('qrSheetOv','qrSheetSh')">
+  <div class="sheet" id="qrSheetSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('qrSheetOv','qrSheetSh')">✕</button>
+    <div class="sh-title">📲 QR Code & Booking Link</div>
+    <div style="text-align:center;padding:20px 0;">
+      <div style="width:160px;height:160px;margin:0 auto 16px;border-radius:18px;border:3px solid var(--teal);display:flex;align-items:center;justify-content:center;background:var(--teal-light);font-size:5rem;">🏥</div>
+      <div style="font-size:.75rem;font-weight:700;color:var(--muted);margin-bottom:6px;">BOOKING LINK</div>
+      <div style="font-size:.9rem;font-weight:800;color:var(--teal);background:var(--teal-light);padding:10px 16px;border-radius:10px;margin-bottom:14px;word-break:break-all;">halsaa.in/srisai-hospital</div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button style="padding:10px 20px;border-radius:11px;border:none;background:var(--teal);color:#fff;font-size:.78rem;font-weight:800;cursor:pointer;" onclick="showToast('📥 QR downloaded!');closeSheet('qrSheetOv','qrSheetSh')">📥 Download QR</button>
+        <button style="padding:10px 20px;border-radius:11px;border:1.5px solid var(--border);background:#fff;font-size:.78rem;font-weight:700;cursor:pointer;" onclick="showToast('📋 Link copied!');closeSheet('qrSheetOv','qrSheetSh')">📋 Copy Link</button>
+      </div>
+    </div>
+    <div style="background:var(--gold-light);border-radius:12px;padding:12px;font-size:.72rem;color:#CC7A00;font-weight:600;text-align:center;">
+      💡 Print and paste this QR at your reception counter or share the link on WhatsApp
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAYMENT SETTINGS SHEET ══ -->
+<div class="overlay" id="paymentOv" onclick="if(event.target===this)closeSheet('paymentOv','paymentSh')">
+  <div class="sheet" id="paymentSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('paymentOv','paymentSh')">✕</button>
+    <div class="sh-title">💳 Payment Settings</div>
+    <div style="font-size:.7rem;color:var(--muted);margin-bottom:16px;">Bank account for HALSAA settlement & clinic payouts</div>
+    <div class="form-group"><label class="form-label">Account Holder Name *</label><input class="form-input" value="Sri Sai Hospital" id="payAccName"/></div>
+    <div class="form-group"><label class="form-label">Bank Account Number *</label><input class="form-input" value="9876543210987" id="payAccNo" type="tel" placeholder="Account number"/></div>
+    <div class="form-group"><label class="form-label">Confirm Account Number *</label><input class="form-input" id="payAccNoConfirm" type="tel" placeholder="Re-enter account number"/></div>
+    <div class="form-group"><label class="form-label">IFSC Code *</label><input class="form-input" value="SBIN0001234" id="payIFSC" placeholder="e.g. SBIN0001234" style="text-transform:uppercase;"/></div>
+    <div class="form-group"><label class="form-label">Bank Name</label><input class="form-input" value="State Bank of India" id="payBankName" placeholder="Bank name"/></div>
+    <div style="background:rgba(0,200,83,.08);border:1px solid rgba(0,200,83,.2);border-radius:12px;padding:12px;margin-bottom:16px;">
+      <div style="font-size:.68rem;font-weight:800;color:var(--green);margin-bottom:4px;">🔒 Secure & Encrypted</div>
+      <div style="font-size:.65rem;color:var(--text);">Your account details are stored securely. HALSAA will use this account for monthly platform fee settlements.</div>
+    </div>
+    <button class="save-btn" onclick="savePayment()">💾 Save Payment Details</button>
+  </div>
+</div>
+
+<!-- ══ EDIT STAFF SHEET ══ -->
+<div class="overlay" id="editStaffOv" onclick="if(event.target===this)closeSheet('editStaffOv','editStaffSh')">
+  <div class="sheet" id="editStaffSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('editStaffOv','editStaffSh')">✕</button>
+    <div class="sh-title">✏️ Edit Staff Member</div>
+    <div style="display:flex;align-items:center;gap:12px;background:var(--teal-light);border-radius:12px;padding:12px;margin-bottom:16px;">
+      <div style="width:44px;height:44px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;" id="editStaffIco">👨‍⚕️</div>
+      <div><div style="font-size:.85rem;font-weight:800;" id="editStaffRoleLbl">Doctor</div><div style="font-size:.62rem;color:var(--muted);" id="editStaffId">ID: S001</div></div>
+    </div>
+    <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="editName"/></div>
+    <div class="form-group"><label class="form-label">Mobile Number *</label><input class="form-input" id="editMobile" type="tel"/></div>
+    <div class="form-group"><label class="form-label">Qualification</label><input class="form-input" id="editQual"/></div>
+    <div class="form-group"><label class="form-label">Specialisation</label><input class="form-input" id="editSpec"/></div>
+    <div style="background:var(--gold-light);border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:.65rem;font-weight:800;color:#CC7A00;margin-bottom:6px;">🔑 Change Password (optional)</div>
+      <input class="form-input" id="editPwdNew" type="password" placeholder="New password (leave blank to keep current)" style="margin-bottom:8px;"/>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button style="flex:1;padding:12px;border-radius:11px;border:1.5px solid rgba(255,107,107,.3);background:rgba(255,107,107,.06);color:var(--red);font-size:.78rem;font-weight:700;cursor:pointer;" onclick="removeStaff()">🗑️ Remove</button>
+      <button class="save-btn" style="flex:2;" onclick="saveEditStaff()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MONTHLY BILL DETAIL SHEET ══ -->
+<div class="overlay" id="billDetailOv" onclick="if(event.target===this)closeSheet('billDetailOv','billDetailSh')">
+  <div class="sheet" id="billDetailSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('billDetailOv','billDetailSh')">✕</button>
+    <div class="sh-title" id="billDetailTitle">📊 Bill Details — March 2026</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div style="background:var(--teal-light);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:.55rem;font-weight:700;color:var(--muted);margin-bottom:4px;">TOTAL TOKENS</div>
+        <div style="font-size:1.8rem;font-weight:900;color:var(--teal);" id="billTokens">24</div>
+      </div>
+      <div style="background:var(--gold-light);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:.55rem;font-weight:700;color:var(--muted);margin-bottom:4px;">MONTH</div>
+        <div style="font-size:.9rem;font-weight:900;color:var(--gold);" id="billMonthLbl">March 2026</div>
+      </div>
+    </div>
+    <!-- Invoice 1: Clinic fee -->
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;">
+      <div style="font-size:.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">📄 INVOICE 1 — CLINIC FEE (Payable to HALSAA)</div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:.78rem;">
+        <span>Total Tokens</span><span style="font-weight:700;" id="inv1Tokens">24</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:.78rem;">
+        <span>Rate per Token</span><span style="font-weight:700;color:var(--teal);">₹5</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:.9rem;font-weight:900;">
+        <span>Total Payable</span><span style="color:var(--teal);" id="inv1Total">₹120</span>
+      </div>
+    </div>
+    <!-- Invoice 2: Platform fee collected -->
+    <div style="background:linear-gradient(135deg,rgba(139,92,246,.06),#fff);border:1.5px solid rgba(139,92,246,.2);border-radius:14px;padding:14px;margin-bottom:10px;">
+      <div style="font-size:.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--purple);margin-bottom:10px;">📄 INVOICE 2 — PLATFORM FEE (Collected from Patients)</div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(139,92,246,.1);font-size:.78rem;">
+        <span>Total Tokens</span><span style="font-weight:700;" id="inv2Tokens">24</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(139,92,246,.1);font-size:.78rem;">
+        <span>Rate per Patient</span><span style="font-weight:700;color:var(--purple);">₹10</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:.9rem;font-weight:900;">
+        <span>Total Collected</span><span style="color:var(--purple);" id="inv2Total">₹240</span>
+      </div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:6px;">Collected from patients at reception · to be remitted to HALSAA</div>
+    </div>
+    <!-- Grand Total -->
+    <div style="background:linear-gradient(135deg,var(--teal),#00A88D);border-radius:14px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:.6rem;font-weight:700;color:rgba(255,255,255,.7);">GRAND TOTAL DUE TO HALSAA</div><div style="font-size:.62rem;color:rgba(255,255,255,.55);">Invoice 1 (₹5) + Invoice 2 (₹10) per token</div></div>
+      <div style="font-size:1.5rem;font-weight:900;color:#fff;" id="billGrandTotal">₹360</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <button style="padding:12px;border-radius:11px;border:none;background:var(--teal-light);color:var(--teal);font-size:.75rem;font-weight:800;cursor:pointer;" onclick="showToast('📥 Invoice downloaded!');closeSheet('billDetailOv','billDetailSh')">📥 Download Invoice</button>
+      <button style="padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;font-size:.75rem;font-weight:800;cursor:pointer;" onclick="closeSheet('billDetailOv','billDetailSh');setTimeout(function(){openPaySheet()},300)">💳 Pay Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAY NOW SHEET ══ -->
+<div class="overlay" id="payNowOv" onclick="if(event.target===this)closeSheet('payNowOv','payNowSh')">
+  <div class="sheet" id="payNowSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('payNowOv','payNowSh')">✕</button>
+    <div class="sh-title">💳 Pay HALSAA Bill</div>
+    <div style="background:linear-gradient(135deg,var(--teal),#00A88D);border-radius:14px;padding:16px;margin-bottom:18px;text-align:center;">
+      <div style="font-size:.62rem;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:4px;" id="payMonthLabel">MARCH 2026 · 24 TOKENS</div>
+      <div style="font-size:.6rem;color:rgba(255,255,255,.6);margin-bottom:2px;">Clinic Fee (24 × ₹5) + Platform Fee (24 × ₹10)</div>
+      <div style="font-size:2rem;font-weight:900;color:#fff;" id="payTotalAmt">₹360</div>
+      <div style="font-size:.6rem;color:rgba(255,255,255,.65);">Due to HALSAA</div>
+    </div>
+    <!-- Payment options -->
+    <div style="font-size:.65rem;font-weight:800;color:var(--muted);letter-spacing:.08em;margin-bottom:10px;">CHOOSE PAYMENT METHOD</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div id="payOptUPI" onclick="selectPayOpt('upi')" style="border:2px solid var(--teal);background:var(--teal-light);border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;">
+        <div style="font-size:1.4rem;margin-bottom:6px;">📱</div>
+        <div style="font-size:.8rem;font-weight:800;color:var(--teal);">UPI</div>
+        <div style="font-size:.6rem;color:var(--muted);">GPay / PhonePe / Paytm</div>
+      </div>
+      <div id="payOptNB" onclick="selectPayOpt('nb')" style="border:2px solid var(--border);background:#fff;border-radius:14px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;">
+        <div style="font-size:1.4rem;margin-bottom:6px;">🏦</div>
+        <div style="font-size:.8rem;font-weight:800;color:var(--text);">Net Banking</div>
+        <div style="font-size:.6rem;color:var(--muted);">Any bank account</div>
+      </div>
+    </div>
+    <!-- UPI section -->
+    <div id="upiSection">
+      <div style="background:#f8f8f8;border-radius:12px;padding:16px;text-align:center;margin-bottom:12px;">
+        <div style="width:100px;height:100px;margin:0 auto 10px;background:var(--teal-light);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:3rem;border:2px solid var(--teal);">📲</div>
+        <div style="font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:4px;">UPI ID</div>
+        <div style="font-size:.9rem;font-weight:900;color:var(--teal);">halsaa@upi</div>
+      </div>
+      <div class="form-group"><label class="form-label">Or enter your UPI ID</label><input class="form-input" placeholder="yourname@upi" id="upiInput"/></div>
+    </div>
+    <!-- Net Banking section -->
+    <div id="nbSection" style="display:none;">
+      <div style="background:var(--teal-light);border-radius:12px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:.65rem;font-weight:700;color:var(--muted);margin-bottom:8px;">HALSAA BANK DETAILS</div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:.78rem;border-bottom:1px solid rgba(0,201,167,.15);">
+          <span style="color:var(--muted);">Account Name</span><span style="font-weight:700;">HALSAA Technologies</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:.78rem;border-bottom:1px solid rgba(0,201,167,.15);">
+          <span style="color:var(--muted);">Account No.</span><span style="font-weight:700;">1234567890123</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:.78rem;border-bottom:1px solid rgba(0,201,167,.15);">
+          <span style="color:var(--muted);">IFSC</span><span style="font-weight:700;">HDFC0001234</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:.78rem;">
+          <span style="color:var(--muted);">Bank</span><span style="font-weight:700;">HDFC Bank</span>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Transaction / UTR Number *</label><input class="form-input" placeholder="After transfer, enter UTR number" id="utrInput"/></div>
+    </div>
+    <button class="save-btn" onclick="confirmPayment()">✅ Confirm Payment</button>
+  </div>
+</div>
+
+
+<div class="overlay" id="pwdOv" onclick="if(event.target===this)closeSheet('pwdOv','pwdSh')">
+  <div class="sheet" id="pwdSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('pwdOv','pwdSh')">✕</button>
+    <div class="sh-title">🔑 Change Password</div>
+    <div class="form-group"><label class="form-label">Current Password *</label><input class="form-input" id="pwdCurrent" type="password" placeholder="Enter current password"/></div>
+    <div class="form-group"><label class="form-label">New Password *</label><input class="form-input" id="pwdNew" type="password" placeholder="Min. 8 characters"/></div>
+    <div class="form-group"><label class="form-label">Confirm New Password *</label><input class="form-input" id="pwdConfirm" type="password" placeholder="Re-enter new password"/></div>
+    <button class="save-btn" onclick="changePassword()">🔑 Update Password</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+document.getElementById('tbDate').textContent =
+  new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+var staffDB = [
+  {id:'S001',name:'Dr. Ramesh Kumar', mobile:'9876543210',role:'doctor',      qual:'MBBS, MD',    spec:'General Medicine', onDuty:true,  seen:11,waiting:6,username:'ramesh',password:'doc123'},
+  {id:'S002',name:'Dr. Priya Sharma', mobile:'9876543211',role:'doctor',      qual:'MBBS, MS',    spec:'Gynaecology',      onDuty:true,  seen:6, waiting:4,username:'priya', password:'doc456'},
+  {id:'S003',name:'Lakshmi Reddy',    mobile:'9876543212',role:'receptionist',qual:'B.Sc Nursing',spec:'—',               onDuty:true,  seen:0, waiting:0,username:'lakshmi',password:'rec123'},
+  {id:'S004',name:'Ravi Teja',        mobile:'9876543213',role:'receptionist',qual:'Diploma',     spec:'—',               onDuty:false, seen:0, waiting:0,username:'ravi',   password:'rec456'},
+];
+
+var patientsDB = [
+  {token:'T-001',name:'Suresh Yadav',   doctor:'Dr. Ramesh',time:'9:10 AM', status:'seen',   fee:200,mode:'Cash'},
+  {token:'T-002',name:'Lakshmi Devi',   doctor:'Dr. Ramesh',time:'9:25 AM', status:'seen',   fee:200,mode:'UPI'},
+  {token:'T-003',name:'Arjun Kumar',    doctor:'Dr. Ramesh',time:'9:40 AM', status:'seen',   fee:200,mode:'Cash'},
+  {token:'T-004',name:'Priya Reddy',    doctor:'Dr. Ramesh',time:'10:00 AM',status:'seen',   fee:200,mode:'UPI'},
+  {token:'T-005',name:'Venkat Rao',     doctor:'Dr. Ramesh',time:'10:15 AM',status:'seen',   fee:200,mode:'Cash'},
+  {token:'T-006',name:'Meena Devi',     doctor:'Dr. Ramesh',time:'10:30 AM',status:'seen',   fee:200,mode:'UPI'},
+  {token:'T-007',name:'Raju Yadav',     doctor:'Dr. Ramesh',time:'10:45 AM',status:'seen',   fee:200,mode:'Cash'},
+  {token:'T-008',name:'Sita Devi',      doctor:'Dr. Ramesh',time:'11:00 AM',status:'seen',   fee:200,mode:'UPI'},
+  {token:'T-009',name:'Krishna Rao',    doctor:'Dr. Ramesh',time:'11:15 AM',status:'seen',   fee:200,mode:'Cash'},
+  {token:'T-010',name:'Padma Reddy',    doctor:'Dr. Ramesh',time:'11:30 AM',status:'seen',   fee:200,mode:'Cash'},
+  {token:'T-011',name:'Gopal Krishna',  doctor:'Dr. Ramesh',time:'11:45 AM',status:'seen',   fee:200,mode:'UPI'},
+  {token:'T-012',name:'Durga Devi',     doctor:'Dr. Priya', time:'9:15 AM', status:'seen',   fee:200,mode:'UPI'},
+  {token:'T-013',name:'Arun Prasad',    doctor:'Dr. Priya', time:'9:45 AM', status:'seen',   fee:200,mode:'Cash'},
+  {token:'T-014',name:'Rekha Devi',     doctor:'Dr. Priya', time:'10:00 AM',status:'seen',   fee:200,mode:'UPI'},
+  {token:'T-015',name:'Naveen Kumar',   doctor:'Dr. Priya', time:'10:30 AM',status:'seen',   fee:200,mode:'Cash'},
+  {token:'T-016',name:'Bhavani Devi',   doctor:'Dr. Priya', time:'11:00 AM',status:'seen',   fee:200,mode:'UPI'},
+  {token:'T-017',name:'Srikanth Reddy', doctor:'Dr. Priya', time:'11:30 AM',status:'seen',   fee:200,mode:'Cash'},
+  {token:'T-018',name:'Anita Sharma',   doctor:'Dr. Ramesh',time:'—',       status:'waiting',fee:0,  mode:'—'},
+  {token:'T-019',name:'Ravi Kumar',     doctor:'Dr. Ramesh',time:'—',       status:'waiting',fee:0,  mode:'—'},
+  {token:'T-020',name:'Kavitha Devi',   doctor:'Dr. Priya', time:'—',       status:'waiting',fee:0,  mode:'—'},
+  {token:'T-021',name:'Mohan Rao',      doctor:'Dr. Priya', time:'—',       status:'waiting',fee:0,  mode:'—'},
+  {token:'T-022',name:'Sunita Reddy',   doctor:'Dr. Ramesh',time:'—',       status:'waiting',fee:0,  mode:'—'},
+  {token:'T-023',name:'Harish Kumar',   doctor:'Dr. Ramesh',time:'—',       status:'waiting',fee:0,  mode:'—'},
+  {token:'T-024',name:'Fatima Begum',   doctor:'Dr. Priya', time:'12 PM',   status:'noshow', fee:0,  mode:'—'},
+];
+
+var currentRevPeriod = 'today';
+var revData = {
+  today:{total:'₹4,850',platform:'₹240',cons:'₹4,610',patients:'24',cash:'₹3,200',upi:'₹1,650',due:'₹240',pts:'24'},
+  week: {total:'₹28,400',platform:'₹1,400',cons:'₹27,000',patients:'140',cash:'₹18,000',upi:'₹10,400',due:'₹1,400',pts:'140'},
+  month:{total:'₹1,14,000',platform:'₹5,600',cons:'₹1,08,400',patients:'560',cash:'₹72,000',upi:'₹42,000',due:'₹5,600',pts:'560'},
+};
+var weekData = [18,22,19,24,21,17,0];
+var weekDays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+var announcements = {
+  en:"Today's clinic will close at 7 PM. Thank you for visiting Sri Sai Hospital.",
+  te:"ఈరోజు క్లినిక్ సాయంత్రం 7 గంటలకు మూసివేయబడుతుంది. శ్రీ సాయి హాస్పిటల్‌కి వచ్చినందుకు ధన్యవాదాలు.",
+  hi:"आज का क्लीनिक शाम 7 बजे बंद होगा। श्री साई हॉस्पिटल आने के लिए धन्यवाद।"
+};
+var currentLang = 'en';
+
+var doctorStats = {
+  S001:{
+    today: {seen:11,pending:6,noshow:0,leaves:0,rev:'₹2,200',platform:'₹110',avgRev:'₹200',avgWait:'8 min'},
+    week:  {seen:58,pending:0,noshow:4,leaves:1,rev:'₹11,600',platform:'₹580',avgRev:'₹200',avgWait:'9 min'},
+    month: {seen:220,pending:0,noshow:18,leaves:3,rev:'₹44,000',platform:'₹2,200',avgRev:'₹200',avgWait:'8 min'},
+    patients:{
+      today:[
+        {token:'T-001',name:'Suresh Yadav', status:'seen',   time:'9:10 AM', fee:200,mode:'Cash'},
+        {token:'T-002',name:'Lakshmi Devi', status:'seen',   time:'9:25 AM', fee:200,mode:'UPI'},
+        {token:'T-018',name:'Anita Sharma', status:'waiting',time:'—',       fee:0,  mode:'—'},
+        {token:'T-019',name:'Ravi Kumar',   status:'waiting',time:'—',       fee:0,  mode:'—'},
+      ],
+      week:[{token:'M-001',name:'Ravi Kumar',status:'seen',time:'Mon 9AM',fee:200,mode:'Cash'}],
+      month:[{token:'Mar-001',name:'Suresh Yadav',status:'seen',time:'1 Mar',fee:200,mode:'Cash'}]
+    }
+  },
+  S002:{
+    today: {seen:6,pending:4,noshow:1,leaves:0,rev:'₹1,200',platform:'₹60',avgRev:'₹200',avgWait:'10 min'},
+    week:  {seen:32,pending:0,noshow:2,leaves:2,rev:'₹6,400',platform:'₹320',avgRev:'₹200',avgWait:'11 min'},
+    month: {seen:118,pending:0,noshow:8,leaves:6,rev:'₹23,600',platform:'₹1,180',avgRev:'₹200',avgWait:'10 min'},
+    patients:{
+      today:[
+        {token:'T-012',name:'Durga Devi',  status:'seen',   time:'9:15 AM', fee:200,mode:'UPI'},
+        {token:'T-020',name:'Kavitha Devi',status:'waiting',time:'—',       fee:0,  mode:'—'},
+      ],
+      week:[{token:'M-P01',name:'Sita Devi',status:'seen',time:'Mon 9AM',fee:200,mode:'UPI'}],
+      month:[{token:'Mar-P01',name:'Kavitha Devi',status:'seen',time:'2 Mar',fee:200,mode:'UPI'}]
+    }
+  }
+};
+var currentDocId=null, currentDDPeriod='today';
+
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+var clinicOpen=true;
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  var titles={home:'Dashboard',analytics:'Analytics & Revenue',staff:'Staff Management',settings:'Clinic Settings',queue:'Queue Monitor',broadcast:'Broadcast'};
+  document.getElementById('tbTitle').textContent=titles[id]||id;
+  if(id==='home')      { renderDocCards(); renderTodayChart(); renderHourlyTimeline(); }
+  if(id==='analytics') { renderBarChart(); renderDoctorRevList(); }
+  if(id==='staff')     { renderStaffList(); }
+  if(id==='queue')     { renderQueueMonitor('all'); }
+  if(id==='broadcast') { renderBroadcastHistory(); }
+}
+function setSb(el) {
+  document.querySelectorAll('.sb-item').forEach(function(s){s.classList.remove('active');});
+  if(el) el.classList.add('active');
+}
+function setMN(id) {
+  document.querySelectorAll('.mn-item').forEach(function(m){m.classList.remove('active');});
+  var el=document.getElementById('mn-'+id); if(el) el.classList.add('active');
+}
+
+// ══════════════════════════════════════════
+//  CLINIC OPEN / CLOSE TOGGLE
+// ══════════════════════════════════════════
+function toggleClinicStatus() {
+  clinicOpen=!clinicOpen;
+  var badge=document.getElementById('clinicStatusBadge');
+  var dot=document.getElementById('clinicDot');
+  var txt=document.getElementById('clinicStatusTxt');
+  var sbOpen=document.querySelector('.sb-open');
+  var sbTxt=document.querySelector('.sb-open-text');
+  if(clinicOpen){
+    badge.style.background='rgba(0,200,83,.1)';badge.style.borderColor='rgba(0,200,83,.2)';
+    dot.style.background='var(--green)';dot.style.animation='pulse 1.5s infinite';
+    txt.textContent='CLINIC OPEN';txt.style.color='var(--green)';
+    if(sbOpen){sbOpen.style.background='rgba(0,200,83,.2)';sbTxt.textContent='CLINIC OPEN';sbTxt.style.color='#00F065';}
+    showToast('🟢 Clinic is now OPEN');
+  } else {
+    badge.style.background='rgba(255,107,107,.1)';badge.style.borderColor='rgba(255,107,107,.2)';
+    dot.style.background='var(--red)';dot.style.animation='none';
+    txt.textContent='CLINIC CLOSED';txt.style.color='var(--red)';
+    if(sbOpen){sbOpen.style.background='rgba(255,107,107,.15)';sbTxt.textContent='CLINIC CLOSED';sbTxt.style.color='var(--red)';}
+    showToast('🔴 Clinic is now CLOSED');
+  }
+}
+
+// ══════════════════════════════════════════
+//  HOURLY TIMELINE
+// ══════════════════════════════════════════
+var hourlyData=[
+  {h:'9 AM',patients:5},{h:'10 AM',patients:8,peak:true},{h:'11 AM',patients:6},
+  {h:'12 PM',patients:2},{h:'1 PM',patients:0},{h:'2 PM',patients:1},
+  {h:'3 PM',patients:1},{h:'4 PM',patients:1}
+];
+function renderHourlyTimeline() {
+  var el=document.getElementById('hourlyTimeline'); if(!el) return;
+  var max=Math.max.apply(null,hourlyData.map(function(d){return d.patients;}));
+  var nowH=new Date().getHours();
+  el.innerHTML='<div style="display:flex;align-items:flex-end;gap:8px;height:80px;margin-bottom:10px;">'+
+    hourlyData.map(function(d){
+      var pct=max>0?Math.round((d.patients/max)*100):0;
+      var isCurrent=d.h===nowH+' AM'||d.h===nowH+' PM'||(d.h==='12 PM'&&nowH===12);
+      var bg=d.peak?'var(--gold)':isCurrent?'var(--teal)':'var(--teal-mid)';
+      return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">'+
+        '<div style="font-size:.55rem;font-weight:800;color:'+(d.peak?'var(--gold)':'var(--muted)')+';">'+(d.patients||'')+'</div>'+
+        '<div style="width:100%;background:'+bg+';border-radius:4px 4px 0 0;height:'+Math.max(pct,4)+'%;transition:height .4s;"></div>'+
+        '<div style="font-size:.52rem;color:var(--muted);font-weight:600;">'+d.h+'</div>'+
+      '</div>';
+    }).join('')+
+  '</div><div style="display:flex;gap:12px;">'+
+    '<div style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--muted);"><div style="width:8px;height:8px;background:var(--gold);border-radius:2px;"></div>Peak Hour</div>'+
+    '<div style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--muted);"><div style="width:8px;height:8px;background:var(--teal);border-radius:2px;"></div>Current</div>'+
+  '</div>';
+}
+
+// ══════════════════════════════════════════
+//  QUEUE MONITOR
+// ══════════════════════════════════════════
+var qmFilter='all';
+function renderQueueMonitor(filter) {
+  if(filter) qmFilter=filter;
+  var search=(document.getElementById('queueSearch')||{}).value||'';
+  var list=patientsDB.filter(function(p){
+    var mf=qmFilter==='all'||p.status===qmFilter;
+    var ms=!search||p.name.toLowerCase().includes(search.toLowerCase())||p.token.toLowerCase().includes(search.toLowerCase())||p.doctor.toLowerCase().includes(search.toLowerCase());
+    return mf&&ms;
+  });
+  var el=document.getElementById('queueMonitorList'); if(!el) return;
+  var sCol={seen:'var(--green)',waiting:'var(--gold)',noshow:'var(--red)'};
+  var sLbl={seen:'✅ Seen',waiting:'⏳ Waiting',noshow:'❌ No Show'};
+  el.innerHTML=list.length===0
+    ?'<div style="text-align:center;padding:30px;color:var(--muted);font-size:.82rem;">No patients found</div>'
+    :list.map(function(p,i){
+      return '<div style="background:#fff;border-radius:14px;padding:13px 16px;border:1px solid var(--border);margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow2);animation:fadeUp .3s ease both;animation-delay:'+(i*.03)+'s;">'+
+        '<div style="width:36px;height:36px;background:var(--teal-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:900;color:var(--teal);flex-shrink:0;">'+p.token.replace('T-','')+'</div>'+
+        '<div style="flex:1;"><div style="font-size:.85rem;font-weight:800;">'+p.name+'</div><div style="font-size:.62rem;color:var(--muted);margin-top:2px;">'+p.doctor+' · '+p.time+'</div></div>'+
+        '<div style="text-align:right;"><div style="font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:100px;background:'+(p.status==='seen'?'#E8FFE8':p.status==='waiting'?'var(--gold-light)':'#FFEDED')+';color:'+sCol[p.status]+';">'+sLbl[p.status]+'</div>'+(p.status==='seen'?'<div style="font-size:.6rem;color:var(--teal);margin-top:3px;">₹'+p.fee+' · '+p.mode+'</div>':'')+
+        '</div></div>';
+    }).join('');
+  var t=patientsDB.length,s=patientsDB.filter(function(p){return p.status==='seen';}).length;
+  var w=patientsDB.filter(function(p){return p.status==='waiting';}).length;
+  var n=patientsDB.filter(function(p){return p.status==='noshow';}).length;
+  ['qm-total','qm-seen','qm-waiting','qm-noshow'].forEach(function(id,j){
+    var e=document.getElementById(id);if(e)e.textContent=[t,s,w,n][j];
+  });
+  var badge=document.getElementById('sbQueueBadge');if(badge)badge.textContent=w;
+}
+function filterQueueMonitor(filter,btn) {
+  if(filter){qmFilter=filter;}
+  if(btn){document.querySelectorAll('#queue .period-tab').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');}
+  renderQueueMonitor();
+}
+
+// ══════════════════════════════════════════
+//  BROADCAST
+// ══════════════════════════════════════════
+var bcLang='en';
+var bcTemplates={
+  en:{'Clinic closed today':'Dear patient, our clinic is closed today. Sorry for the inconvenience. Please visit tomorrow.',
+      'Doctor on leave today':'Dear patient, the doctor is on leave today. Kindly reschedule your appointment.',
+      'Extended hours till 9 PM':'Good news! Today our clinic is open till 9 PM. Walk-ins welcome.',
+      'Holiday — closed tomorrow':'Our clinic will be closed tomorrow for a holiday. Please plan accordingly.',
+      'Your appointment is confirmed ✅':'Your appointment at Sri Sai Hospital is confirmed. Please arrive 10 minutes early.',
+      'Please arrive 10 min early':'Reminder: Please arrive 10 minutes before your scheduled appointment time.'},
+  te:{'Clinic closed today':'ప్రియమైన పేషెంట్, ఈరోజు మా క్లినిక్ మూసివేయబడింది. రేపు దయచేసి వెళ్ళండి.',
+      'Doctor on leave today':'ప్రియమైన పేషెంట్, డాక్టర్ ఈరోజు సెలవులో ఉన్నారు. అపాయింట్‌మెంట్ రీషెడ్యూల్ చేయండి.',
+      'Extended hours till 9 PM':'శుభవార్త! ఈరోజు మా క్లినిక్ రాత్రి 9 గంటల వరకు తెరిచి ఉంటుంది.',
+      'Holiday — closed tomorrow':'రేపు సెలవు కారణంగా మా క్లినిక్ మూసివేయబడుతుంది.',
+      'Your appointment is confirmed ✅':'మీ అపాయింట్‌మెంట్ కన్ఫర్మ్ అయింది. 10 నిమిషాలు ముందే రండి.',
+      'Please arrive 10 min early':'రిమైండర్: మీ అపాయింట్‌మెంట్ సమయానికి 10 నిమిషాలు ముందు రండి.'},
+  hi:{'Clinic closed today':'प्रिय मरीज, आज हमारा क्लीनिक बंद है। कल आने का कष्ट करें।',
+      'Doctor on leave today':'प्रिय मरीज, डॉक्टर आज छुट्टी पर हैं। कृपया अपॉइंटमेंट रीशेड्यूल करें।',
+      'Extended hours till 9 PM':'खुशखबरी! आज हमारा क्लीनिक रात 9 बजे तक खुला है।',
+      'Holiday — closed tomorrow':'कल अवकाश के कारण क्लीनिक बंद रहेगा।',
+      'Your appointment is confirmed ✅':'आपकी अपॉइंटमेंट कन्फर्म हो गई है। 10 मिनट पहले आएं।',
+      'Please arrive 10 min early':'याद दिलाएं: कृपया अपने समय से 10 मिनट पहले पहुंचें।'}
+};
+var bcTarget='all';
+var broadcastLog=[];
+function setBCLang(lang,btn) {
+  bcLang=lang;
+  document.querySelectorAll('#bc-lang-en,#bc-lang-te,#bc-lang-hi').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+}
+function useBCTemplate(el) {
+  var key=el.textContent;
+  var msg=(bcTemplates[bcLang]&&bcTemplates[bcLang][key])||key;
+  document.getElementById('bcMessage').value=msg;
+}
+function selectBCTarget(btn,target) {
+  bcTarget=target;
+  document.querySelectorAll('#bc-all,#bc-waiting,#bc-seen').forEach(function(c){c.classList.remove('sel');});
+  btn.classList.add('sel');
+}
+function sendBroadcast() {
+  var msg=(document.getElementById('bcMessage')||{}).value||'';
+  if(!msg.trim()){showToast('⚠️ Type a message first');return;}
+  var counts={all:patientsDB.length,waiting:patientsDB.filter(function(p){return p.status==='waiting';}).length,seen:patientsDB.filter(function(p){return p.status==='seen';}).length};
+  var cnt=counts[bcTarget];
+  broadcastLog.unshift({msg:msg,target:bcTarget,count:cnt,time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})});
+  showToast('📣 Broadcast sent to '+cnt+' patients!');
+  document.getElementById('bcMessage').value='';
+  renderBroadcastHistory();
+}
+function renderBroadcastHistory() {
+  var el=document.getElementById('broadcastHistory'); if(!el) return;
+  var tLbl={all:'All Today',waiting:'Waiting',seen:'Seen Today'};
+  el.innerHTML=broadcastLog.length===0
+    ?'<div style="text-align:center;padding:20px;color:var(--muted);font-size:.75rem;">No broadcasts yet today</div>'
+    :broadcastLog.map(function(b){
+      return '<div style="padding:10px 0;border-bottom:1px solid #f5f5f5;">'+
+        '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'+
+          '<span style="font-size:.62rem;font-weight:800;background:var(--teal-light);color:var(--teal);padding:2px 8px;border-radius:100px;">'+tLbl[b.target]+' · '+b.count+' patients</span>'+
+          '<span style="font-size:.6rem;color:var(--muted);">'+b.time+'</span>'+
+        '</div>'+
+        '<div style="font-size:.75rem;color:var(--text);line-height:1.5;">'+b.msg+'</div>'+
+      '</div>';
+    }).join('');
+}
+
+// ══════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════
+function exportReport(type) {
+  showToast(type==='pdf'?'📄 PDF report generating...':'📊 Excel report downloading...');
+}
+
+
+// ══════════════════════════════════════════
+//  HOME — Doctor Cards + Today Chart
+// ══════════════════════════════════════════
+function renderDocCards() {
+  var el=document.getElementById('docCardsList'); if(!el) return;
+  var docs=staffDB.filter(function(s){return s.role==='doctor';});
+  var active=docs.filter(function(d){return d.onDuty;}).length;
+  var badge=document.getElementById('docCountBadge');
+  if(badge) badge.textContent=active+' active';
+  el.innerHTML=docs.map(function(d){
+    var cls=d.onDuty?'available':'off';
+    var avCls=d.onDuty?'av-teal':'av-gray';
+    var stCls=d.onDuty?'st-available':'st-off';
+    var stTxt=d.onDuty?'Available':'Day Off';
+    return '<div class="doc-card '+cls+'" data-docid="'+d.id+'" onclick="openDoctorDetail(\''+d.id+'\')">'+
+      '<div class="doc-av '+avCls+'">👨‍⚕️</div>'+
+      '<div style="flex:1;">'+
+        '<div class="doc-name">↗ '+d.name+'</div>'+
+        '<div class="doc-spec">'+d.qual+' · '+d.spec+'</div>'+
+        (d.onDuty?'<div class="doc-patients">'+d.seen+' done · '+d.waiting+' waiting</div>':'<div class="doc-patients">Back tomorrow</div>')+
+      '</div>'+
+      '<span class="doc-status '+stCls+'">'+stTxt+'</span>'+
+    '</div>';
+  }).join('');
+}
+
+function renderTodayChart() {
+  var el=document.getElementById('todayPatientsChart'); if(!el) return;
+  var total=patientsDB.length;
+  var seen=patientsDB.filter(function(p){return p.status==='seen';}).length;
+  var waiting=patientsDB.filter(function(p){return p.status==='waiting';}).length;
+  var noshow=patientsDB.filter(function(p){return p.status==='noshow';}).length;
+  el.innerHTML=
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px;">'+
+      '<div style="text-align:center;background:var(--teal-light);border-radius:12px;padding:12px 6px;">'+
+        '<div style="font-size:1.5rem;font-weight:900;color:var(--teal);">'+total+'</div>'+
+        '<div style="font-size:.55rem;font-weight:700;color:var(--muted);">TOTAL</div>'+
+      '</div>'+
+      '<div style="text-align:center;background:#E8FFE8;border-radius:12px;padding:12px 6px;">'+
+        '<div style="font-size:1.5rem;font-weight:900;color:var(--green);">'+seen+'</div>'+
+        '<div style="font-size:.55rem;font-weight:700;color:var(--muted);">SEEN</div>'+
+      '</div>'+
+      '<div style="text-align:center;background:var(--gold-light);border-radius:12px;padding:12px 6px;">'+
+        '<div style="font-size:1.5rem;font-weight:900;color:var(--gold);">'+waiting+'</div>'+
+        '<div style="font-size:.55rem;font-weight:700;color:var(--muted);">WAITING</div>'+
+      '</div>'+
+      '<div style="text-align:center;background:#FFEDED;border-radius:12px;padding:12px 6px;">'+
+        '<div style="font-size:1.5rem;font-weight:900;color:var(--red);">'+noshow+'</div>'+
+        '<div style="font-size:.55rem;font-weight:700;color:var(--muted);">NO SHOW</div>'+
+      '</div>'+
+    '</div>';
+}
+
+// ══════════════════════════════════════════
+//  ANALYTICS
+// ══════════════════════════════════════════
+var revByPeriod={
+  today:{total:'₹4,850',platform:'₹240',cons:'₹4,610',patients:'24',cash:'₹3,200',upi:'₹1,650',due:'₹240',pts:'24',growth:'+12%',growthLbl:'vs Yesterday'},
+  week: {total:'₹28,400',platform:'₹1,400',cons:'₹27,000',patients:'140',cash:'₹18,000',upi:'₹10,400',due:'₹1,400',pts:'140',growth:'+8%',growthLbl:'vs Last Week'},
+  month:{total:'₹1,14,000',platform:'₹5,600',cons:'₹1,08,400',patients:'560',cash:'₹72,000',upi:'₹42,000',due:'₹5,600',pts:'560',growth:'+15%',growthLbl:'vs Last Month'},
+};
+function switchPeriod(period,btn) {
+  currentRevPeriod=period;
+  document.querySelectorAll('.period-tab').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  var d=revByPeriod[period];
+  document.getElementById('rc-total').textContent=d.total;
+  document.getElementById('rc-patients').textContent=d.patients;
+  document.getElementById('rc-platform').textContent=d.platform;
+  document.getElementById('rc-growth').textContent=d.growth;
+  document.getElementById('rc-growth-lbl').textContent=d.growthLbl;
+  document.getElementById('platformFeeHero').textContent=d.platform;
+  document.getElementById('platformPtsHero').textContent=d.pts;
+  document.getElementById('platformDueHero').textContent=d.due;
+  document.getElementById('revBreak-cons').textContent=d.cons;
+  document.getElementById('revBreak-cash').textContent=d.cash;
+  document.getElementById('revBreak-upi').textContent=d.upi;
+  document.getElementById('revBreak-platform').textContent=d.platform;
+  renderDoctorRevList();
+}
+
+function renderBarChart() {
+  var el=document.getElementById('barChart'); if(!el) return;
+  var max=Math.max.apply(null,weekData);
+  var tod=(new Date().getDay()+6)%7;
+  el.innerHTML=weekData.map(function(v,i){
+    var h=max>0?Math.round((v/max)*100):0;
+    var isTod=i===tod;
+    return '<div class="bar-wrap">'+
+      '<div class="bar'+(isTod?' hl':'')+'" style="height:'+h+'%;"><span class="bar-v">'+(v||'—')+'</span></div>'+
+      '<div class="bar-lbl" style="font-weight:'+(isTod?800:600)+';color:'+(isTod?'var(--teal)':'var(--muted)')+';">'+weekDays[i]+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+var docRevByPeriod = {
+  today:[
+    {id:'S001',name:'Dr. Ramesh Kumar',patients:11,rev:'₹2,200',platform:'₹110',avgTime:'8 min'},
+    {id:'S002',name:'Dr. Priya Sharma', patients:6, rev:'₹1,200',platform:'₹60', avgTime:'10 min'},
+  ],
+  week:[
+    {id:'S001',name:'Dr. Ramesh Kumar',patients:58,rev:'₹11,600',platform:'₹580',avgTime:'9 min'},
+    {id:'S002',name:'Dr. Priya Sharma', patients:32,rev:'₹6,400', platform:'₹320',avgTime:'11 min'},
+  ],
+  month:[
+    {id:'S001',name:'Dr. Ramesh Kumar',patients:220,rev:'₹44,000',platform:'₹2,200',avgTime:'8 min'},
+    {id:'S002',name:'Dr. Priya Sharma', patients:118,rev:'₹23,600',platform:'₹1,180',avgTime:'10 min'},
+  ]
+};
+function renderDoctorRevList() {
+  var el=document.getElementById('doctorRevList'); if(!el) return;
+  var docs=docRevByPeriod[currentRevPeriod]||docRevByPeriod.today;
+  el.innerHTML=docs.map(function(d){
+    return '<div class="bk-row" style="cursor:pointer;" onclick="openDoctorDetail(\''+d.id+'\')">'+
+      '<div class="bk-left" style="flex:1;flex-direction:column;align-items:flex-start;gap:2px;">'+
+        '<span style="font-size:.8rem;font-weight:800;color:var(--teal);">↗ '+d.name+'</span>'+
+        '<span style="font-size:.6rem;color:var(--muted);">'+d.patients+' patients · avg '+d.avgTime+'</span>'+
+      '</div>'+
+      '<div style="text-align:right;">'+
+        '<div style="font-size:.88rem;font-weight:900;color:var(--teal);">'+d.rev+'</div>'+
+        '<div style="font-size:.6rem;color:var(--purple);">Platform: '+d.platform+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  STAFF
+// ══════════════════════════════════════════
+function renderStaffList() {
+  var el=document.getElementById('staffList'); if(!el) return;
+  var sub=document.getElementById('staffSubHeader');
+  if(sub){
+    var docs=staffDB.filter(function(s){return s.role==='doctor';}).length;
+    var recs=staffDB.filter(function(s){return s.role==='receptionist';}).length;
+    var adms=staffDB.filter(function(s){return s.role==='admin';}).length;
+    sub.textContent=staffDB.length+' members · '+docs+' Doctors · '+recs+' Receptionists'+(adms?' · '+adms+' Admin':'');
+  }
+  var roleIco={doctor:'👨‍⚕️',receptionist:'🧑‍💼',admin:'🛡️',lab:'🧪'};
+  var roleLbl={doctor:'Doctor',receptionist:'Receptionist',admin:'Admin',lab:'Lab Tech'};
+  var roleBg={doctor:'var(--teal-light)',receptionist:'var(--gold-light)',admin:'rgba(139,92,246,.12)',lab:'rgba(59,130,246,.1)'};
+  el.innerHTML=staffDB.map(function(s,i){
+    var isDoc=s.role==='doctor';
+    var isAdmin=s.role==='admin';
+    var statusBg=s.onDuty?'rgba(0,200,83,.1)':'#F0F0F0';
+    var statusCol=s.onDuty?'var(--green)':'var(--muted)';
+    var statusTxt=s.onDuty?'Active':'Inactive';
+    return '<div class="staff-card" style="animation-delay:'+(i*.05)+'s">'+
+      '<div class="staff-av" style="background:'+(roleBg[s.role]||'var(--teal-light)')+';">'+(roleIco[s.role]||'🧑‍💼')+'</div>'+
+      '<div style="flex:1;">'+
+        '<div class="staff-name">'+s.name+'</div>'+
+        '<div class="staff-role">'+(roleLbl[s.role]||s.role)+' · '+(s.spec&&s.spec!=='—'?s.spec:s.qual)+'</div>'+
+        '<div style="font-size:.6rem;color:var(--muted);margin-top:2px;">📱 '+s.mobile+'</div>'+
+      '</div>'+
+      '<div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">'+
+        '<span class="staff-status" style="background:'+statusBg+';color:'+statusCol+';">'+statusTxt+'</span>'+
+        '<div class="staff-actions">'+
+          (isDoc?'<button class="sab sab-stats" onclick="openDoctorDetail(\''+s.id+'\')">📊 Stats</button>':'')+
+          '<button class="sab sab-edit" onclick="openEditStaff(\''+s.id+'\')">✏️ Edit</button>'+
+          (isAdmin?'<button class="sab" style="background:rgba(255,107,107,.1);color:var(--red);" onclick="removeAdmin(\''+s.id+'\')">🗑️</button>':'')+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function selectRole(btn) {
+  btn.closest('.role-grid').querySelectorAll('.role-chip').forEach(function(c){c.classList.remove('sel');});
+  btn.classList.add('sel');
+}
+function selectRoleM(btn) {
+  btn.closest('.role-grid').querySelectorAll('.role-chip').forEach(function(c){c.classList.remove('sel');});
+  btn.classList.add('sel');
+}
+function addStaff() {
+  var name=(document.getElementById('newName')||{}).value||'';
+  if(!name.trim()){showToast('⚠️ Enter staff name'); return;}
+  showToast('✅ Staff added — '+name.trim());
+  if(document.getElementById('newName')) document.getElementById('newName').value='';
+}
+function addStaffMobile() {
+  var name=(document.getElementById('newNameM')||{}).value.trim()||'';
+  var mobile=(document.getElementById('newMobileM')||{}).value.trim()||'';
+  var username=(document.getElementById('newUserM')||{}).value.trim()||'';
+  var password=(document.getElementById('newPassM')||{}).value.trim()||'';
+  var roleChip=document.querySelector('.role-grid .role-chip.sel');
+  var role=roleChip?roleChip.getAttribute('data-role'):'doctor';
+  if(!name){showToast('⚠️ Enter staff name'); return;}
+  if(!mobile||mobile.length!==10){showToast('⚠️ Enter valid 10-digit mobile'); return;}
+  if(!username){showToast('⚠️ Enter username'); return;}
+  if(!password){showToast('⚠️ Enter password'); return;}
+  // Check if mobile already registered
+  var existing=localStorage.getItem('halsaa_user_'+mobile);
+  if(existing){showToast('⚠️ Mobile already registered'); return;}
+  // Build new staff entry
+  var newId='S'+(Date.now());
+  var staffEntry={id:newId, name:name, mobile:mobile, role:role, qual:'', spec:'—',
+    onDuty:true, seen:0, waiting:0, username:username, password:password};
+  // Save to localStorage (persists forever)
+  var userData={mobile:mobile, name:name, role:role, roles:[role],
+    username:username, password:password, staffId:newId};
+  localStorage.setItem('halsaa_user_'+mobile, JSON.stringify(userData));
+  // Also save full staff profile separately for dashboards to read
+  localStorage.setItem('halsaa_staff_'+mobile, JSON.stringify(staffEntry));
+  // Add to live staffDB
+  staffDB.push(staffEntry);
+  renderStaffList();
+  // Clear form
+  if(document.getElementById('newNameM')) document.getElementById('newNameM').value='';
+  if(document.getElementById('newMobileM')) document.getElementById('newMobileM').value='';
+  if(document.getElementById('newUserM')) document.getElementById('newUserM').value='';
+  if(document.getElementById('newPassM')) document.getElementById('newPassM').value='';
+  showToast('✅ '+name+' added as '+role);
+  closeSheet('addStaffOv','addStaffSh');
+}
+// Load any previously saved staff from localStorage into staffDB on page load
+(function loadSavedStaff(){
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(k && k.startsWith('halsaa_staff_')){
+      try{
+        var s=JSON.parse(localStorage.getItem(k));
+        if(s && s.id && !staffDB.find(function(x){return x.id===s.id;})){
+          staffDB.push(s);
+        }
+      }catch(e){}
+    }
+  }
+})();
+
+// ══════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════
+var toggleState={tv:true,voice:true,wa:true};
+function flipToggle(key) {
+  toggleState[key]=!toggleState[key];
+  var el=document.getElementById('tog-'+key);
+  if(el){ if(toggleState[key]) el.classList.add('on'); else el.classList.remove('on'); }
+}
+function setLang(lang,btn) {
+  currentLang=lang;
+  document.querySelectorAll('#lang-en,#lang-te,#lang-hi').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  document.getElementById('announceText').value=announcements[lang]||'';
+  document.getElementById('announcePreview').textContent=announcements[lang]||'—';
+}
+function saveAnnouncement() {
+  var txt=document.getElementById('announceText').value.trim();
+  if(!txt){showToast('⚠️ Enter announcement text');return;}
+  announcements[currentLang]=txt;
+  document.getElementById('announcePreview').textContent=txt;
+  showToast('📢 Announcement broadcast!');
+}
+function clearAnnouncement() {
+  document.getElementById('announceText').value='';
+  document.getElementById('announcePreview').textContent='—';
+  announcements[currentLang]='';
+}
+function useTemplate(el) {
+  var txt=el.textContent;
+  document.getElementById('announceText').value=txt;
+  document.getElementById('announcePreview').textContent=txt;
+}
+
+// ══════════════════════════════════════════
+//  DOCTOR DETAIL SHEET
+// ══════════════════════════════════════════
+function openDoctorDetail(id) {
+  var s=staffDB.find(function(x){return x.id===id;});
+  if(!s) return;
+  currentDocId=id; currentDDPeriod='today';
+  document.getElementById('dd-name').textContent=s.name;
+  document.getElementById('dd-qual').textContent=s.qual;
+  document.getElementById('dd-spec').textContent='🏥 '+s.spec;
+  var stEl=document.getElementById('dd-status');
+  if(s.onDuty){stEl.textContent='🟢 On Duty';stEl.style.background='#E8FFE8';stEl.style.color='var(--green)';}
+  else{stEl.textContent='⚫ Off Duty';stEl.style.background='#F5F5F5';stEl.style.color='var(--muted)';}
+  document.querySelectorAll('#dd-today,#dd-week,#dd-month').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('dd-today').classList.add('active');
+  renderDDContent();
+  openSheet('docDetailOv','docDetailSh');
+}
+function switchDDPeriod(p,btn) {
+  currentDDPeriod=p;
+  document.querySelectorAll('#dd-today,#dd-week,#dd-month').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  renderDDContent();
+}
+function renderDDContent() {
+  var data=doctorStats[currentDocId]; if(!data) return;
+  var d=data[currentDDPeriod];
+  var pts=data.patients[currentDDPeriod]||[];
+  document.getElementById('dd-stats').innerHTML=
+    '<div style="background:var(--teal-light);border-radius:12px;padding:10px;text-align:center;">'+
+      '<div style="font-size:.55rem;font-weight:700;color:var(--muted);">SEEN</div>'+
+      '<div style="font-size:1.3rem;font-weight:900;color:var(--teal);">'+d.seen+'</div>'+
+    '</div>'+
+    '<div style="background:var(--gold-light);border-radius:12px;padding:10px;text-align:center;">'+
+      '<div style="font-size:.55rem;font-weight:700;color:var(--muted);">PENDING</div>'+
+      '<div style="font-size:1.3rem;font-weight:900;color:var(--gold);">'+d.pending+'</div>'+
+    '</div>'+
+    '<div style="background:#FFEDED;border-radius:12px;padding:10px;text-align:center;">'+
+      '<div style="font-size:.55rem;font-weight:700;color:var(--muted);">NO SHOW</div>'+
+      '<div style="font-size:1.3rem;font-weight:900;color:var(--red);">'+d.noshow+'</div>'+
+    '</div>'+
+    '<div style="background:rgba(139,92,246,.1);border-radius:12px;padding:10px;text-align:center;">'+
+      '<div style="font-size:.55rem;font-weight:700;color:var(--muted);">LEAVES</div>'+
+      '<div style="font-size:1.3rem;font-weight:900;color:var(--purple);">'+d.leaves+'</div>'+
+    '</div>';
+  document.getElementById('dd-rev').textContent=d.rev;
+  document.getElementById('dd-platform').textContent=d.platform;
+  document.getElementById('dd-avg-rev').textContent=d.avgRev;
+  document.getElementById('dd-avg-wait').textContent=d.avgWait;
+  var labels={today:"TODAY'S PATIENTS",week:"THIS WEEK'S PATIENTS",month:"THIS MONTH'S PATIENTS"};
+  document.getElementById('dd-list-label').textContent=labels[currentDDPeriod];
+  var sCol={seen:'var(--green)',waiting:'var(--gold)',noshow:'var(--red)'};
+  var sTxt={seen:'✅ Seen',waiting:'⏳ Waiting',noshow:'❌ No Show'};
+  document.getElementById('dd-patient-list').innerHTML=pts.length===0
+    ?'<div style="text-align:center;padding:20px;color:var(--muted);font-size:.78rem;">No patients recorded</div>'
+    :pts.map(function(p){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f5f5f5;">'+
+        '<div>'+
+          '<span style="font-size:.68rem;font-weight:900;color:var(--teal);">'+p.token+'</span>'+
+          '<span style="font-size:.8rem;font-weight:700;margin-left:9px;">'+p.name+'</span>'+
+          '<div style="font-size:.6rem;color:var(--muted);margin-top:1px;">'+p.time+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;">'+
+          '<div style="font-size:.62rem;font-weight:700;color:'+sCol[p.status]+';">'+sTxt[p.status]+'</div>'+
+          (p.status==='seen'?'<div style="font-size:.6rem;color:var(--teal);">₹'+p.fee+' · '+p.mode+'</div>':'')+
+        '</div>'+
+      '</div>';
+    }).join('');
+}
+
+// ══════════════════════════════════════════
+//  STAT POPUP
+// ══════════════════════════════════════════
+function openStatPopup(type) {
+  var titles={bookings:'All Bookings',seen:'Seen Patients',pending:'In Queue',noshow:'No Show'};
+  var sf={bookings:null,seen:'seen',pending:'waiting',noshow:'noshow'};
+  var list=sf[type]?patientsDB.filter(function(p){return p.status===sf[type];}):patientsDB;
+  document.getElementById('stTitle').textContent=titles[type];
+  var sCol={seen:'var(--green)',waiting:'var(--gold)',noshow:'var(--red)'};
+  var sLbl={seen:'Seen',waiting:'Waiting',noshow:'No Show'};
+  document.getElementById('stList').innerHTML=list.map(function(p){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f5f5f5;">'+
+      '<div>'+
+        '<span style="font-size:.68rem;font-weight:900;color:var(--teal);">'+p.token+'</span>'+
+        '<span style="font-size:.82rem;font-weight:700;margin-left:8px;">'+p.name+'</span>'+
+        '<div style="font-size:.6rem;color:var(--muted);">'+p.doctor+' · '+p.time+'</div>'+
+      '</div>'+
+      '<span style="font-size:.62rem;font-weight:700;color:'+sCol[p.status]+';">'+sLbl[p.status]+'</span>'+
+    '</div>';
+  }).join('');
+  document.getElementById('statPopupOv').style.display='flex';
+}
+function closeStatPopup() { document.getElementById('statPopupOv').style.display='none'; }
+
+// ══════════════════════════════════════════
+//  STAFF — EDIT
+// ══════════════════════════════════════════
+var editingStaffId = null;
+var roleIcoMap={doctor:'👨‍⚕️',receptionist:'🧑‍💼',admin:'🛡️',lab:'🧪'};
+var roleLblMap={doctor:'Doctor',receptionist:'Receptionist',admin:'Admin',lab:'Lab Tech'};
+function openEditStaff(id) {
+  var s=staffDB.find(function(x){return x.id===id;}); if(!s) return;
+  editingStaffId=id;
+  document.getElementById('editStaffIco').textContent=roleIcoMap[s.role]||'🧑‍💼';
+  document.getElementById('editStaffRoleLbl').textContent=roleLblMap[s.role]||s.role;
+  document.getElementById('editStaffId').textContent='ID: '+s.id+' · @'+s.username;
+  document.getElementById('editName').value=s.name;
+  document.getElementById('editMobile').value=s.mobile;
+  document.getElementById('editQual').value=s.qual||'';
+  document.getElementById('editSpec').value=s.spec||'';
+  document.getElementById('editPwdNew').value='';
+  openSheet('editStaffOv','editStaffSh');
+}
+function saveEditStaff() {
+  var s=staffDB.find(function(x){return x.id===editingStaffId;}); if(!s) return;
+  var name=document.getElementById('editName').value.trim();
+  if(!name){showToast('⚠️ Enter staff name');return;}
+  s.name=name;
+  s.mobile=document.getElementById('editMobile').value.trim()||s.mobile;
+  s.qual=document.getElementById('editQual').value.trim()||s.qual;
+  s.spec=document.getElementById('editSpec').value.trim()||s.spec;
+  var newPwd=document.getElementById('editPwdNew').value;
+  if(newPwd){if(newPwd.length<6){showToast('⚠️ Password min 6 characters');return;} s.password=newPwd;}
+  showToast('✅ '+name+' updated!');
+  closeSheet('editStaffOv','editStaffSh');
+  renderStaffList();
+}
+function removeStaff() {
+  var s=staffDB.find(function(x){return x.id===editingStaffId;}); if(!s) return;
+  if(!confirm('Remove '+s.name+' from team?')) return;
+  staffDB=staffDB.filter(function(x){return x.id!==editingStaffId;});
+  showToast('🗑️ '+s.name+' removed');
+  closeSheet('editStaffOv','editStaffSh');
+  renderStaffList();
+}
+function removeAdmin(id) {
+  var s=staffDB.find(function(x){return x.id===id;}); if(!s) return;
+  if(!confirm('Remove Admin '+s.name+'? This cannot be undone.')) return;
+  staffDB=staffDB.filter(function(x){return x.id!==id;});
+  showToast('🗑️ Admin '+s.name+' removed');
+  renderStaffList();
+}
+
+// ══════════════════════════════════════════
+//  ANALYTICS — MONTHLY BILL DETAIL + PAY
+// ══════════════════════════════════════════
+var billData={
+  'Feb 2026':{tokens:520,month:'February 2026'},
+  'Mar 2026':{tokens:24,month:'March 2026'},
+};
+var currentBillMonth='Mar 2026';
+function openBillDetail(monthKey) {
+  currentBillMonth=monthKey;
+  var d=billData[monthKey]||{tokens:0,month:monthKey};
+  var clinicFee=d.tokens*5;
+  var platformFee=d.tokens*10;
+  var total=clinicFee+platformFee;
+  document.getElementById('billDetailTitle').textContent='📊 Bill Details — '+d.month;
+  document.getElementById('billTokens').textContent=d.tokens;
+  document.getElementById('billMonthLbl').textContent=d.month;
+  document.getElementById('inv1Tokens').textContent=d.tokens;
+  document.getElementById('inv1Total').textContent='₹'+clinicFee.toLocaleString('en-IN');
+  document.getElementById('inv2Tokens').textContent=d.tokens;
+  document.getElementById('inv2Total').textContent='₹'+platformFee.toLocaleString('en-IN');
+  document.getElementById('billGrandTotal').textContent='₹'+total.toLocaleString('en-IN');
+  openSheet('billDetailOv','billDetailSh');
+}
+function openPaySheet() {
+  var d=billData[currentBillMonth]||{tokens:0,month:currentBillMonth};
+  var total=(d.tokens*5)+(d.tokens*10);
+  document.getElementById('payMonthLabel').textContent=d.month.toUpperCase()+' · '+d.tokens+' TOKENS';
+  document.getElementById('payTotalAmt').textContent='₹'+total.toLocaleString('en-IN');
+  selectPayOpt('upi');
+  openSheet('payNowOv','payNowSh');
+}
+function selectPayOpt(opt) {
+  var upiEl=document.getElementById('payOptUPI');
+  var nbEl=document.getElementById('payOptNB');
+  var upiSec=document.getElementById('upiSection');
+  var nbSec=document.getElementById('nbSection');
+  if(opt==='upi'){
+    upiEl.style.border='2px solid var(--teal)';upiEl.style.background='var(--teal-light)';
+    nbEl.style.border='2px solid var(--border)';nbEl.style.background='#fff';
+    upiSec.style.display='block';nbSec.style.display='none';
+  } else {
+    nbEl.style.border='2px solid var(--teal)';nbEl.style.background='var(--teal-light)';
+    upiEl.style.border='2px solid var(--border)';upiEl.style.background='#fff';
+    nbSec.style.display='block';upiSec.style.display='none';
+  }
+}
+function confirmPayment() {
+  showToast('✅ Payment submitted! HALSAA will confirm shortly.');
+  closeSheet('payNowOv','payNowSh');
+}
+
+
+function saveClinicInfo() {
+  var name=(document.getElementById('editClinicName')||{}).value||'Sri Sai Hospital';
+  showToast('✅ Clinic info saved — '+name);
+  closeSheet('clinicEditOv','clinicEditSh');
+}
+
+// ══════════════════════════════════════════
+//  SETTINGS — FEE EDIT
+// ══════════════════════════════════════════
+var selectedFeeDocId = null;
+function openSheet(ovId,shId) {
+  var ov=document.getElementById(ovId), sh=document.getElementById(shId);
+  if(!ov||!sh) return;
+  if(ovId==='feeEditOv') renderFeeDocList();
+  ov.style.display='flex';
+  setTimeout(function(){sh.style.transform='translateY(0)';},10);
+}
+function renderFeeDocList() {
+  var el=document.getElementById('feeDocList'); if(!el) return;
+  var docs=staffDB.filter(function(s){return s.role==='doctor';});
+  var feeMap={'S001':200,'S002':300};
+  el.innerHTML=docs.map(function(d){
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1.5px solid var(--border);margin-bottom:10px;cursor:pointer;transition:all .2s;background:#fff;" '+
+      'onmouseover="this.style.borderColor=\'var(--teal)\'" onmouseout="this.style.borderColor=\'var(--border)\'" '+
+      'onclick="showFeeForm(\''+d.id+'\',\''+d.name+'\',\''+d.spec+'\','+(feeMap[d.id]||200)+')">' +
+      '<div style="width:42px;height:42px;border-radius:11px;background:var(--teal-light);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">👨‍⚕️</div>'+
+      '<div style="flex:1;">'+
+        '<div style="font-size:.85rem;font-weight:800;">'+d.name+'</div>'+
+        '<div style="font-size:.62rem;color:var(--muted);">'+d.spec+'</div>'+
+      '</div>'+
+      '<div style="text-align:right;">'+
+        '<div style="font-size:1rem;font-weight:900;color:var(--teal);">₹'+(feeMap[d.id]||200)+'</div>'+
+        '<div style="font-size:.58rem;color:var(--muted);">per visit</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  document.getElementById('feeFormWrap').style.display='none';
+}
+function showFeeForm(id,name,spec,fee) {
+  selectedFeeDocId=id;
+  document.getElementById('feeDocName').textContent=name;
+  document.getElementById('feeDocSpec').textContent=spec;
+  document.getElementById('feeInput').value=fee;
+  document.getElementById('feeDocList').style.display='none';
+  document.getElementById('feeFormWrap').style.display='block';
+}
+function hideFeeForm() {
+  document.getElementById('feeDocList').style.display='block';
+  document.getElementById('feeFormWrap').style.display='none';
+}
+function saveFee() {
+  var fee=document.getElementById('feeInput').value;
+  if(!fee||isNaN(fee)||+fee<0){showToast('⚠️ Enter valid fee amount');return;}
+  var name=document.getElementById('feeDocName').textContent;
+  showToast('✅ Fee updated — '+name+' → ₹'+fee);
+  hideFeeForm();
+  closeSheet('feeEditOv','feeEditSh');
+}
+
+// ══════════════════════════════════════════
+//  SETTINGS — PAYMENT
+// ══════════════════════════════════════════
+function savePayment() {
+  var accNo=(document.getElementById('payAccNo')||{}).value||'';
+  var conf=(document.getElementById('payAccNoConfirm')||{}).value||'';
+  var ifsc=(document.getElementById('payIFSC')||{}).value||'';
+  if(!accNo){showToast('⚠️ Enter account number');return;}
+  if(accNo!==conf){showToast('⚠️ Account numbers do not match');return;}
+  if(!ifsc){showToast('⚠️ Enter IFSC code');return;}
+  showToast('✅ Payment details saved!');
+  closeSheet('paymentOv','paymentSh');
+}
+
+// ══════════════════════════════════════════
+//  SETTINGS — PASSWORD
+// ══════════════════════════════════════════
+function changePassword() {
+  var cur=(document.getElementById('pwdCurrent')||{}).value||'';
+  var nw=(document.getElementById('pwdNew')||{}).value||'';
+  var cf=(document.getElementById('pwdConfirm')||{}).value||'';
+  if(!cur){showToast('⚠️ Enter current password');return;}
+  if(nw.length<8){showToast('⚠️ New password must be 8+ characters');return;}
+  if(nw!==cf){showToast('⚠️ Passwords do not match');return;}
+  showToast('✅ Password updated successfully!');
+  closeSheet('pwdOv','pwdSh');
+}
+
+
+function closeSheet(ovId,shId) {
+  var sh=document.getElementById(shId);
+  if(sh) sh.style.transform='translateY(100%)';
+  setTimeout(function(){ var ov=document.getElementById(ovId); if(ov) ov.style.display='none'; },300);
+}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+function showToast(msg) {
+  var t=document.getElementById('toast'); if(!t) return;
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); },2500);
+}
+
+// ══════════════════════════════════════════
+//  AUTH HELPERS
+// ══════════════════════════════════════════
+function hlLogout(){
+  sessionStorage.removeItem('halsaa_session');
+  window.location.href='index.html';
+}
+// Read logged-in user from session and update topbar name if present
+(function initAdminSession(){
+  try{
+    var s=sessionStorage.getItem('halsaa_session');
+    if(s){
+      var u=JSON.parse(s);
+      var el=document.getElementById('adminNameDisplay');
+      if(el) el.textContent=u.name||'Admin';
+    }
+  }catch(e){}
+})();
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+renderDocCards();
+renderTodayChart();
+</script>
+</body>
+</html>

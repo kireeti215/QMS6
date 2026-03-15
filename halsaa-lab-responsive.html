@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HALSAA — Lab Technician Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --teal:#00C9A7;--teal-light:#E8FAF7;--teal-mid:rgba(0,201,167,.13);
+  --gold:#FFB347;--gold-light:#FFF4E6;
+  --blue:#4A90D9;--blue-light:#EBF4FF;
+  --bg:#F4FDFB;--card:#fff;--text:#0D2B26;--muted:#7A9E98;
+  --border:#E4F5F0;--red:#FF6B6B;--green:#00C853;--orange:#FF9500;
+  --shadow2:0 2px 8px rgba(0,0,0,.06);--sidebar:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;width:var(--sidebar);height:100vh;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;box-shadow:2px 0 12px rgba(0,201,167,.06);}
+.sb-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.sb-logo-text{font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,var(--teal),#00A88D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sb-role{margin:10px 12px 6px;padding:7px 12px;background:var(--blue-light);border-radius:10px;font-size:.63rem;font-weight:800;color:var(--blue);text-align:center;letter-spacing:.08em;}
+.sb-nav{flex:1;padding:8px 12px;display:flex;flex-direction:column;gap:3px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;cursor:pointer;transition:all .2s;font-size:.8rem;font-weight:600;color:var(--muted);}
+.sb-item:hover,.sb-item.active{background:var(--teal-light);color:var(--teal);}
+.sb-icon{font-size:1rem;width:22px;text-align:center;}
+.sb-bottom{padding:14px 12px;border-top:1px solid var(--border);}
+.sb-clinic{background:var(--teal-light);border-radius:11px;padding:10px 12px;}
+
+/* MAIN */
+.main{margin-left:var(--sidebar);min-height:100vh;}
+.topbar{background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.tb-logo-m{display:none;align-items:center;gap:8px;}
+.content{padding:22px 24px 30px;}
+.screen{display:none;}
+.screen.active{display:block;animation:fadeUp .3s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* HERO CARD */
+.hero-card{background:linear-gradient(135deg,#4A90D9 0%,#2C6FBF 55%,#1A4F9E 100%);border-radius:20px;padding:22px;margin-bottom:18px;position:relative;overflow:hidden;}
+.hero-card::before{content:'';position:absolute;top:-25px;right:-25px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.07);}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
+.stat-card{background:var(--card);border-radius:14px;padding:13px 14px;border:1px solid var(--border);box-shadow:var(--shadow2);transition:all .2s;}
+.stat-card.click{cursor:pointer;}
+.stat-card.click:hover{border-color:var(--teal);transform:translateY(-2px);}
+.stat-label{font-size:.57rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:5px;}
+.stat-val{font-size:1.45rem;font-weight:900;color:var(--teal);}
+.stat-val.gold{color:var(--gold);}
+.stat-val.green{color:var(--green);}
+.stat-val.red{color:var(--red);}
+.stat-val.blue{color:var(--blue);}
+.stat-val.orange{color:var(--orange);}
+.stat-sub{font-size:.57rem;color:var(--muted);margin-top:2px;}
+
+/* TEST QUEUE */
+.test-card{background:var(--card);border-radius:14px;padding:14px 16px;border:1.5px solid var(--border);margin-bottom:10px;transition:all .2s;}
+.test-card:hover{border-color:var(--teal);}
+.test-card.urgent{border-color:var(--red);background:#FFF8F8;}
+.test-card.processing{border-color:var(--orange);background:#FFFAF5;}
+.test-card.done{border-color:var(--green);background:#F5FFF8;opacity:.8;}
+.tc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.tc-token{font-size:.7rem;font-weight:900;color:var(--blue);background:var(--blue-light);padding:3px 10px;border-radius:8px;}
+.tc-urgent{font-size:.6rem;font-weight:800;color:var(--red);background:#FFEDED;padding:3px 9px;border-radius:100px;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.tc-name{font-size:.88rem;font-weight:800;color:var(--text);}
+.tc-test{font-size:.72rem;font-weight:700;color:var(--blue);margin-top:2px;}
+.tc-doctor{font-size:.62rem;color:var(--muted);margin-top:1px;}
+.tc-status-row{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.status-chip{font-size:.6rem;font-weight:700;padding:4px 10px;border-radius:100px;border:1.5px solid;}
+.chip-collected{border-color:var(--blue);color:var(--blue);background:var(--blue-light);}
+.chip-processing{border-color:var(--orange);color:var(--orange);background:#FFF4E6;}
+.chip-ready{border-color:var(--green);color:var(--green);background:#E8FFE8;}
+.chip-pending{border-color:var(--muted);color:var(--muted);background:#F5F5F5;}
+.tc-actions{display:flex;gap:8px;margin-top:10px;}
+.tc-btn{padding:8px 14px;border-radius:10px;border:none;font-size:.7rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-collect{background:var(--blue-light);color:var(--blue);}
+.btn-process{background:#FFF4E6;color:#CC7A00;}
+.btn-ready{background:#E8FFE8;color:#00A020;}
+.btn-print{background:var(--teal-light);color:var(--teal);}
+.btn-wa{background:#E6FFE6;color:#00A020;}
+
+/* REF RANGE */
+.ref-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:.78rem;}
+.ref-row:last-child{border-bottom:none;}
+.ref-name{font-weight:700;}
+.ref-range{font-size:.65rem;color:var(--muted);}
+.ref-val{font-weight:800;}
+.ref-val.normal{color:var(--green);}
+.ref-val.high{color:var(--red);}
+.ref-val.low{color:var(--orange);}
+
+/* HISTORY */
+.hist-card{background:var(--card);border-radius:14px;padding:14px;border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:all .2s;}
+.hist-card:hover{border-color:var(--teal);}
+
+/* PROFILE */
+.prof-card{background:var(--card);border-radius:16px;padding:18px;border:1px solid var(--border);margin-bottom:12px;}
+.prof-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f5f5f5;font-size:.78rem;}
+.prof-row:last-child{border-bottom:none;}
+.prof-label{color:var(--muted);font-size:.66rem;font-weight:700;letter-spacing:.06em;}
+.p-input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:.82rem;font-family:'Poppins',sans-serif;outline:none;margin-top:3px;}
+.p-input:focus{border-color:var(--teal);}
+
+/* RESULT ENTRY */
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ri-wrap{display:flex;flex-direction:column;gap:4px;}
+.ri-label{font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.06em;}
+.ri-input{padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:.85rem;font-family:'Poppins',sans-serif;outline:none;font-weight:700;}
+.ri-input:focus{border-color:var(--teal);}
+
+/* SHEETS / OVERLAYS */
+.overlay{position:fixed;inset:0;background:rgba(10,22,40,.75);backdrop-filter:blur(6px);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.overlay.show{opacity:1;pointer-events:auto;}
+.overlay.side{align-items:flex-start;justify-content:flex-end;}
+.sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:22px 20px 48px;transform:translateY(100%);transition:transform .38s cubic-bezier(.32,1.15,.7,1);max-height:90vh;overflow-y:auto;position:relative;}
+.sheet.show{transform:translateY(0);}
+.sh-handle{display:flex;justify-content:center;margin-bottom:14px;}
+.sh-bar{width:40px;height:4px;border-radius:2px;background:#E0E0E0;}
+.sh-close{position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted);}
+.sh-title{font-size:1rem;font-weight:800;margin-bottom:3px;}
+.sh-sub{font-size:.7rem;color:var(--muted);margin-bottom:14px;}
+
+/* STAT POPUP */
+.st-popup{position:fixed;inset:0;background:rgba(10,22,40,.6);z-index:700;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;padding:20px;}
+.st-popup.show{opacity:1;pointer-events:auto;}
+.st-popup-card{background:#fff;border-radius:18px;width:100%;max-width:420px;padding:22px;max-height:80vh;overflow-y:auto;}
+
+/* NOTIF PANEL */
+.notif-panel{background:#fff;width:300px;max-width:90vw;height:100vh;transform:translateX(100%);transition:transform .3s cubic-bezier(.32,1.15,.7,1);overflow-y:auto;box-shadow:-8px 0 32px rgba(0,0,0,.12);margin-left:auto;}
+.notif-panel.show{transform:translateX(0);}
+
+/* MOBILE NAV */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);z-index:100;grid-template-columns:repeat(5,1fr);padding:6px 0 10px;}
+.mn-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 2px;}
+.mn-icon{font-size:1.1rem;}
+.mn-label{font-size:.5rem;font-weight:700;color:var(--muted);}
+.mn-item.active .mn-label,.mn-item.active .mn-icon{color:var(--teal);}
+
+@media(max-width:900px){
+  .sidebar{display:none!important;}
+  .main{margin-left:0!important;}
+  .content{padding:14px 14px 88px!important;}
+  .topbar{padding:0 14px!important;height:52px!important;}
+  .stats-row{grid-template-columns:repeat(3,1fr)!important;}
+  .mobile-nav{display:grid!important;}
+  .tb-logo-m{display:flex!important;}
+  .result-grid{grid-template-columns:1fr!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.95rem;">❤️</div>
+    <span class="sb-logo-text">HALSAA</span>
+  </div>
+  <div class="sb-role">LAB TECHNICIAN</div>
+  <nav class="sb-nav">
+    <div class="sb-item active" onclick="goScreen('home',this)"><span class="sb-icon">🏠</span>Home</div>
+    <div class="sb-item" onclick="goScreen('queue',this)"><span class="sb-icon">🧪</span>Tests Queue</div>
+    <div class="sb-item" onclick="goScreen('reports',this)"><span class="sb-icon">📋</span>Reports</div>
+    <div class="sb-item" onclick="goScreen('history',this)"><span class="sb-icon">📖</span>Patient History</div>
+    <div class="sb-item" onclick="goScreen('profile',this)"><span class="sb-icon">👨‍🔬</span>Profile</div>
+  </nav>
+  <div class="sb-bottom">
+    <div class="sb-clinic">
+      <div style="font-size:.75rem;font-weight:800;color:var(--text);">🏥 Sri Sai Hospital</div>
+      <div style="font-size:.62rem;color:var(--muted);">MG Road, Hanamkonda</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;cursor:pointer;margin-top:6px;transition:background .2s;" onclick="hlLogout()" onmouseover="this.style.background='rgba(255,107,107,.12)'" onmouseout="this.style.background='transparent'">
+      <span>🚪</span><span style="font-size:.73rem;font-weight:600;color:rgba(0,0,0,.4);">Logout</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="tb-logo-m">
+        <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--gold));display:flex;align-items:center;justify-content:center;font-size:.8rem;">❤️</div>
+        <span style="font-size:.9rem;font-weight:900;background:linear-gradient(135deg,var(--teal),#00A88D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">HALSAA</span>
+      </div>
+      <div>
+        <div style="font-size:.92rem;font-weight:800;" id="tbTitle">Dashboard</div>
+        <div style="font-size:.63rem;color:var(--muted);">Ravi Shankar · Lab Tech</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="font-size:.7rem;color:var(--muted);background:var(--teal-light);padding:5px 12px;border-radius:100px;font-weight:600;" id="todayDate"></div>
+      <div style="cursor:pointer;font-size:1.1rem;padding:6px;position:relative;" onclick="openNotif()">🔔<div style="position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid #fff;"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ HOME ═══ -->
+    <div class="screen active" id="screen-home">
+
+      <!-- Hero Card -->
+      <div class="hero-card">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
+          <div style="width:24px;height:24px;border-radius:6px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.75rem;">❤️</div>
+          <span style="font-size:.75rem;font-weight:800;color:rgba(255,255,255,.9);">HALSAA</span>
+          <span style="font-size:.58rem;color:rgba(255,255,255,.5);margin-left:2px;">by Medhaara Innovations</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;">👨‍🔬</div>
+          <div>
+            <div style="font-size:.56rem;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:.1em;">LAB TECHNICIAN</div>
+            <div style="font-size:1.12rem;font-weight:900;color:#fff;" id="labNameDisplay">Ravi Shankar</div>
+            <div style="font-size:.68rem;color:rgba(255,255,255,.75);margin-top:1px;" id="labQualDisplay">DMLT · Clinical Laboratory</div>
+            <div style="font-size:.6rem;color:rgba(255,255,255,.5);margin-top:1px;" id="labIdDisplay">EMP-007 · Sri Sai Hospital</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15);display:flex;gap:10px;">
+          <div style="flex:1;background:rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:.56rem;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:2px;">🏥 DEPARTMENT</div>
+            <div style="font-size:.76rem;font-weight:800;color:#fff;">Clinical Lab</div>
+            <div style="font-size:.58rem;color:rgba(255,255,255,.6);">Sri Sai Hospital</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:.56rem;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:2px;">⏰ SHIFT</div>
+            <div style="font-size:.76rem;font-weight:800;color:#fff;">8:00 AM – 4:00 PM</div>
+            <div style="font-size:.58rem;color:rgba(255,255,255,.6);">🟢 On Duty</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card click" onclick="openStatPopup('total')">
+          <div class="stat-label">TOTAL TESTS</div>
+          <div class="stat-val blue">18</div>
+          <div class="stat-sub">Tap to view ↓</div>
+        </div>
+        <div class="stat-card click" onclick="openStatPopup('collected')">
+          <div class="stat-label">COLLECTED</div>
+          <div class="stat-val">14</div>
+          <div class="stat-sub">Tap to view ↓</div>
+        </div>
+        <div class="stat-card click" onclick="openStatPopup('completed')">
+          <div class="stat-label">COMPLETED</div>
+          <div class="stat-val green">9</div>
+          <div class="stat-sub">Tap to view ↓</div>
+        </div>
+        <div class="stat-card click" onclick="openStatPopup('pending')">
+          <div class="stat-label">PENDING</div>
+          <div class="stat-val gold">5</div>
+          <div class="stat-sub">Tap to view ↓</div>
+        </div>
+        <div class="stat-card click" onclick="openStatPopup('urgent')">
+          <div class="stat-label">URGENT</div>
+          <div class="stat-val red">2</div>
+          <div class="stat-sub">Tap to view ↓</div>
+        </div>
+      </div>
+
+      <!-- Weekly Chart -->
+      <div style="background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--border);margin-bottom:12px;">
+        <div style="font-size:.72rem;font-weight:800;margin-bottom:10px;">📊 This Week — Tests Processed</div>
+        <div id="labChart"></div>
+      </div>
+
+      <!-- Quick Go to Queue CTA -->
+      <div style="background:#fff;border-radius:14px;padding:14px;border:1.5px solid var(--red);display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:10px;" onclick="goScreen('queue',null)">
+        <div>
+          <div style="font-size:.82rem;font-weight:800;color:var(--red);">🔴 2 Urgent Tests Pending!</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">CBC — Suresh Yadav · LFT — Venkat Rao</div>
+        </div>
+        <div style="font-size:1.2rem;color:var(--red);">→</div>
+      </div>
+      <div style="background:#fff;border-radius:14px;padding:14px;border:1.5px solid var(--teal);display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="goScreen('queue',null)">
+        <div>
+          <div style="font-size:.82rem;font-weight:800;">🧪 5 Tests Pending in Queue</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:2px;">Tap to manage tests</div>
+        </div>
+        <div style="font-size:1.2rem;color:var(--teal);">→</div>
+      </div>
+    </div>
+
+    <!-- ═══ TESTS QUEUE ═══ -->
+    <div class="screen" id="screen-queue">
+
+      <!-- Stats mini -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;">
+        <div class="stat-card click" onclick="openStatPopup('total')"><div class="stat-label">TOTAL</div><div class="stat-val blue" style="font-size:1.2rem;">18</div></div>
+        <div class="stat-card click" onclick="openStatPopup('collected')"><div class="stat-label">COLLECTED</div><div class="stat-val" style="font-size:1.2rem;">14</div></div>
+        <div class="stat-card click" onclick="openStatPopup('completed')"><div class="stat-label">DONE</div><div class="stat-val green" style="font-size:1.2rem;">9</div></div>
+        <div class="stat-card click" onclick="openStatPopup('pending')"><div class="stat-label">PENDING</div><div class="stat-val gold" style="font-size:1.2rem;">5</div></div>
+        <div class="stat-card click" onclick="openStatPopup('urgent')"><div class="stat-label">URGENT</div><div class="stat-val red" style="font-size:1.2rem;">2</div></div>
+      </div>
+
+      <!-- Filter -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="filter-btn active" onclick="filterTests('all',this)">All (18)</button>
+        <button class="filter-btn" onclick="filterTests('urgent',this)">🔴 Urgent (2)</button>
+        <button class="filter-btn" onclick="filterTests('pending',this)">⏳ Pending (5)</button>
+        <button class="filter-btn" onclick="filterTests('processing',this)">🔄 Processing (4)</button>
+        <button class="filter-btn" onclick="filterTests('done',this)">✅ Done (9)</button>
+      </div>
+      <style>.filter-btn{padding:7px 14px;border-radius:100px;border:1.5px solid var(--border);background:#fff;font-size:.7rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;transition:all .2s;color:var(--muted);}.filter-btn.active{border-color:var(--teal);background:var(--teal-light);color:var(--teal);}</style>
+
+      <div id="testsList"></div>
+    </div>
+
+    <!-- ═══ REPORTS ═══ -->
+    <div class="screen" id="screen-reports">
+      <div style="position:relative;margin-bottom:14px;">
+        <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);">🔍</span>
+        <input type="text" id="reportSearch" placeholder="Search reports by patient name or test..." oninput="searchReports(this.value)"
+          style="width:100%;padding:13px 13px 13px 40px;border:1.5px solid var(--border);border-radius:13px;font-size:.83rem;font-family:'Poppins',sans-serif;outline:none;background:#fff;"/>
+      </div>
+      <div id="reportsList"></div>
+    </div>
+
+    <!-- ═══ PATIENT HISTORY ═══ -->
+    <div class="screen" id="screen-history">
+      <div style="position:relative;margin-bottom:14px;">
+        <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);">🔍</span>
+        <input type="text" id="histInput" placeholder="Search patient by name or mobile..." oninput="searchHist(this.value)"
+          style="width:100%;padding:13px 13px 13px 40px;border:1.5px solid var(--border);border-radius:13px;font-size:.83rem;font-family:'Poppins',sans-serif;outline:none;background:#fff;"/>
+      </div>
+      <div id="histResults"></div>
+    </div>
+
+    <!-- ═══ PROFILE ═══ -->
+    <div class="screen" id="screen-profile">
+      <div class="prof-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--blue),#2C6FBF);display:flex;align-items:center;justify-content:center;font-size:1.6rem;">👨‍🔬</div>
+          <button onclick="toggleProfEdit()" id="profEditBtn" style="padding:7px 16px;border-radius:10px;border:1.5px solid var(--teal);background:var(--teal-light);color:var(--teal);font-size:.7rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">✏️ Edit</button>
+        </div>
+        <!-- View -->
+        <div id="profView">
+          <div style="font-size:1.08rem;font-weight:900;" id="pv-name">Ravi Shankar</div>
+          <div style="font-size:.73rem;color:var(--muted);margin-top:2px;" id="pv-qual">DMLT (Clinical Laboratory)</div>
+          <div style="height:1px;background:var(--border);margin:13px 0;"></div>
+          <div class="prof-row"><span class="prof-label">EMPLOYEE ID</span><span style="font-weight:700;" id="pv-id">EMP-007</span></div>
+          <div class="prof-row"><span class="prof-label">DEPARTMENT</span><span style="font-weight:700;" id="pv-dept">Clinical Laboratory</span></div>
+          <div class="prof-row"><span class="prof-label">EXPERIENCE</span><span style="font-weight:700;" id="pv-exp">6 Years</span></div>
+          <div class="prof-row"><span class="prof-label">HOSPITAL</span><span style="font-weight:700;">Sri Sai Hospital</span></div>
+          <div class="prof-row"><span class="prof-label">MOBILE</span><span style="font-weight:700;" id="pv-mob">9876543211</span></div>
+          <div class="prof-row"><span class="prof-label">WHATSAPP</span><span style="font-weight:700;" id="pv-wa">9876543211</span></div>
+        </div>
+        <!-- Edit -->
+        <div id="profEdit" style="display:none;">
+          <div style="height:1px;background:var(--border);margin:10px 0 14px;"></div>
+          <div style="margin-bottom:10px;"><div class="prof-label">FULL NAME *</div><input class="p-input" id="pe-name" value="Ravi Shankar"/></div>
+          <div style="margin-bottom:10px;"><div class="prof-label">QUALIFICATION</div><input class="p-input" id="pe-qual" value="DMLT (Clinical Laboratory)"/></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div><div class="prof-label">EMP ID (optional)</div><input class="p-input" id="pe-id" value="EMP-007"/></div>
+            <div><div class="prof-label">EXPERIENCE</div><input class="p-input" id="pe-exp" value="6 Years"/></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+            <div><div class="prof-label">MOBILE *</div><input class="p-input" type="tel" id="pe-mob" value="9876543211"/></div>
+            <div><div class="prof-label">WHATSAPP</div><input class="p-input" type="tel" id="pe-wa" value="9876543211"/></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="saveProfile()" style="flex:2;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--teal),#00A88D);color:#fff;font-size:.8rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">✅ Save Changes</button>
+            <button onclick="cancelProfEdit()" style="flex:1;padding:12px;border-radius:11px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.75rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <!-- Preferences -->
+      <div class="prof-card">
+        <div style="font-size:.82rem;font-weight:800;margin-bottom:12px;">⚙️ Preferences</div>
+        <div class="prof-row" style="cursor:pointer;" onclick="togglePref('notif',this)">
+          <span style="font-size:.78rem;">🔔 Urgent Test Alert</span>
+          <span id="pref-notif" style="font-size:.73rem;font-weight:700;color:var(--teal);">ON ✅</span>
+        </div>
+        <div class="prof-row" style="cursor:pointer;" onclick="togglePref('wa',this)">
+          <span style="font-size:.78rem;">💬 WhatsApp Result to Patient</span>
+          <span id="pref-wa" style="font-size:.73rem;font-weight:700;color:var(--teal);">ON ✅</span>
+        </div>
+        <div class="prof-row" style="cursor:pointer;" onclick="togglePref('autoprint',this)">
+          <span style="font-size:.78rem;">🖨️ Auto-print on Ready</span>
+          <span id="pref-autoprint" style="font-size:.73rem;font-weight:700;color:var(--muted);">OFF</span>
+        </div>
+        <div class="prof-row" style="cursor:pointer;" onclick="togglePref('ref',this)">
+          <span style="font-size:.78rem;">📊 Show Reference Ranges</span>
+          <span id="pref-ref" style="font-size:.73rem;font-weight:700;color:var(--teal);">ON ✅</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+  <div class="mn-item active" id="mn-home" onclick="goScreen('home',null);setMN('home')"><span class="mn-icon">🏠</span><span class="mn-label">Home</span></div>
+  <div class="mn-item" id="mn-queue" onclick="goScreen('queue',null);setMN('queue')"><span class="mn-icon">🧪</span><span class="mn-label">Tests</span></div>
+  <div class="mn-item" id="mn-reports" onclick="goScreen('reports',null);setMN('reports')"><span class="mn-icon">📋</span><span class="mn-label">Reports</span></div>
+  <div class="mn-item" id="mn-history" onclick="goScreen('history',null);setMN('history')"><span class="mn-icon">📖</span><span class="mn-label">History</span></div>
+  <div class="mn-item" id="mn-profile" onclick="goScreen('profile',null);setMN('profile')"><span class="mn-icon">👨‍🔬</span><span class="mn-label">Profile</span></div>
+</div>
+
+<!-- RESULT ENTRY SHEET -->
+<div class="overlay" id="resultOv" onclick="if(event.target===this)closeSheet('resultOv','resultSh')">
+  <div class="sheet" id="resultSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('resultOv','resultSh')">✕</button>
+    <div class="sh-title" id="rs-title">Enter Results</div>
+    <div class="sh-sub" id="rs-sub">Patient · Test</div>
+    <div id="rs-fields" style="margin-bottom:14px;"></div>
+    <!-- Reference ranges -->
+    <div style="background:var(--bg);border-radius:12px;padding:12px;border:1px solid var(--border);margin-bottom:14px;">
+      <div style="font-size:.68rem;font-weight:800;color:var(--muted);margin-bottom:8px;letter-spacing:.06em;">📊 REFERENCE RANGES</div>
+      <div id="rs-ranges"></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="saveResult()" style="flex:2;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--teal),#00A88D);color:#fff;font-size:.82rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">✅ Mark as Ready</button>
+      <button onclick="closeSheet('resultOv','resultSh')" style="flex:1;padding:12px;border-radius:11px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.75rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT PREVIEW SHEET -->
+<div class="overlay" id="printOv" onclick="if(event.target===this)closeSheet('printOv','printSh')">
+  <div class="sheet" id="printSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('printOv','printSh')">✕</button>
+    <div class="sh-title">🖨️ Report Ready</div>
+    <div class="sh-sub" id="pr-sub">Report details</div>
+    <div id="pr-content" style="background:var(--bg);border-radius:12px;padding:14px;border:1px solid var(--border);margin-bottom:14px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="doPrint()" style="flex:1;padding:12px;border-radius:11px;border:none;background:var(--teal-light);color:var(--teal);font-size:.8rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">🖨️ Print Report</button>
+      <button onclick="doWAResult()" style="flex:1;padding:12px;border-radius:11px;border:none;background:#E6FFE6;color:#00A020;font-size:.8rem;font-weight:800;font-family:'Poppins',sans-serif;cursor:pointer;">💬 WhatsApp</button>
+      <button onclick="closeSheet('printOv','printSh')" style="flex:1;padding:12px;border-radius:11px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:.75rem;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY DETAIL SHEET -->
+<div class="overlay" id="histOv" onclick="if(event.target===this)closeSheet('histOv','histSh')">
+  <div class="sheet" id="histSh">
+    <div class="sh-handle"><div class="sh-bar"></div></div>
+    <button class="sh-close" onclick="closeSheet('histOv','histSh')">✕</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:48px;height:48px;border-radius:13px;background:linear-gradient(135deg,var(--blue),#2C6FBF);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">👤</div>
+      <div>
+        <div style="font-size:1rem;font-weight:900;" id="hd-name"></div>
+        <div style="font-size:.68rem;color:var(--muted);" id="hd-mobile"></div>
+      </div>
+      <div style="margin-left:auto;font-size:.7rem;font-weight:800;color:var(--teal);background:var(--teal-light);padding:4px 12px;border-radius:100px;" id="hd-count"></div>
+    </div>
+    <div style="font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-bottom:10px;">TEST HISTORY</div>
+    <div id="hd-tests"></div>
+  </div>
+</div>
+
+<!-- STAT POPUP -->
+<div class="st-popup" id="stPopup" onclick="if(event.target===this)closeStatPopup()">
+  <div class="st-popup-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-size:.9rem;font-weight:800;" id="stTitle">Tests</div>
+      <button onclick="closeStatPopup()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+    <div id="stList"></div>
+  </div>
+</div>
+
+<!-- NOTIF PANEL -->
+<div class="overlay side" id="notifOv" onclick="if(event.target===this)closeNotif()">
+  <div class="notif-panel" id="notifPanel">
+    <div style="position:sticky;top:0;background:#fff;z-index:2;padding:18px 16px 12px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:.9rem;font-weight:800;">Notifications</div>
+      <button onclick="closeNotif()" style="background:none;border:none;font-size:1rem;cursor:pointer;color:var(--muted);">✕</button>
+    </div>
+    <div style="padding:12px;">
+      <div style="background:#FFEDED;border-radius:12px;padding:12px;margin-bottom:8px;border:1.5px solid var(--red);">
+        <div style="font-size:.75rem;font-weight:800;color:var(--red);">🔴 URGENT — CBC pending</div>
+        <div style="font-size:.63rem;color:var(--muted);margin-top:3px;">Suresh Yadav · T-019 · Ordered by Dr. Ramesh</div>
+      </div>
+      <div style="background:var(--teal-light);border-radius:12px;padding:12px;margin-bottom:8px;border:1.5px solid var(--teal);">
+        <div style="font-size:.75rem;font-weight:800;color:var(--teal);">🧪 New test ordered</div>
+        <div style="font-size:.63rem;color:var(--muted);margin-top:3px;">LFT — Venkat Rao · T-023</div>
+      </div>
+      <div style="background:#fff;border-radius:12px;padding:12px;border:1px solid #f0f0f0;">
+        <div style="font-size:.75rem;font-weight:700;">✅ 9 tests completed today</div>
+        <div style="font-size:.63rem;color:var(--muted);margin-top:3px;">All reports sent to patients</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+document.getElementById('todayDate').textContent =
+  new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+var testsData = [
+  {id:'L001',token:'T-019',name:'Suresh Yadav',  phone:'9988776655',doctor:'Dr. Ramesh Kumar',test:'CBC (Complete Blood Count)',   status:'pending',   urgent:true, result:null,time:'9:10 AM'},
+  {id:'L002',token:'T-023',name:'Venkat Rao',    phone:'9876512345',doctor:'Dr. Ramesh Kumar',test:'LFT (Liver Function Test)',    status:'pending',   urgent:true, result:null,time:'9:45 AM'},
+  {id:'L003',token:'T-020',name:'Lakshmi Devi',  phone:'8877665544',doctor:'Dr. Ramesh Kumar',test:'Blood Sugar (Fasting)',        status:'processing',urgent:false,result:null,time:'9:20 AM'},
+  {id:'L004',token:'T-021',name:'Arjun Kumar',   phone:'7766554433',doctor:'Dr. Ramesh Kumar',test:'Urine Routine',                status:'processing',urgent:false,result:null,time:'9:30 AM'},
+  {id:'L005',token:'T-022',name:'Priya Reddy',   phone:'6655443322',doctor:'Dr. Priya Sharma', test:'Thyroid Profile (T3/T4/TSH)',  status:'processing',urgent:false,result:null,time:'10:00 AM'},
+  {id:'L006',token:'T-018',name:'Raju Yadav',    phone:'9123456780',doctor:'Dr. Ramesh Kumar',test:'Lipid Profile',                status:'processing',urgent:false,result:null,time:'8:50 AM'},
+  {id:'L007',token:'T-015',name:'Ravi Kumar',    phone:'8012345678',doctor:'Dr. Arun Reddy',  test:'X-Ray Report',                status:'done',      urgent:false,result:{values:['Normal chest X-ray','No opacities noted']},time:'8:30 AM'},
+  {id:'L008',token:'T-016',name:'Anita Sharma',  phone:'9234567890',doctor:'Dr. Ramesh Kumar',test:'Blood Sugar (PP)',             status:'done',      urgent:false,result:{values:['148 mg/dL']},time:'8:40 AM'},
+  {id:'L009',token:'T-012',name:'Kavitha Devi',  phone:'8123456789',doctor:'Dr. Priya Sharma', test:'Haemoglobin',                 status:'done',      urgent:false,result:{values:['11.2 g/dL']},time:'8:20 AM'},
+  {id:'L010',token:'T-010',name:'Anita Reddy',   phone:'7012345678',doctor:'Dr. Ramesh Kumar',test:'CBC (Complete Blood Count)',   status:'done',      urgent:false,result:{values:['WBC:8200','RBC:4.8M','Hb:13.2','Platelets:2.1L']},time:'8:10 AM'},
+];
+
+var testTemplates = {
+  'CBC (Complete Blood Count)':   [{label:'WBC',unit:'/µL',ref:'4000–11000'},{label:'RBC',unit:'M/µL',ref:'4.5–5.5'},{label:'Haemoglobin',unit:'g/dL',ref:'12–17'},{label:'Platelets',unit:'L/µL',ref:'1.5–4.0'}],
+  'Blood Sugar (Fasting)':        [{label:'Glucose',unit:'mg/dL',ref:'70–100'}],
+  'Blood Sugar (PP)':             [{label:'Glucose (PP)',unit:'mg/dL',ref:'<140'}],
+  'LFT (Liver Function Test)':    [{label:'SGOT',unit:'U/L',ref:'10–40'},{label:'SGPT',unit:'U/L',ref:'7–56'},{label:'Bilirubin Total',unit:'mg/dL',ref:'0.2–1.2'}],
+  'Urine Routine':                [{label:'Protein',unit:'',ref:'Nil'},{label:'Sugar',unit:'',ref:'Nil'},{label:'Pus Cells',unit:'/HPF',ref:'0–5'}],
+  'Thyroid Profile (T3/T4/TSH)':  [{label:'T3',unit:'ng/dL',ref:'80–200'},{label:'T4',unit:'µg/dL',ref:'5.1–14.1'},{label:'TSH',unit:'µIU/mL',ref:'0.4–4.0'}],
+  'Lipid Profile':                [{label:'Total Cholesterol',unit:'mg/dL',ref:'<200'},{label:'Triglycerides',unit:'mg/dL',ref:'<150'},{label:'HDL',unit:'mg/dL',ref:'>40'},{label:'LDL',unit:'mg/dL',ref:'<130'}],
+  'Haemoglobin':                  [{label:'Haemoglobin',unit:'g/dL',ref:'12–17'}],
+  'default':                      [{label:'Result',unit:'',ref:'—'}],
+};
+
+var historyDB = [
+  {name:'Suresh Yadav', mobile:'9988776655', tests:[
+    {date:'13 Mar 2026',test:'CBC',result:'WBC:8200, RBC:4.8M, Hb:13.2, Plt:2.1L',status:'done',doctor:'Dr. Ramesh Kumar'},
+    {date:'2 Jan 2026', test:'Blood Sugar (Fasting)',result:'92 mg/dL — Normal',status:'done',doctor:'Dr. Ramesh Kumar'},
+  ]},
+  {name:'Venkat Rao',   mobile:'9876512345', tests:[
+    {date:'13 Mar 2026',test:'LFT',result:'SGOT:38, SGPT:45, Bili:0.9',status:'done',doctor:'Dr. Ramesh Kumar'},
+    {date:'28 Jan 2026',test:'Blood Sugar (PP)',result:'162 mg/dL — High',status:'done',doctor:'Dr. Ramesh Kumar'},
+    {date:'10 Dec 2025',test:'Lipid Profile',result:'Chol:210, TG:165, HDL:42, LDL:135',status:'done',doctor:'Dr. Ramesh Kumar'},
+  ]},
+  {name:'Lakshmi Devi', mobile:'8877665544', tests:[
+    {date:'13 Mar 2026',test:'Blood Sugar (Fasting)',result:'Pending',status:'processing',doctor:'Dr. Ramesh Kumar'},
+    {date:'28 Feb 2026',test:'HbA1c',result:'7.2% — Controlled',status:'done',doctor:'Dr. Ramesh Kumar'},
+  ]},
+  {name:'Anita Sharma', mobile:'9234567890', tests:[
+    {date:'13 Mar 2026',test:'Blood Sugar (PP)',result:'148 mg/dL',status:'done',doctor:'Dr. Ramesh Kumar'},
+  ]},
+  {name:'Kavitha Devi', mobile:'8123456789', tests:[
+    {date:'13 Mar 2026',test:'Haemoglobin',result:'11.2 g/dL — Low',status:'done',doctor:'Dr. Priya Sharma'},
+    {date:'15 Feb 2026',test:'Iron Studies',result:'Ferritin:8 ng/mL — Low',status:'done',doctor:'Dr. Priya Sharma'},
+  ]},
+];
+
+var currentTest = null;
+var prefs = {notif:true, wa:true, autoprint:false, ref:true};
+var activeFilter = 'all';
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+var titles = {home:'Dashboard',queue:'Tests Queue',reports:'Reports',history:'Patient History',profile:'Profile'};
+function goScreen(id, sbEl) {
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('tbTitle').textContent = titles[id]||id;
+  document.querySelectorAll('.sb-item').forEach(function(el,i){
+    el.classList.toggle('active',['home','queue','reports','history','profile'][i]===id);
+  });
+  if(id==='reports') renderReports('');
+}
+function setMN(id) {
+  ['home','queue','reports','history','profile'].forEach(function(k){
+    var el=document.getElementById('mn-'+k); if(el) el.classList.toggle('active',k===id);
+  });
+}
+
+// ══════════════════════════════════════════
+//  TESTS QUEUE
+// ══════════════════════════════════════════
+function filterTests(type, btn) {
+  activeFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  renderTests();
+}
+
+function renderTests() {
+  var filtered = testsData.filter(function(t){
+    if(activeFilter==='all') return true;
+    if(activeFilter==='urgent') return t.urgent;
+    if(activeFilter==='pending') return t.status==='pending';
+    if(activeFilter==='processing') return t.status==='processing';
+    if(activeFilter==='done') return t.status==='done';
+    return true;
+  });
+  // Sort: urgent first, then pending, processing, done
+  filtered.sort(function(a,b){
+    var order={pending:0,processing:1,done:2};
+    if(a.urgent&&!b.urgent) return -1;
+    if(!a.urgent&&b.urgent) return 1;
+    return (order[a.status]||0)-(order[b.status]||0);
+  });
+
+  document.getElementById('testsList').innerHTML = filtered.length===0
+    ? '<div style="text-align:center;padding:40px;color:var(--muted);font-size:.82rem;">No tests in this category</div>'
+    : filtered.map(function(t){ return renderTestCard(t); }).join('');
+
+  // Attach event listeners
+  filtered.forEach(function(t){
+    var card = document.querySelector('[data-id="'+t.id+'"]');
+    if(!card) return;
+    var collectBtn = card.querySelector('.collect-btn');
+    var processBtn = card.querySelector('.process-btn');
+    var readyBtn   = card.querySelector('.ready-btn');
+    var printBtn   = card.querySelector('.print-btn');
+    if(collectBtn) collectBtn.addEventListener('click',function(e){e.stopPropagation();advanceStatus(t.id,'processing');});
+    if(processBtn) processBtn.addEventListener('click',function(e){e.stopPropagation();openResultSheet(t.id);});
+    if(readyBtn)   readyBtn.addEventListener('click',function(e){e.stopPropagation();openResultSheet(t.id);});
+    if(printBtn)   printBtn.addEventListener('click',function(e){e.stopPropagation();openPrintSheet(t.id);});
+  });
+}
+
+function renderTestCard(t) {
+  var statusChip = '';
+  if(t.status==='pending')    statusChip='<span class="status-chip chip-pending">⏳ Pending</span>';
+  if(t.status==='processing') statusChip='<span class="status-chip chip-processing">🔄 Processing</span>';
+  if(t.status==='done')       statusChip='<span class="status-chip chip-ready">✅ Done</span>';
+
+  var actions = '';
+  if(t.status==='pending') {
+    actions='<button class="tc-btn btn-collect collect-btn">📥 Collect Sample</button>';
+  } else if(t.status==='processing') {
+    actions='<button class="tc-btn btn-process process-btn">📝 Enter Results</button>';
+  } else {
+    actions='<button class="tc-btn btn-print print-btn">🖨️ Print / Send</button>';
+  }
+
+  return '<div class="test-card '+(t.urgent&&t.status!=='done'?'urgent':t.status==='processing'?'processing':t.status==='done'?'done':'')+'" data-id="'+t.id+'">' +
+    '<div class="tc-top">' +
+      '<span class="tc-token">'+t.token+'</span>' +
+      (t.urgent&&t.status!=='done'?'<span class="tc-urgent">🔴 URGENT</span>':'') +
+      '<span style="font-size:.6rem;color:var(--muted);">'+t.time+'</span>' +
+    '</div>' +
+    '<div class="tc-name">'+t.name+'</div>' +
+    '<div class="tc-test">🧪 '+t.test+'</div>' +
+    '<div class="tc-doctor">Ordered by: '+t.doctor+'</div>' +
+    '<div class="tc-status-row">'+statusChip+'</div>' +
+    '<div class="tc-actions">'+actions+'</div>' +
+  '</div>';
+}
+
+function advanceStatus(id, newStatus) {
+  var t = testsData.find(function(x){return x.id===id;});
+  if(!t) return;
+  t.status = newStatus;
+  renderTests();
+}
+
+// ══════════════════════════════════════════
+//  RESULT SHEET
+// ══════════════════════════════════════════
+function openResultSheet(id) {
+  var t = testsData.find(function(x){return x.id===id;});
+  if(!t) return;
+  currentTest = t;
+  document.getElementById('rs-title').textContent = '📝 Enter Results — '+t.test;
+  document.getElementById('rs-sub').textContent   = t.name+' · '+t.token;
+
+  var template = testTemplates[t.test] || testTemplates['default'];
+  document.getElementById('rs-fields').innerHTML = '<div class="result-grid">' +
+    template.map(function(f,i){
+      var existing = t.result&&t.result.values&&t.result.values[i] ? t.result.values[i] : '';
+      return '<div class="ri-wrap">' +
+        '<div class="ri-label">'+f.label+(f.unit?' ('+f.unit+')':'')+'</div>' +
+        '<input class="ri-input" id="rf-'+i+'" placeholder="Enter value" value="'+existing+'"/>' +
+      '</div>';
+    }).join('') +
+  '</div>';
+
+  document.getElementById('rs-ranges').innerHTML = template.map(function(f){
+    return '<div class="ref-row">' +
+      '<span class="ref-name">'+f.label+'</span>' +
+      '<span class="ref-range">Normal: '+f.ref+'</span>' +
+    '</div>';
+  }).join('');
+
+  openSheet('resultOv','resultSh');
+}
+
+function saveResult() {
+  if(!currentTest) return;
+  var template = testTemplates[currentTest.test] || testTemplates['default'];
+  var values = template.map(function(f,i){
+    var inp = document.getElementById('rf-'+i);
+    return inp ? (f.label+': '+(inp.value||'—')) : '';
+  });
+  currentTest.result = {values: values};
+  currentTest.status = 'done';
+  closeSheet('resultOv','resultSh');
+  setTimeout(function(){
+    renderTests();
+    openPrintSheet(currentTest.id);
+  }, 400);
+}
+
+// ══════════════════════════════════════════
+//  PRINT / SEND SHEET
+// ══════════════════════════════════════════
+function openPrintSheet(id) {
+  var t = testsData.find(function(x){return x.id===id;});
+  if(!t) return;
+  currentTest = t;
+  document.getElementById('pr-sub').textContent = t.name+' · '+t.test+' · '+t.time;
+  var vals = t.result&&t.result.values ? t.result.values : ['Result not entered'];
+  document.getElementById('pr-content').innerHTML =
+    '<div style="font-size:.65rem;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.06em;">REPORT SUMMARY</div>' +
+    vals.map(function(v){
+      return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:.78rem;">' +
+        '<span style="font-weight:700;">'+v.split(':')[0]+'</span>' +
+        '<span style="color:var(--text);">'+(v.split(':')[1]||v)+'</span>' +
+      '</div>';
+    }).join('') +
+    '<div style="margin-top:10px;font-size:.65rem;color:var(--muted);">Ordered by: '+t.doctor+' · Date: '+new Date().toLocaleDateString('en-IN')+'</div>';
+  openSheet('printOv','printSh');
+}
+
+var _printTest = null;
+function doPrint() {
+  var t = currentTest;
+  if(!t) return;
+  var vals = t.result&&t.result.values ? t.result.values : ['—'];
+  var w = window.open('','_blank','width=400,height=600');
+  if(!w) return;
+  var body = '<html><head><style>body{font-family:Arial;padding:20px;max-width:320px;}h2{color:#4A90D9;}table{width:100%;border-collapse:collapse;}td,th{padding:8px;border-bottom:1px solid #eee;font-size:.85rem;}th{text-align:left;color:#999;font-size:.72rem;}</style></head><body>' +
+    '<h2>HALSAA Lab Report</h2>' +
+    '<p><b>Patient:</b> '+t.name+'<br><b>Token:</b> '+t.token+'<br><b>Test:</b> '+t.test+'<br><b>Doctor:</b> '+t.doctor+'<br><b>Date:</b> '+new Date().toLocaleDateString('en-IN')+'</p><hr>' +
+    '<table><tr><th>Parameter</th><th>Value</th></tr>' +
+    vals.map(function(v){ var p=v.split(':'); return '<tr><td>'+p[0]+'</td><td><b>'+(p[1]||v)+'</b></td></tr>'; }).join('') +
+    '</table><hr><p style="font-size:.7rem;color:#999;">HALSAA · Sri Sai Hospital · halsaa.in</p></body></html>';
+  w.document.write(body); w.document.close(); w.print();
+}
+
+function doWAResult() {
+  var t = currentTest;
+  if(!t) return;
+  var vals = t.result&&t.result.values ? t.result.values.join('\n') : '—';
+  var msg = '*HALSAA Lab Report*\nPatient: '+t.name+'\nTest: '+t.test+'\nDate: '+new Date().toLocaleDateString('en-IN')+'\n\n'+vals+'\n\nCollect original from: Sri Sai Hospital\nhalsaa.in';
+  window.open('https://wa.me/91'+t.phone+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ══════════════════════════════════════════
+//  REPORTS SCREEN
+// ══════════════════════════════════════════
+function renderReports(query) {
+  var q = (query||'').toLowerCase();
+  var filtered = testsData.filter(function(t){
+    if(!q) return true;
+    return t.name.toLowerCase().includes(q) || t.test.toLowerCase().includes(q);
+  });
+  document.getElementById('reportsList').innerHTML = filtered.length===0
+    ? '<div style="text-align:center;padding:30px;color:var(--muted);font-size:.8rem;">No reports found</div>'
+    : filtered.map(function(t){
+        var statusCol = t.status==='done'?'var(--green)':t.status==='processing'?'var(--orange)':'var(--muted)';
+        var statusTxt = t.status==='done'?'✅ Done':t.status==='processing'?'🔄 Processing':'⏳ Pending';
+        return '<div class="hist-card" data-id="'+t.id+'">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+            '<span style="font-size:.7rem;font-weight:900;color:var(--blue);background:var(--blue-light);padding:3px 10px;border-radius:8px;">'+t.token+'</span>' +
+            '<span style="font-size:.62rem;font-weight:700;color:'+statusCol+';">'+statusTxt+'</span>' +
+          '</div>' +
+          '<div style="font-size:.88rem;font-weight:800;">'+t.name+'</div>' +
+          '<div style="font-size:.72rem;font-weight:700;color:var(--blue);margin-top:2px;">🧪 '+t.test+'</div>' +
+          '<div style="font-size:.62rem;color:var(--muted);margin-top:1px;">'+t.doctor+' · '+t.time+'</div>' +
+          (t.status==='done'?'<div style="font-size:.65rem;color:var(--teal);margin-top:6px;font-weight:700;">Tap to print / send ›</div>':'') +
+        '</div>';
+      }).join('');
+
+  document.querySelectorAll('#reportsList .hist-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      var id = this.getAttribute('data-id');
+      var t = testsData.find(function(x){return x.id===id;});
+      if(t && t.status==='done') openPrintSheet(id);
+      else if(t) openResultSheet(id);
+    });
+    card.addEventListener('mouseover',function(){this.style.borderColor='var(--teal)';});
+    card.addEventListener('mouseout',function(){this.style.borderColor='var(--border)';});
+  });
+}
+function searchReports(v){ renderReports(v); }
+
+// ══════════════════════════════════════════
+//  PATIENT HISTORY
+// ══════════════════════════════════════════
+function searchHist(val) {
+  var res = document.getElementById('histResults');
+  if(!val||val.length<1){res.innerHTML='';return;}
+  var q = val.toLowerCase();
+  var found = historyDB.filter(function(p){
+    return p.name.toLowerCase().includes(q)||p.mobile.includes(q);
+  });
+  if(!found.length){
+    res.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:.8rem;">No patient found</div>';
+    return;
+  }
+  res.innerHTML = found.map(function(p){
+    var last=p.tests[0];
+    return '<div data-mobile="'+p.mobile+'" class="pat-card" style="background:var(--card);border-radius:14px;padding:14px;border:1.5px solid var(--border);margin-bottom:10px;cursor:pointer;">' +
+      '<div style="display:flex;align-items:center;gap:12px;pointer-events:none;">' +
+        '<div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--blue),#2C6FBF);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">👤</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-size:.88rem;font-weight:800;">'+p.name+'</div>' +
+          '<div style="font-size:.65rem;color:var(--muted);">📱 '+p.mobile+'</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div style="font-size:.72rem;font-weight:800;color:var(--teal);">'+p.tests.length+' test'+(p.tests.length>1?'s':'')+'</div>' +
+          '<div style="font-size:.6rem;color:var(--muted);">Last: '+last.date+'</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:10px;padding:9px 11px;background:var(--bg);border-radius:10px;border:1px solid var(--border);pointer-events:none;">' +
+        '<div style="font-size:.6rem;font-weight:700;color:var(--muted);margin-bottom:2px;">LAST TEST</div>' +
+        '<div style="font-size:.76rem;font-weight:700;">🧪 '+last.test+'</div>' +
+        '<div style="font-size:.62rem;color:var(--muted);margin-top:2px;">'+last.result+'</div>' +
+      '</div>' +
+      '<div style="font-size:.65rem;color:var(--teal);text-align:right;margin-top:8px;font-weight:700;pointer-events:none;">Tap to see full history ›</div>' +
+    '</div>';
+  }).join('');
+
+  document.querySelectorAll('#histResults .pat-card').forEach(function(card){
+    card.addEventListener('click',function(){ openHistDetail(this.getAttribute('data-mobile')); });
+    card.addEventListener('mouseover',function(){this.style.borderColor='var(--teal)';});
+    card.addEventListener('mouseout',function(){this.style.borderColor='var(--border)';});
+  });
+}
+
+function openHistDetail(mobile) {
+  var p = historyDB.find(function(x){return x.mobile===mobile;});
+  if(!p) return;
+  document.getElementById('hd-name').textContent = p.name;
+  document.getElementById('hd-mobile').textContent = p.mobile;
+  document.getElementById('hd-count').textContent = p.tests.length+' test'+(p.tests.length>1?'s':'');
+  document.getElementById('hd-tests').innerHTML = p.tests.map(function(t,i){
+    var col = t.status==='done'?'var(--green)':t.status==='processing'?'var(--orange)':'var(--muted)';
+    var lbl = t.status==='done'?'✅ Done':t.status==='processing'?'🔄 Processing':'⏳ Pending';
+    return '<div style="background:var(--bg);border-radius:13px;padding:13px;border:1px solid var(--border);margin-bottom:10px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+        '<div style="font-size:.7rem;font-weight:800;color:var(--blue);">📅 '+t.date+'</div>' +
+        '<span style="font-size:.6rem;font-weight:700;color:'+col+';">'+lbl+'</span>' +
+      '</div>' +
+      '<div style="font-size:.82rem;font-weight:700;margin-bottom:4px;">🧪 '+t.test+'</div>' +
+      '<div style="background:#fff;border-radius:9px;padding:9px 11px;border:1px solid var(--border);font-size:.72rem;line-height:1.6;">' +
+        '<span style="font-size:.58rem;font-weight:700;color:var(--muted);display:block;margin-bottom:2px;">RESULT</span>'+t.result+
+      '</div>' +
+      '<div style="font-size:.62rem;color:var(--muted);margin-top:5px;">'+t.doctor+'</div>' +
+    '</div>';
+  }).join('');
+  openSheet('histOv','histSh');
+}
+
+// ══════════════════════════════════════════
+//  STAT POPUP
+// ══════════════════════════════════════════
+var statTitles={total:'All Tests (18)',collected:'Collected (14)',completed:'Completed (9)',pending:'Pending (5)',urgent:'Urgent (2)'};
+var statColors={done:'#00C853',processing:'#FF9500',pending:'#7A9E98',urgent:'#FF6B6B'};
+
+function openStatPopup(type) {
+  var filtered;
+  if(type==='total')     filtered=testsData;
+  else if(type==='collected') filtered=testsData.filter(function(t){return t.status!=='pending';});
+  else if(type==='completed') filtered=testsData.filter(function(t){return t.status==='done';});
+  else if(type==='pending')   filtered=testsData.filter(function(t){return t.status==='pending';});
+  else if(type==='urgent')    filtered=testsData.filter(function(t){return t.urgent;});
+  else filtered=testsData;
+
+  document.getElementById('stTitle').textContent = statTitles[type]||'Tests';
+  document.getElementById('stList').innerHTML = filtered.map(function(t){
+    var col=statColors[t.status]||'var(--muted)';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5;cursor:pointer;" onclick="jumpToHistory(\''+t.name+'\')">' +
+      '<div>' +
+        '<span style="font-size:.7rem;font-weight:800;color:var(--blue);">'+t.token+'</span>' +
+        '<span style="font-size:.78rem;font-weight:700;margin-left:10px;">'+t.name+' ›</span>' +
+        '<div style="font-size:.62rem;color:var(--muted);margin-top:1px;margin-left:42px;">🧪 '+t.test+'</div>' +
+      '</div>' +
+      '<div style="text-align:right;">' +
+        (t.urgent&&t.status!=='done'?'<div style="font-size:.58rem;font-weight:700;color:var(--red);">🔴 URGENT</div>':'') +
+        '<div style="font-size:.6rem;font-weight:700;color:'+col+';">'+t.status.toUpperCase()+'</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('stPopup').classList.add('show');
+}
+function closeStatPopup(){ document.getElementById('stPopup').classList.remove('show'); }
+function jumpToHistory(name) {
+  closeStatPopup();
+  goScreen('history',null); setMN('history');
+  setTimeout(function(){
+    var inp=document.getElementById('histInput');
+    if(inp){inp.value=name;searchHist(name);}
+  },200);
+}
+
+// ══════════════════════════════════════════
+//  PROFILE EDIT
+// ══════════════════════════════════════════
+var profEditing=false;
+function toggleProfEdit(){
+  profEditing=!profEditing;
+  document.getElementById('profView').style.display=profEditing?'none':'block';
+  document.getElementById('profEdit').style.display=profEditing?'block':'none';
+  document.getElementById('profEditBtn').textContent=profEditing?'✕ Cancel':'✏️ Edit';
+}
+function saveProfile(){
+  var name=document.getElementById('pe-name').value.trim();
+  if(!name){alert('Name is required');return;}
+  document.getElementById('pv-name').textContent=name;
+  document.getElementById('pv-qual').textContent=document.getElementById('pe-qual').value;
+  document.getElementById('pv-id').textContent=document.getElementById('pe-id').value||'—';
+  document.getElementById('pv-exp').textContent=document.getElementById('pe-exp').value;
+  document.getElementById('pv-mob').textContent=document.getElementById('pe-mob').value;
+  document.getElementById('pv-wa').textContent=document.getElementById('pe-wa').value;
+  document.getElementById('labNameDisplay').textContent=name;
+  document.getElementById('labQualDisplay').textContent=document.getElementById('pe-qual').value;
+  profEditing=true; toggleProfEdit();
+}
+function cancelProfEdit(){profEditing=true;toggleProfEdit();}
+
+function togglePref(key,row){
+  prefs[key]=!prefs[key];
+  var el=document.getElementById('pref-'+key);
+  if(el){el.textContent=prefs[key]?'ON ✅':'OFF';el.style.color=prefs[key]?'var(--teal)':'var(--muted)';}
+}
+
+// ══════════════════════════════════════════
+//  WEEKLY CHART
+// ══════════════════════════════════════════
+function renderChart(){
+  var el=document.getElementById('labChart'); if(!el) return;
+  var data=[8,12,10,15,11,9,0], days=['M','T','W','T','F','S','S'];
+  var max=Math.max.apply(null,data);
+  var tod=(new Date().getDay()+6)%7;
+  el.innerHTML='<div style="display:flex;align-items:flex-end;gap:5px;height:56px;">'+
+    data.map(function(v,i){
+      var h=max>0?Math.round((v/max)*48):0;
+      var isTod=i===tod;
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">' +
+        '<div style="font-size:.53rem;font-weight:700;color:'+(isTod?'var(--blue)':'var(--muted)')+';">'+(v||'—')+'</div>' +
+        '<div style="width:100%;height:'+h+'px;border-radius:4px 4px 0 0;background:'+(isTod?'var(--blue)':'var(--blue-light)')+';min-height:3px;"></div>' +
+        '<div style="font-size:.53rem;font-weight:'+(isTod?'800':'600')+';color:'+(isTod?'var(--blue)':'var(--muted)')+';">'+days[i]+'</div>' +
+      '</div>';
+    }).join('')+'</div>';
+}
+
+// ══════════════════════════════════════════
+//  SHEETS
+// ══════════════════════════════════════════
+function openSheet(oid,sid){
+  document.getElementById(oid).classList.add('show');
+  document.getElementById(sid).classList.add('show');
+}
+function closeSheet(oid,sid){
+  document.getElementById(sid).classList.remove('show');
+  setTimeout(function(){document.getElementById(oid).classList.remove('show');},380);
+}
+function openNotif(){
+  document.getElementById('notifOv').classList.add('show');
+  document.getElementById('notifPanel').classList.add('show');
+}
+function closeNotif(){
+  document.getElementById('notifPanel').classList.remove('show');
+  setTimeout(function(){document.getElementById('notifOv').classList.remove('show');},320);
+}
+
+// ══ AUTH ══
+function hlLogout(){
+  sessionStorage.removeItem('halsaa_session');
+  window.location.href='index.html';
+}
+(function initLabSession(){
+  try{
+    var s=sessionStorage.getItem('halsaa_session');
+    var u=s?JSON.parse(s):null;
+    if(!u){ var lm=localStorage.getItem('halsaa_last_mobile'); if(lm){var lv=localStorage.getItem('halsaa_staff_'+lm);if(lv)u=JSON.parse(lv);} }
+    if(u){
+      var tbSubs=document.querySelectorAll('.topbar div');
+      tbSubs.forEach(function(el){ if(el.textContent.trim()==='Lab Technician') el.textContent=u.name; });
+    }
+  }catch(e){}
+})();
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+renderTests();
+renderChart();
+</script>
+</body>
+</html>
