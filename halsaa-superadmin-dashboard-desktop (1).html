@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HALSAA — Super Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --teal:#00C9A7;--teal2:#00E8C0;--teal-light:#E6FAF6;--teal-mid:rgba(0,201,167,0.12);
+  --gold:#FFB347;--gold-light:#FFF4E6;--gold2:#FFC86B;
+  --navy:#0A1628;--navy2:#1A2E5A;
+  --bg:#F0F7FF;--card:#fff;--text:#1A2E2A;--muted:#7A9E98;
+  --border:rgba(0,201,167,0.14);--shadow:0 4px 20px rgba(10,22,40,0.12);--shadow2:0 2px 12px rgba(0,0,0,0.06);
+  --red:#FF6B6B;--green:#00C853;--blue:#3B82F6;--purple:#8B5CF6;
+  --sidebar:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+button,input,select,textarea{font-family:'Poppins',sans-serif;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,201,167,0.4)}50%{box-shadow:0 0 0 8px rgba(0,201,167,0)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+.app{display:flex;min-height:100vh;}
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);flex-shrink:0;background:linear-gradient(180deg,#050D1A 0%,var(--navy) 40%,var(--navy2) 100%);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;box-shadow:4px 0 32px rgba(0,0,0,0.25);transition:transform .3s;}
+.sb-logo{padding:20px 20px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-brand{font-size:1.4rem;font-weight:900;color:#fff;}.sb-brand span{color:var(--gold);}
+.sb-role-badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:100px;padding:3px 10px;margin-top:5px;}
+.sb-role-text{font-size:.52rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;}
+.sb-owner{padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;}
+.sb-av{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.sb-oname{font-size:.78rem;font-weight:800;color:#fff;}.sb-osub{font-size:.56rem;color:rgba(255,255,255,.45);}
+.sb-live{display:flex;align-items:center;gap:5px;background:rgba(0,201,167,.18);border:1px solid rgba(0,201,167,.3);border-radius:100px;padding:3px 9px;margin-top:4px;width:fit-content;}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:pulse 1.5s infinite;flex-shrink:0;}
+.sb-live-text{font-size:.52rem;font-weight:800;color:var(--teal2);}
+.sb-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.sb-sec{font-size:.5rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:10px 12px 4px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:all .2s;border:1px solid transparent;}
+.sb-item:hover{background:rgba(255,255,255,.07);}
+.sb-item.active{background:rgba(0,201,167,.15);border-color:rgba(0,201,167,.2);}
+.sb-icon{font-size:.95rem;width:20px;text-align:center;flex-shrink:0;}
+.sb-lbl{font-size:.76rem;font-weight:700;color:rgba(255,255,255,.55);flex:1;}
+.sb-item.active .sb-lbl{color:#fff;}
+.sb-badge{margin-left:auto;color:#fff;font-size:.5rem;font-weight:800;padding:2px 6px;border-radius:100px;min-width:18px;text-align:center;}
+.sb-badge-red{background:var(--red);}
+.sb-badge-gold{background:var(--gold);color:#333;}
+.sb-bottom{padding:12px 10px;border-top:1px solid rgba(255,255,255,.07);}
+.sb-kpi-box{background:rgba(0,201,167,.1);border:1px solid rgba(0,201,167,.18);border-radius:12px;padding:10px;margin-bottom:10px;}
+.sb-kpi-lbl{font-size:.5rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(0,201,167,.7);margin-bottom:7px;}
+.sb-kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.sb-kpi-val{font-size:1rem;font-weight:900;color:#fff;line-height:1;text-align:center;}
+.sb-kpi-sub{font-size:.48rem;color:rgba(255,255,255,.35);margin-top:1px;text-align:center;}
+.sb-logout{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;cursor:pointer;transition:background .2s;}
+.sb-logout:hover{background:rgba(255,107,107,.12);}
+.sb-logout span{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.35);}
+/* HAMBURGER */
+.hamburger{display:none;position:fixed;top:12px;left:12px;z-index:200;background:var(--navy);border:none;border-radius:10px;padding:9px 11px;cursor:pointer;flex-direction:column;gap:5px;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.hamburger span{width:20px;height:2px;background:#fff;border-radius:1px;display:block;}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;}
+.sb-overlay.open{display:block;}
+/* MAIN */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-height:100vh;min-width:0;}
+/* TICKER */
+.ticker-bar{background:linear-gradient(90deg,var(--navy),var(--navy2));height:32px;overflow:hidden;display:flex;align-items:center;}
+.ticker-inner{display:flex;animation:ticker 35s linear infinite;white-space:nowrap;}
+.ticker-item{font-size:.6rem;font-weight:600;color:var(--gold);padding:0 28px;}
+/* TOPBAR */
+.topbar{background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(10,22,40,.07);}
+.tb-left{display:flex;align-items:center;gap:12px;}
+.tb-title{font-size:.92rem;font-weight:800;color:var(--text);}
+.tb-sub{font-size:.62rem;color:var(--muted);}
+.tb-live-pill{display:flex;align-items:center;gap:5px;background:var(--teal-light);border:1px solid var(--border);border-radius:100px;padding:4px 11px;}
+.tb-live-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 1.5s infinite;}
+.tb-live-text{font-size:.6rem;font-weight:800;color:var(--teal);}
+.tb-right{display:flex;align-items:center;gap:8px;}
+.tb-date{font-size:.65rem;color:var(--muted);font-weight:600;}
+.tb-req-pill{display:flex;align-items:center;gap:5px;background:rgba(255,179,71,.1);border:1px solid rgba(255,179,71,.25);border-radius:100px;padding:4px 11px;cursor:pointer;}
+.tb-req-text{font-size:.6rem;font-weight:800;color:#CC7A00;}
+.tb-notif{width:34px;height:34px;background:var(--teal-light);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:.95rem;}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--red);border-radius:50%;border:2px solid #fff;display:none;}
+/* CONTENT */
+.content{padding:18px 20px;flex:1;}
+.screen{display:none;animation:fadeUp .3s ease both;}
+.screen.active{display:block;}
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.kpi-card{background:var(--card);border-radius:16px;padding:16px;border:1.5px solid var(--border);box-shadow:var(--shadow2);animation:fadeUp .4s ease both;}
+.kc-icon{font-size:1.3rem;margin-bottom:5px;display:block;}
+.kc-val{font-size:1.7rem;font-weight:900;line-height:1;margin-bottom:3px;}
+.kc-lbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.kc-trend{font-size:.6rem;font-weight:700;margin-top:4px;}
+/* SECTION HDR */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.sec-title{font-size:.82rem;font-weight:800;color:var(--text);}
+.sec-sub{font-size:.62rem;color:var(--muted);margin-top:1px;}
+.add-btn{padding:9px 16px;border-radius:10px;border:none;background:var(--teal);color:#fff;font-size:.72rem;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.add-btn:hover{opacity:.88;}
+/* OVERVIEW */
+.overview-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;}
+.rev-hero{background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:18px;padding:20px;position:relative;overflow:hidden;margin-bottom:14px;box-shadow:0 8px 32px rgba(10,22,40,.3);}
+.rev-hero::before{content:'';position:absolute;top:-30px;right:-30px;width:130px;height:130px;background:rgba(0,201,167,.1);border-radius:50%;}
+.rh-lbl{font-size:.56rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:5px;position:relative;z-index:1;}
+.rh-amount{font-size:2.2rem;font-weight:900;color:#fff;margin-bottom:3px;position:relative;z-index:1;}
+.rh-amount span{font-size:1rem;color:var(--teal);}
+.rh-sub{font-size:.65rem;color:rgba(255,255,255,.55);position:relative;z-index:1;margin-bottom:14px;}
+.rh-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;position:relative;z-index:1;}
+.rh-chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:10px 8px;text-align:center;}
+.rh-chip-val{font-size:.82rem;font-weight:800;}
+.rh-chip-lbl{font-size:.5rem;color:rgba(255,255,255,.5);margin-top:2px;}
+/* CLINIC TABLE */
+.clinic-table{background:var(--card);border-radius:16px;box-shadow:var(--shadow2);border:1px solid var(--border);overflow:hidden;margin-bottom:14px;}
+.ct-header{padding:12px 16px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.ct-title{font-size:.8rem;font-weight:800;color:var(--text);}
+.ct-count{background:var(--teal-mid);color:var(--teal);font-size:.6rem;font-weight:800;padding:3px 9px;border-radius:100px;}
+.clinic-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid #F8F8F8;transition:background .15s;animation:slideIn .3s ease both;}
+.clinic-row:last-child{border-bottom:none;}
+.clinic-row:hover{background:#F8FFFE;}
+.cr-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.icon-teal{background:var(--teal-light);}.icon-gold{background:var(--gold-light);}.icon-red{background:rgba(255,107,107,.1);}
+.cr-info{flex:1;min-width:100px;}
+.cr-name{font-size:.8rem;font-weight:700;color:var(--text);}
+.cr-city{font-size:.58rem;color:var(--muted);}
+.cr-type{font-size:.52rem;font-weight:700;padding:2px 7px;border-radius:100px;margin-top:2px;display:inline-block;}
+.type-both{background:var(--teal-mid);color:var(--teal);}
+.type-clinic{background:rgba(59,130,246,.1);color:var(--blue);}
+.type-lab{background:rgba(255,179,71,.12);color:#CC7A00;}
+.cr-stats{display:flex;gap:12px;}
+.cr-stat{text-align:center;}
+.cr-stat-val{font-size:.8rem;font-weight:800;color:var(--teal);}
+.cr-stat-lbl{font-size:.5rem;color:var(--muted);}
+.cr-rev{font-size:.85rem;font-weight:900;color:var(--text);min-width:55px;text-align:right;}
+.cr-status{font-size:.54rem;font-weight:700;padding:3px 8px;border-radius:100px;white-space:nowrap;}
+.st-active{background:rgba(0,200,83,.1);color:var(--green);}
+.st-hold{background:rgba(255,179,71,.15);color:#CC7A00;}
+.st-alert{background:rgba(255,107,107,.1);color:var(--red);}
+.cr-actions{display:flex;gap:5px;}
+.cr-btn{padding:5px 9px;border-radius:7px;border:none;font-size:.58rem;font-weight:700;cursor:pointer;}
+.cr-btn:hover{opacity:.8;}
+.cr-btn-teal{background:var(--teal-light);color:var(--teal);}
+.cr-btn-red{background:rgba(255,107,107,.1);color:var(--red);}
+.cr-btn-gold{background:var(--gold-light);color:#CC7A00;}
+/* RIGHT PANEL */
+.right-panel{display:flex;flex-direction:column;gap:12px;position:sticky;top:76px;}
+.panel-card{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--shadow2);border:1px solid var(--border);}
+.panel-title{font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.city-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F8F8F8;}
+.city-row:last-child{border-bottom:none;}
+.city-rank{font-size:.82rem;font-weight:900;color:var(--gold);width:20px;text-align:center;flex-shrink:0;}
+.city-info{flex:1;}
+.city-name{font-size:.76rem;font-weight:700;color:var(--text);}
+.city-count{font-size:.56rem;color:var(--muted);}
+.city-rev{font-size:.76rem;font-weight:900;color:var(--teal);}
+.h-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #F8F8F8;}
+.h-row:last-child{border-bottom:none;}
+.h-lbl{font-size:.73rem;font-weight:600;color:var(--text);}
+.h-val{font-size:.78rem;font-weight:800;}
+/* CLINICS SCREEN */
+.cc-card{background:var(--card);border-radius:14px;padding:16px;border:1.5px solid var(--border);box-shadow:var(--shadow2);margin-bottom:10px;animation:slideIn .3s ease both;transition:all .2s;}
+.cc-card:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.cc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+.cc-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.cc-name{font-size:.88rem;font-weight:800;color:var(--text);}
+.cc-meta{font-size:.62rem;color:var(--muted);margin-top:2px;line-height:1.6;}
+.cc-id{font-size:.58rem;font-weight:700;color:var(--teal);background:var(--teal-light);padding:2px 8px;border-radius:100px;display:inline-block;margin-top:4px;}
+.cc-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid #F8F8F8;flex-wrap:wrap;gap:8px;}
+.cc-cred{font-size:.62rem;color:var(--muted);}
+.cc-cred b{color:var(--text);}
+.cc-actions{display:flex;gap:6px;flex-wrap:wrap;}
+/* REQUESTS */
+.req-card{background:var(--card);border-radius:14px;padding:16px;border:1.5px solid var(--border);box-shadow:var(--shadow2);margin-bottom:10px;animation:slideIn .3s ease both;border-left:4px solid var(--gold);}
+.req-card.approved{border-left-color:var(--green);}
+.req-card.rejected{border-left-color:var(--red);}
+.req-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
+.req-icon{width:40px;height:40px;border-radius:11px;background:var(--gold-light);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.req-name{font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:3px;}
+.req-meta{font-size:.62rem;color:var(--muted);line-height:1.7;}
+.req-time{font-size:.6rem;color:var(--muted);white-space:nowrap;}
+.req-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.req-btn{padding:9px 16px;border-radius:9px;border:none;font-size:.7rem;font-weight:700;cursor:pointer;}
+.req-btn:hover{opacity:.85;}
+.req-btn-teal{background:var(--teal);color:#fff;}
+.req-btn-red{background:rgba(255,107,107,.1);color:var(--red);}
+.empty-state{text-align:center;padding:48px 20px;}
+.empty-icon{font-size:3rem;margin-bottom:12px;}
+.empty-title{font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:6px;}
+.empty-sub{font-size:.72rem;color:var(--muted);line-height:1.7;}
+/* ANALYTICS */
+.period-tabs{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap;}
+.period-tab{padding:6px 16px;border-radius:100px;font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .2s;}
+.period-tab.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+.analytics-layout{display:grid;grid-template-columns:1fr 280px;gap:16px;}
+.a-card{background:var(--card);border-radius:16px;padding:18px;border:1px solid var(--border);box-shadow:var(--shadow2);margin-bottom:14px;}
+.a-card-title{font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;margin-bottom:6px;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.bar{width:100%;border-radius:5px 5px 0 0;background:var(--teal-mid);position:relative;min-height:4px;}
+.bar.hl{background:linear-gradient(180deg,var(--teal2),var(--teal));}
+.bar-v{font-size:.52rem;font-weight:800;color:var(--teal);position:absolute;top:-15px;left:50%;transform:translateX(-50%);white-space:nowrap;}
+.bar-lbl{font-size:.56rem;color:var(--muted);}
+.bk-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F8F8F8;}
+.bk-row:last-child{border-bottom:none;}
+.bk-left{display:flex;align-items:center;gap:7px;font-size:.76rem;font-weight:600;}
+.bk-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.bk-val{font-size:.85rem;font-weight:800;}
+.bk-bar-wrap{flex:1;height:5px;background:#F0F0F0;border-radius:3px;margin:0 12px;}
+.bk-bar{height:5px;border-radius:3px;}
+/* BILLING */
+.billing-layout{display:grid;grid-template-columns:1fr 280px;gap:16px;}
+.billing-hero{background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:18px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(10,22,40,.25);}
+.billing-hero::before{content:'';position:absolute;top:-25px;right:-25px;width:110px;height:110px;background:rgba(0,201,167,.1);border-radius:50%;}
+.bh-lbl{font-size:.56rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:5px;position:relative;z-index:1;}
+.bh-amount{font-size:2rem;font-weight:900;color:#fff;margin-bottom:3px;position:relative;z-index:1;}
+.bh-amount span{font-size:.95rem;color:var(--teal);}
+.bh-sub{font-size:.65rem;color:rgba(255,255,255,.5);position:relative;z-index:1;margin-bottom:12px;}
+.bh-chips{display:flex;gap:8px;position:relative;z-index:1;flex-wrap:wrap;}
+.bh-chip{flex:1;min-width:80px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:10px 8px;text-align:center;}
+.bh-chip-val{font-size:.9rem;font-weight:900;}
+.bh-chip-lbl{font-size:.5rem;color:rgba(255,255,255,.5);margin-top:2px;}
+.filter-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.filter-tab{padding:5px 12px;border-radius:100px;font-size:.66rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .2s;}
+.filter-tab.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+.inv-card{background:var(--card);border-radius:14px;padding:14px;box-shadow:var(--shadow2);border:1px solid var(--border);margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;animation:slideIn .3s ease both;}
+.inv-card:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.inv-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;}
+.inv-info{flex:1;min-width:120px;}
+.inv-clinic{font-size:.85rem;font-weight:800;color:var(--text);}
+.inv-month{font-size:.62rem;color:var(--muted);margin-top:2px;}
+.inv-right{text-align:right;flex-shrink:0;}
+.inv-amt{font-size:.95rem;font-weight:900;color:var(--text);}
+.inv-status{font-size:.58rem;font-weight:800;padding:3px 8px;border-radius:100px;display:inline-block;margin-top:3px;}
+.s-paid{background:rgba(0,200,83,.1);color:var(--green);}
+.s-pending{background:rgba(255,179,71,.15);color:#CC7A00;}
+.s-overdue{background:rgba(255,107,107,.1);color:var(--red);}
+.inv-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.inv-btn{padding:7px 12px;border-radius:8px;border:none;font-size:.65rem;font-weight:700;cursor:pointer;}
+.inv-btn:hover{opacity:.85;}
+.inv-btn-teal{background:var(--teal-light);color:var(--teal);}
+.inv-btn-gold{background:var(--gold-light);color:#CC7A00;}
+.inv-btn-red{background:rgba(255,107,107,.1);color:var(--red);}
+/* ALERTS */
+.alerts-layout{display:grid;grid-template-columns:1fr 260px;gap:16px;}
+.alert-card{background:var(--card);border-radius:14px;padding:16px;box-shadow:var(--shadow2);margin-bottom:10px;display:flex;gap:12px;border-left:4px solid transparent;animation:slideIn .35s ease both;transition:all .2s;}
+.alert-card:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.alert-card.critical{border-left-color:var(--red);}
+.alert-card.warning{border-left-color:var(--gold);}
+.alert-card.info{border-left-color:var(--blue);}
+.alert-card.success{border-left-color:var(--green);}
+.alert-icon{font-size:1.4rem;flex-shrink:0;margin-top:2px;}
+.alert-body{flex:1;}
+.alert-title{font-size:.85rem;font-weight:800;color:var(--text);margin-bottom:4px;}
+.alert-desc{font-size:.68rem;color:var(--muted);line-height:1.6;margin-bottom:7px;}
+.alert-time{font-size:.6rem;color:var(--muted);}
+.alert-actions{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;}
+.aa-btn{padding:7px 14px;border-radius:8px;border:none;font-size:.66rem;font-weight:700;cursor:pointer;}
+.aa-btn:hover{opacity:.85;}
+.aa-teal{background:var(--teal);color:#fff;}
+.aa-outline{background:#F5F5F5;color:var(--muted);}
+.aa-red{background:rgba(255,107,107,.1);color:var(--red);}
+.aa-gold{background:var(--gold-light);color:#CC7A00;}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.7);backdrop-filter:blur(6px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{background:#fff;border-radius:20px;padding:28px 24px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;transform:translateY(20px);transition:transform .3s;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-close{position:absolute;top:18px;right:18px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted);}
+.modal-title{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:4px;}
+.modal-sub{font-size:.72rem;color:var(--muted);margin-bottom:20px;}
+.f-row{margin-bottom:14px;}
+.f-label{font-size:.63rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block;}
+.f-input{width:100%;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.85rem;outline:none;transition:border .2s;}
+.f-input:focus{border-color:var(--teal);}
+.f-select{width:100%;padding:11px 14px;border:1.5px solid #E0E0E0;border-radius:11px;font-size:.82rem;outline:none;background:#fff;transition:border .2s;}
+.f-select:focus{border-color:var(--teal);}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.cred-box{background:var(--teal-light);border:1.5px solid rgba(0,201,167,.3);border-radius:12px;padding:14px;margin-bottom:14px;display:none;}
+.cred-box.show{display:block;}
+.cred-box-title{font-size:.63rem;font-weight:800;color:var(--teal);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;}
+.cred-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.cred-key{font-size:.68rem;color:var(--muted);}
+.cred-val{font-size:.76rem;font-weight:800;color:var(--text);}
+.save-btn{width:100%;padding:13px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--teal),#00A88D);color:#fff;font-size:.88rem;font-weight:800;cursor:pointer;margin-top:6px;}
+.save-btn:hover{opacity:.9;}
+.reject-btn{width:100%;padding:11px;border-radius:13px;border:1.5px solid rgba(255,107,107,.3);background:rgba(255,107,107,.05);color:var(--red);font-size:.82rem;font-weight:700;cursor:pointer;margin-top:8px;display:none;}
+.reject-btn:hover{opacity:.8;}
+/* TOAST */
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#0A1628;color:#fff;padding:10px 20px;border-radius:100px;font-size:.76rem;font-weight:700;z-index:999;display:none;white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.25);}
+.toast.show{display:block;animation:toastIn .3s ease;}
+/* MOBILE NAV */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:6px 0 16px;grid-template-columns:repeat(5,1fr);z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.08);}
+.mn-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 2px;position:relative;}
+.mn-icon{font-size:1.1rem;}
+.mn-lbl{font-size:.48rem;font-weight:700;color:var(--muted);}
+.mn-item.active .mn-lbl{color:var(--teal);}
+.mn-badge{position:absolute;top:0;right:10px;background:var(--red);color:#fff;font-size:.45rem;font-weight:800;padding:1px 4px;border-radius:100px;display:none;}
+/* SEARCH */
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--border);border-radius:11px;padding:9px 14px;margin-bottom:14px;}
+.search-bar input{border:none;outline:none;font-size:.8rem;font-family:'Poppins',sans-serif;flex:1;background:transparent;}
+/* RESPONSIVE */
+@media(max-width:1100px){
+  .overview-layout,.analytics-layout,.billing-layout,.alerts-layout{grid-template-columns:1fr;}
+  .right-panel{position:static;}
+  .cr-stats{display:none;}
+  .rh-chips{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .hamburger{display:flex;}
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .mobile-nav{display:grid;}
+  .content{padding:14px 14px 80px;}
+  .topbar{padding:0 14px 0 52px;}
+  .ticker-bar{display:none;}
+}
+@media(max-width:500px){
+  .f-grid{grid-template-columns:1fr;}
+  .modal-box{padding:20px 14px;}
+  .cc-bottom{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<button class="hamburger" onclick="toggleSb()"><span></span><span></span><span></span></button>
+<div class="sb-overlay" id="sbOv" onclick="toggleSb()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-brand">HAL<span>SAA</span></div>
+    <div class="sb-role-badge"><span>⚡</span><span class="sb-role-text">Super Admin</span></div>
+  </div>
+  <div class="sb-owner">
+    <div class="sb-av">👑</div>
+    <div>
+      <div class="sb-oname">Medhara Innovations</div>
+      <div class="sb-osub">Platform Owner · HALSAA</div>
+      <div class="sb-live"><div class="live-dot"></div><span class="sb-live-text">PLATFORM LIVE</span></div>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Platform</div>
+    <div class="sb-item active" onclick="go('overview',this)"><div class="sb-icon">🏠</div><div class="sb-lbl">Overview</div></div>
+    <div class="sb-item" onclick="go('clinics',this)"><div class="sb-icon">🏥</div><div class="sb-lbl">Clinics & Labs</div></div>
+    <div class="sb-item" onclick="go('requests',this)"><div class="sb-icon">📋</div><div class="sb-lbl">Onboard Requests</div><div class="sb-badge sb-badge-gold" id="sbReqBadge" style="display:none">0</div></div>
+    <div class="sb-sec">Finance</div>
+    <div class="sb-item" onclick="go('billing',this)"><div class="sb-icon">💰</div><div class="sb-lbl">Billing & Invoices</div><div class="sb-badge sb-badge-red">4</div></div>
+    <div class="sb-sec">Operations</div>
+    <div class="sb-item" onclick="go('analytics',this)"><div class="sb-icon">📊</div><div class="sb-lbl">Revenue & Analytics</div></div>
+    <div class="sb-item" onclick="go('alerts',this)"><div class="sb-icon">🔔</div><div class="sb-lbl">Alerts & Health</div><div class="sb-badge sb-badge-red">5</div></div>
+  </nav>
+  <div class="sb-bottom">
+    <div class="sb-kpi-box">
+      <div class="sb-kpi-lbl">Platform Today</div>
+      <div class="sb-kpi-grid">
+        <div><div class="sb-kpi-val" id="sbKpiClinics">84</div><div class="sb-kpi-sub">Clinics</div></div>
+        <div><div class="sb-kpi-val" style="color:var(--gold2)">2,340</div><div class="sb-kpi-sub">Patients</div></div>
+        <div><div class="sb-kpi-val" style="color:var(--teal2)">₹38K</div><div class="sb-kpi-sub">Revenue</div></div>
+        <div><div class="sb-kpi-val" id="sbKpiPending" style="color:#FF9999">0</div><div class="sb-kpi-sub">Pending</div></div>
+      </div>
+    </div>
+    <div class="sb-logout" onclick="hlLogout()"><span>🚪</span><span>Logout</span></div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="ticker-bar">
+    <div class="ticker-inner" id="tickerEl">
+      <span class="ticker-item">🏥 Sri Sai Hospital joined — Warangal</span>
+      <span class="ticker-item">💰 ₹38,400 collected today</span>
+      <span class="ticker-item">📲 T-026 confirmed — Ramesh Kumar</span>
+      <span class="ticker-item">⚠️ Vijaya Diagnostics — High no-show alert</span>
+      <span class="ticker-item">🎉 1 Lakh Patients milestone reached!</span>
+      <span class="ticker-item">📊 2,340 patients served today across 84 clinics</span>
+      <span class="ticker-item">🏥 Sri Sai Hospital joined — Warangal</span>
+      <span class="ticker-item">💰 ₹38,400 collected today</span>
+      <span class="ticker-item">📲 T-026 confirmed — Ramesh Kumar</span>
+      <span class="ticker-item">⚠️ Vijaya Diagnostics — High no-show alert</span>
+      <span class="ticker-item">🎉 1 Lakh Patients milestone reached!</span>
+      <span class="ticker-item">📊 2,340 patients served today across 84 clinics</span>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <div class="tb-left">
+      <div><div class="tb-title" id="tbTitle">Platform Overview</div><div class="tb-sub">HALSAA · Medhara Innovations</div></div>
+      <div class="tb-live-pill"><div class="tb-live-dot"></div><span class="tb-live-text" id="tbLive">84 CLINICS LIVE</span></div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-req-pill" onclick="go('requests',null)" id="tbReqPill"><span>📋</span><span class="tb-req-text" id="tbReqText">0 PENDING</span></div>
+      <div class="tb-date" id="tbDate"></div>
+      <div class="tb-notif">🔔<div class="notif-dot" id="notifDot"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="screen active" id="overview">
+      <div class="kpi-row">
+        <div class="kpi-card" style="animation-delay:.04s"><span class="kc-icon">🏥</span><div class="kc-val" style="color:var(--teal)" id="kpiClinics">84</div><div class="kc-lbl">Active Clinics</div><div class="kc-trend" style="color:var(--green)">↑ +3 this week</div></div>
+        <div class="kpi-card" style="animation-delay:.08s"><span class="kc-icon">👥</span><div class="kc-val" style="color:var(--gold)">2,340</div><div class="kc-lbl">Patients Today</div><div class="kc-trend" style="color:var(--green)">↑ +12% growth</div></div>
+        <div class="kpi-card" style="animation-delay:.12s"><span class="kc-icon">💰</span><div class="kc-val" style="color:var(--green)">₹38.4K</div><div class="kc-lbl">Revenue Today</div><div class="kc-trend" style="color:var(--green)">↑ +8% vs yesterday</div></div>
+        <div class="kpi-card" style="animation-delay:.16s"><span class="kc-icon">📋</span><div class="kc-val" style="color:var(--gold)" id="kpiPending">0</div><div class="kc-lbl">Pending Requests</div><div class="kc-trend" style="color:var(--muted)" id="kpiPendingTrend">→ No new requests</div></div>
+      </div>
+      <div class="overview-layout">
+        <div>
+          <div class="rev-hero">
+            <div class="rh-lbl">💰 Platform Revenue — March 2026</div>
+            <div class="rh-amount">₹4,<span>20,000</span></div>
+            <div class="rh-sub">84 clinics × avg 25 patients/day × ₹15/booking × 8 days</div>
+            <div class="rh-chips">
+              <div class="rh-chip"><div class="rh-chip-val" style="color:var(--gold)">₹2,80,000</div><div class="rh-chip-lbl">Patient Fees</div></div>
+              <div class="rh-chip"><div class="rh-chip-val" style="color:var(--teal)">₹1,40,000</div><div class="rh-chip-lbl">Clinic Fees</div></div>
+              <div class="rh-chip"><div class="rh-chip-val" style="color:var(--red)">-₹28,000</div><div class="rh-chip-lbl">Infrastructure</div></div>
+              <div class="rh-chip"><div class="rh-chip-val" style="color:var(--green)">₹3.92L</div><div class="rh-chip-lbl">Net Profit</div></div>
+            </div>
+          </div>
+          <div class="clinic-table">
+            <div class="ct-header"><div class="ct-title">Live Clinics Today</div><div class="ct-count" id="ovClinicCount">84 active</div></div>
+            <div class="clinic-row"><div class="cr-icon icon-teal">🏥</div><div class="cr-info"><div class="cr-name">Sri Sai Hospital</div><div class="cr-city">📍 Hanamkonda, Warangal</div><span class="cr-type type-both">Clinic + Lab</span></div><div class="cr-stats"><div class="cr-stat"><div class="cr-stat-val">42</div><div class="cr-stat-lbl">Patients</div></div><div class="cr-stat"><div class="cr-stat-val">4.7%</div><div class="cr-stat-lbl">No-show</div></div></div><div class="cr-rev">₹630</div><span class="cr-status st-active">Live ●</span><div class="cr-actions"><button class="cr-btn cr-btn-teal" onclick="showToast('📊 Details opened')">Details</button></div></div>
+            <div class="clinic-row" style="background:rgba(255,107,107,.02)"><div class="cr-icon icon-red">🧪</div><div class="cr-info"><div class="cr-name">Vijaya Diagnostics</div><div class="cr-city">📍 Kazipet, Warangal</div><span class="cr-type type-lab">Lab Only</span></div><div class="cr-stats"><div class="cr-stat"><div class="cr-stat-val" style="color:var(--red)">8</div><div class="cr-stat-lbl">Patients</div></div><div class="cr-stat"><div class="cr-stat-val" style="color:var(--red)">25%</div><div class="cr-stat-lbl">No-show</div></div></div><div class="cr-rev" style="color:var(--red)">₹80</div><span class="cr-status st-alert">Alert 🚨</span><div class="cr-actions"><button class="cr-btn cr-btn-teal" onclick="showToast('📞 Calling...')">Call</button><button class="cr-btn cr-btn-red" onclick="showToast('⏸ Suspended!')">Suspend</button></div></div>
+            <div class="clinic-row"><div class="cr-icon icon-teal">👁️</div><div class="cr-info"><div class="cr-name">Vision Eye Clinic</div><div class="cr-city">📍 Warangal City</div><span class="cr-type type-clinic">Clinic Only</span></div><div class="cr-stats"><div class="cr-stat"><div class="cr-stat-val">28</div><div class="cr-stat-lbl">Patients</div></div><div class="cr-stat"><div class="cr-stat-val">3.2%</div><div class="cr-stat-lbl">No-show</div></div></div><div class="cr-rev">₹420</div><span class="cr-status st-active">Live ●</span><div class="cr-actions"><button class="cr-btn cr-btn-teal" onclick="showToast('📊 Details opened')">Details</button></div></div>
+            <div class="clinic-row"><div class="cr-icon icon-gold">🦷</div><div class="cr-info"><div class="cr-name">City Dental Care</div><div class="cr-city">📍 Karimnagar</div><span class="cr-type type-clinic">Clinic Only</span></div><div class="cr-stats"><div class="cr-stat"><div class="cr-stat-val" style="color:var(--gold)">0</div><div class="cr-stat-lbl">Patients</div></div></div><div class="cr-rev" style="color:var(--muted)">₹0</div><span class="cr-status st-hold">On Hold</span><div class="cr-actions"><button class="cr-btn cr-btn-gold" onclick="showToast('📞 Calling...')">Call</button></div></div>
+          </div>
+        </div>
+        <div class="right-panel">
+          <div class="panel-card">
+            <div class="panel-title">Platform Health</div>
+            <div class="h-row"><div class="h-lbl">🖥️ Server Uptime</div><div class="h-val" style="color:var(--green)">99.9%</div></div>
+            <div class="h-row"><div class="h-lbl">⚡ API Response</div><div class="h-val" style="color:var(--teal)">142ms</div></div>
+            <div class="h-row"><div class="h-lbl">📲 WhatsApp</div><div class="h-val" style="color:var(--blue)">98.2%</div></div>
+            <div class="h-row"><div class="h-lbl">💳 Payment</div><div class="h-val" style="color:var(--gold)">100%</div></div>
+          </div>
+          <div class="panel-card">
+            <div class="panel-title">Top Cities</div>
+            <div class="city-row"><div class="city-rank">🥇</div><div class="city-info"><div class="city-name">Warangal</div><div class="city-count">32 clinics · 840 pts/day</div></div><div class="city-rev">₹12,600</div></div>
+            <div class="city-row"><div class="city-rank">🥈</div><div class="city-info"><div class="city-name">Karimnagar</div><div class="city-count">18 clinics · 520 pts/day</div></div><div class="city-rev">₹7,800</div></div>
+            <div class="city-row"><div class="city-rank">🥉</div><div class="city-info"><div class="city-name">Nizamabad</div><div class="city-count">14 clinics · 380 pts/day</div></div><div class="city-rev">₹5,700</div></div>
+            <div class="city-row"><div class="city-rank" style="color:var(--muted);font-size:.78rem">4</div><div class="city-info"><div class="city-name">Khammam</div><div class="city-count">12 clinics · 310 pts/day</div></div><div class="city-rev">₹4,650</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLINICS -->
+    <div class="screen" id="clinics">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Clinics & Labs</div><div class="sec-sub" id="clinicsSub">Loading...</div></div>
+        <button class="add-btn" onclick="openModal()">➕ Add Clinic / Lab</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+        <div class="search-bar" style="flex:1;min-width:180px;margin-bottom:0;">
+          <span>🔍</span><input id="clinicSearch" placeholder="Search name, city, ID..." oninput="renderClinics()"/>
+        </div>
+        <select onchange="renderClinics()" id="clinicTypeF" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:11px;font-size:.72rem;background:#fff;outline:none;">
+          <option value="">All Types</option><option>Clinic Only</option><option>Lab Only</option><option>Clinic + Lab</option>
+        </select>
+        <select onchange="renderClinics()" id="clinicStatusF" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:11px;font-size:.72rem;background:#fff;outline:none;">
+          <option value="">All Status</option><option value="active">Active</option><option value="suspended">Suspended</option>
+        </select>
+      </div>
+      <div id="clinicsList"></div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="screen" id="requests">
+      <div class="sec-hdr">
+        <div><div class="sec-title">Onboarding Requests</div><div class="sec-sub" id="requestsSub">Loading...</div></div>
+        <button class="add-btn" onclick="openModal()">➕ Add Manually</button>
+      </div>
+      <div id="requestsList"></div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="screen" id="analytics">
+      <div class="period-tabs">
+        <div class="period-tab active" onclick="setPeriod(this)">Today</div>
+        <div class="period-tab" onclick="setPeriod(this)">This Week</div>
+        <div class="period-tab" onclick="setPeriod(this)">This Month</div>
+        <div class="period-tab" onclick="setPeriod(this)">Last Month</div>
+      </div>
+      <div class="analytics-layout">
+        <div>
+          <div class="a-card"><div class="a-card-title">Revenue — This Week</div><div class="bar-chart" id="revChart"></div><div class="bar-chart" style="height:20px" id="revLabels"></div></div>
+          <div class="a-card"><div class="a-card-title">Patients — This Week</div><div class="bar-chart" id="patChart"></div><div class="bar-chart" style="height:20px" id="patLabels"></div></div>
+        </div>
+        <div>
+          <div class="panel-card" style="margin-bottom:14px">
+            <div class="panel-title">Revenue Breakdown</div>
+            <div class="bk-row"><div class="bk-left"><div class="bk-dot" style="background:var(--teal)"></div>Patient Fees</div><div class="bk-bar-wrap"><div class="bk-bar" style="width:67%;background:var(--teal)"></div></div><div class="bk-val" style="color:var(--teal)">₹2.8L</div></div>
+            <div class="bk-row"><div class="bk-left"><div class="bk-dot" style="background:var(--gold)"></div>Clinic Fees</div><div class="bk-bar-wrap"><div class="bk-bar" style="width:33%;background:var(--gold)"></div></div><div class="bk-val" style="color:var(--gold)">₹1.4L</div></div>
+          </div>
+          <div class="panel-card">
+            <div class="panel-title">Top Clinics by Revenue</div>
+            <div class="h-row"><div class="h-lbl">🥇 Sri Sai Hospital</div><div class="h-val" style="color:var(--teal)">₹6,300</div></div>
+            <div class="h-row"><div class="h-lbl">🥈 Vision Eye</div><div class="h-val" style="color:var(--teal)">₹4,200</div></div>
+            <div class="h-row"><div class="h-lbl">🥉 Nirmala Clinic</div><div class="h-val" style="color:var(--teal)">₹3,500</div></div>
+            <div class="h-row"><div class="h-lbl">4. Sree Devi</div><div class="h-val" style="color:var(--teal)">₹2,800</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BILLING -->
+    <div class="screen" id="billing">
+      <div class="billing-hero">
+        <div class="bh-lbl">Total Billing — March 2026</div>
+        <div class="bh-amount">₹4,<span>20,000</span></div>
+        <div class="bh-sub">84 clinics · 28,000 patients · 8 days into March</div>
+        <div class="bh-chips">
+          <div class="bh-chip"><div class="bh-chip-val" style="color:var(--green)">₹3,86,400</div><div class="bh-chip-lbl">Collected (92%)</div></div>
+          <div class="bh-chip"><div class="bh-chip-val" style="color:var(--gold)">₹28,400</div><div class="bh-chip-lbl">Pending (8)</div></div>
+          <div class="bh-chip"><div class="bh-chip-val" style="color:var(--red)">₹5,200</div><div class="bh-chip-lbl">Overdue (4)</div></div>
+        </div>
+      </div>
+      <div class="billing-layout">
+        <div>
+          <div class="filter-tabs">
+            <div class="filter-tab active" onclick="setFilter(this)">All</div>
+            <div class="filter-tab" onclick="setFilter(this)">Paid</div>
+            <div class="filter-tab" onclick="setFilter(this)">Pending</div>
+            <div class="filter-tab" onclick="setFilter(this)">Overdue</div>
+          </div>
+          <div class="inv-card"><div class="inv-icon" style="background:var(--teal-light)">🏥</div><div class="inv-info"><div class="inv-clinic">Sri Sai Hospital</div><div class="inv-month">Feb 2026 · 1,240 patients</div></div><div class="inv-right"><div class="inv-amt">₹6,200</div><div class="inv-status s-paid">✅ Paid</div></div><div class="inv-actions"><button class="inv-btn inv-btn-teal" onclick="showToast('📥 Downloaded!')">📥 Invoice</button></div></div>
+          <div class="inv-card"><div class="inv-icon" style="background:rgba(255,179,71,.1)">🧪</div><div class="inv-info"><div class="inv-clinic">Vijaya Diagnostics</div><div class="inv-month">Feb 2026 · 640 patients</div></div><div class="inv-right"><div class="inv-amt">₹3,200</div><div class="inv-status s-pending">Due 15 Mar</div></div><div class="inv-actions"><button class="inv-btn inv-btn-teal" onclick="showToast('📲 Reminder sent!')">📲 Remind</button><button class="inv-btn inv-btn-gold" onclick="showToast('📊 Details!')">📊 Details</button></div></div>
+          <div class="inv-card" style="border-color:rgba(255,107,107,.2)"><div class="inv-icon" style="background:rgba(255,107,107,.1)">🦷</div><div class="inv-info"><div class="inv-clinic">City Dental Care</div><div class="inv-month">Jan + Feb 2026 — 2 months unpaid</div></div><div class="inv-right"><div class="inv-amt">₹2,100</div><div class="inv-status s-overdue">Overdue</div></div><div class="inv-actions"><button class="inv-btn inv-btn-teal" onclick="showToast('📞 Calling...')">📞 Call</button><button class="inv-btn inv-btn-red" onclick="showToast('🔴 Blocked!')">🔴 Block</button></div></div>
+          <div class="inv-card"><div class="inv-icon" style="background:var(--teal-light)">👁️</div><div class="inv-info"><div class="inv-clinic">Vision Eye Clinic</div><div class="inv-month">Feb 2026 · 880 patients</div></div><div class="inv-right"><div class="inv-amt">₹4,400</div><div class="inv-status s-paid">✅ Paid</div></div><div class="inv-actions"><button class="inv-btn inv-btn-teal" onclick="showToast('📥 Downloaded!')">📥 Invoice</button></div></div>
+          <div class="inv-card"><div class="inv-icon" style="background:rgba(139,92,246,.1)">🏥</div><div class="inv-info"><div class="inv-clinic">Sree Devi Clinic</div><div class="inv-month">Feb 2026 · 560 patients</div></div><div class="inv-right"><div class="inv-amt">₹2,800</div><div class="inv-status s-pending">Due 20 Mar</div></div><div class="inv-actions"><button class="inv-btn inv-btn-teal" onclick="showToast('📲 Reminder sent!')">📲 Remind</button></div></div>
+        </div>
+        <div>
+          <div class="panel-card" style="margin-bottom:14px">
+            <div class="panel-title">Billing Summary</div>
+            <div class="h-row"><div class="h-lbl">Total Billed</div><div class="h-val" style="color:var(--teal)">₹4,20,000</div></div>
+            <div class="h-row"><div class="h-lbl">✅ Collected</div><div class="h-val" style="color:var(--green)">₹3,86,400</div></div>
+            <div class="h-row"><div class="h-lbl">⏳ Pending (8)</div><div class="h-val" style="color:var(--gold)">₹28,400</div></div>
+            <div class="h-row"><div class="h-lbl">🔴 Overdue (4)</div><div class="h-val" style="color:var(--red)">₹5,200</div></div>
+            <div class="h-row"><div class="h-lbl">Collection Rate</div><div class="h-val" style="color:var(--teal)">92%</div></div>
+          </div>
+          <div class="panel-card">
+            <div class="panel-title">Quick Actions</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button style="width:100%;padding:10px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-size:.75rem;font-weight:800;cursor:pointer" onclick="showToast('📲 Bulk reminders sent!')">📲 Send Bulk Reminders</button>
+              <button style="width:100%;padding:10px;background:var(--gold-light);color:#CC7A00;border:none;border-radius:10px;font-size:.75rem;font-weight:800;cursor:pointer" onclick="showToast('📥 Invoices exported!')">📥 Export All Invoices</button>
+              <button style="width:100%;padding:10px;background:rgba(255,107,107,.1);color:var(--red);border:none;border-radius:10px;font-size:.75rem;font-weight:800;cursor:pointer" onclick="showToast('🔴 Overdue accounts flagged!')">🔴 Flag All Overdue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="screen" id="alerts">
+      <div class="alerts-layout">
+        <div>
+          <div style="font-size:.6rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">Active Alerts <span style="background:rgba(255,107,107,.1);color:var(--red);font-size:.58rem;padding:2px 8px;border-radius:100px">5 alerts · 2 critical</span></div>
+          <div id="onboardAlerts"></div>
+          <div class="alert-card critical"><div class="alert-icon">🚨</div><div class="alert-body"><div class="alert-title">Vijaya Diagnostics — High No-show Rate (25%)</div><div class="alert-desc">Suspicious activity: 25% of tokens marked as no-show today — far above 5% normal. Revenue leak possible. Immediate follow-up required.</div><div class="alert-time">⏱ Detected 2 hours ago · Auto-escalated</div><div class="alert-actions"><button class="aa-btn aa-teal" onclick="showToast('📞 Calling Vijaya...')">📞 Call Clinic</button><button class="aa-btn aa-red" onclick="showToast('⏸ Suspended!')">⏸ Suspend</button><button class="aa-btn aa-outline" onclick="this.closest('.alert-card').remove();showToast('✅ Dismissed')">Dismiss</button></div></div></div>
+          <div class="alert-card warning"><div class="alert-icon">💰</div><div class="alert-body"><div class="alert-title">City Dental Care — Payment 2 Months Overdue</div><div class="alert-desc">₹2,100 outstanding (Jan + Feb 2026). Automatic reminders sent — no response. Account should be blocked to avoid further revenue loss.</div><div class="alert-time">⏱ 3 days in escalation · Manual action needed</div><div class="alert-actions"><button class="aa-btn aa-teal" onclick="showToast('📞 Calling...')">📞 Call Now</button><button class="aa-btn aa-red" onclick="showToast('🔴 Account blocked!')">🔴 Block Account</button><button class="aa-btn aa-outline" onclick="this.closest('.alert-card').remove();showToast('✅ Noted')">Note</button></div></div></div>
+          <div class="alert-card warning"><div class="alert-icon">😴</div><div class="alert-body"><div class="alert-title">Nalgonda Clinic — Inactive for 6 Days</div><div class="alert-desc">No bookings or queue activity since 9 Mar 2026. Churn risk — early-stage clinics typically go silent when facing adoption challenges.</div><div class="alert-time">⏱ 6 days inactive · Low priority</div><div class="alert-actions"><button class="aa-btn aa-teal" onclick="showToast('📞 Following up...')">📞 Follow Up</button><button class="aa-btn aa-gold" onclick="showToast('📲 Tips sent!')">📲 Send Tips</button><button class="aa-btn aa-outline" onclick="this.closest('.alert-card').remove();showToast('✅ Dismissed')">Dismiss</button></div></div></div>
+          <div class="alert-card success"><div class="alert-icon">🎉</div><div class="alert-body"><div class="alert-title">Milestone — 1 Lakh Patients Served! 🚀</div><div class="alert-desc">HALSAA has officially crossed 1,00,000 total patients served across 84 clinics in 5 Telugu cities. 8 months after launch — ahead of schedule!</div><div class="alert-time">⏱ Today 9:30 AM · 🎊</div></div></div>
+        </div>
+        <div>
+          <div class="panel-card" style="margin-bottom:14px">
+            <div class="panel-title">Platform Health</div>
+            <div class="h-row"><div class="h-lbl">🖥️ Server Uptime</div><div class="h-val" style="color:var(--green)">99.9%</div></div>
+            <div class="h-row"><div class="h-lbl">⚡ API Response</div><div class="h-val" style="color:var(--teal)">142ms</div></div>
+            <div class="h-row"><div class="h-lbl">📲 WhatsApp</div><div class="h-val" style="color:var(--blue)">98.2%</div></div>
+            <div class="h-row"><div class="h-lbl">💳 Payment</div><div class="h-val" style="color:var(--gold)">100%</div></div>
+            <div class="h-row"><div class="h-lbl">🔴 Alerts</div><div class="h-val" style="color:var(--red)">5</div></div>
+          </div>
+          <div class="panel-card">
+            <div class="panel-title">Alert Summary</div>
+            <div class="h-row"><div class="h-lbl">🚨 Critical</div><div class="h-val" style="color:var(--red)">2</div></div>
+            <div class="h-row"><div class="h-lbl">⚠️ Warning</div><div class="h-val" style="color:var(--gold)">2</div></div>
+            <div class="h-row"><div class="h-lbl">ℹ️ Info</div><div class="h-val" style="color:var(--blue)">1</div></div>
+            <div class="h-row"><div class="h-lbl">✅ Success</div><div class="h-val" style="color:var(--green)">1</div></div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:7px">
+              <button style="width:100%;padding:9px;background:var(--teal);color:#fff;border:none;border-radius:9px;font-size:.73rem;font-weight:800;cursor:pointer" onclick="showToast('✅ Non-critical dismissed!')">✅ Dismiss All Non-Critical</button>
+              <button style="width:100%;padding:9px;background:rgba(255,107,107,.1);color:var(--red);border:none;border-radius:9px;font-size:.73rem;font-weight:800;cursor:pointer" onclick="showToast('📧 Report exported!')">📧 Export Report</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MOBILE NAV -->
+<nav class="mobile-nav">
+  <div class="mn-item active" id="mn-overview" onclick="go('overview',null);setMn('mn-overview')"><div class="mn-icon">🏠</div><div class="mn-lbl">Overview</div></div>
+  <div class="mn-item" id="mn-clinics" onclick="go('clinics',null);setMn('mn-clinics')"><div class="mn-icon">🏥</div><div class="mn-lbl">Clinics</div></div>
+  <div class="mn-item" id="mn-requests" onclick="go('requests',null);setMn('mn-requests')"><div class="mn-icon">📋</div><div class="mn-lbl">Requests</div><div class="mn-badge" id="mnBadge">0</div></div>
+  <div class="mn-item" id="mn-billing" onclick="go('billing',null);setMn('mn-billing')"><div class="mn-icon">💰</div><div class="mn-lbl">Billing</div><div class="mn-badge" style="display:block">4</div></div>
+  <div class="mn-item" id="mn-alerts" onclick="go('alerts',null);setMn('mn-alerts')"><div class="mn-icon">🔔</div><div class="mn-lbl">Alerts</div><div class="mn-badge" style="display:block">5</div></div>
+</nav>
+
+<!-- ADD/APPROVE MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="mTitle">➕ Add Clinic / Lab</div>
+    <div class="modal-sub" id="mSub">Fill details to onboard a new clinic or lab</div>
+    <div class="f-row"><label class="f-label">Clinic / Lab Name *</label><input class="f-input" id="mClinicName" placeholder="e.g. Sri Sai Hospital"/></div>
+    <div class="f-row"><label class="f-label">Admin / Owner Name *</label><input class="f-input" id="mAdminName" placeholder="Full name"/></div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Mobile Number *</label><input class="f-input" id="mMobile" type="tel" maxlength="10" placeholder="10-digit" oninput="liveCredPreview()"/></div>
+      <div class="f-row"><label class="f-label">City *</label><input class="f-input" id="mCity" placeholder="e.g. Warangal"/></div>
+    </div>
+    <div class="f-row"><label class="f-label">Address *</label><input class="f-input" id="mAddress" placeholder="Full address"/></div>
+    <div class="f-grid">
+      <div class="f-row">
+        <label class="f-label">Type *</label>
+        <select class="f-select" id="mType" onchange="liveCredPreview()">
+          <option value="">Select type</option>
+          <option>Clinic Only</option><option>Lab Only</option><option>Clinic + Lab</option>
+        </select>
+      </div>
+      <div class="f-row">
+        <label class="f-label">Login Password *</label>
+        <div style="display:flex;gap:6px">
+          <input class="f-input" id="mPassword" placeholder="Set password" oninput="liveCredPreview()" style="flex:1"/>
+          <button onclick="genPwd()" style="padding:0 10px;background:var(--teal-light);color:var(--teal);border:none;border-radius:9px;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="cred-box" id="credBox">
+      <div class="cred-box-title">🔑 Login Credentials to Share</div>
+      <div class="cred-row"><span class="cred-key">Clinic ID</span><span class="cred-val" id="credId">—</span></div>
+      <div class="cred-row"><span class="cred-key">Mobile</span><span class="cred-val" id="credMob">—</span></div>
+      <div class="cred-row"><span class="cred-key">Password</span><span class="cred-val" id="credPwd">—</span></div>
+      <div class="cred-row"><span class="cred-key">Login at</span><span class="cred-val">index.html → Clinic Admin</span></div>
+      <button onclick="copyCreds()" style="margin-top:8px;width:100%;padding:8px;background:var(--teal);color:#fff;border:none;border-radius:8px;font-size:.7rem;font-weight:700;cursor:pointer">📋 Copy All Credentials</button>
+    </div>
+    <button class="save-btn" id="mSaveBtn" onclick="saveClinic()">Onboard Clinic →</button>
+    <button class="reject-btn" id="mRejectBtn" onclick="rejectCurrent()">❌ Reject This Request</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ══ AUTH ══
+function hlLogout(){sessionStorage.removeItem('halsaa_session');window.location.href='index.html';}
+
+// ══ SIDEBAR ══
+function toggleSb(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sbOv').classList.toggle('open');
+}
+function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOv').classList.remove('open');}
+
+// ══ NAVIGATION ══
+var titleMap={overview:'Platform Overview',clinics:'Clinics & Labs',requests:'Onboarding Requests',analytics:'Revenue & Analytics',billing:'Billing & Invoices',alerts:'Alerts & Health'};
+function go(id, el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('tbTitle').textContent=titleMap[id]||id;
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  if(el && el.classList && el.classList.contains('sb-item')) el.classList.add('active');
+  window.scrollTo(0,0);
+  closeSb();
+  if(id==='clinics') renderClinics();
+  if(id==='requests') renderRequests();
+  if(id==='alerts') renderOnboardAlerts();
+}
+function setMn(id){document.querySelectorAll('.mn-item').forEach(i=>i.classList.remove('active'));var el=document.getElementById(id);if(el)el.classList.add('active');}
+function setPeriod(el){document.querySelectorAll('.period-tab').forEach(c=>c.classList.remove('active'));el.classList.add('active');}
+function setFilter(el){document.querySelectorAll('.filter-tab').forEach(c=>c.classList.remove('active'));el.classList.add('active');}
+
+// ══ LOCALSTORAGE ══
+function getRequests(){
+  var keys=JSON.parse(localStorage.getItem('halsaa_requests_list')||'[]');
+  return keys.map(k=>{var v=localStorage.getItem(k);return v?JSON.parse(v):null;}).filter(Boolean);
+}
+function getClinics(){
+  var r=[];
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(k&&k.startsWith('halsaa_clinic_')){try{r.push(JSON.parse(localStorage.getItem(k)));}catch(e){}}
+  }
+  return r;
+}
+function getPending(){return getRequests().filter(r=>r.status==='pending');}
+
+function updateBadges(){
+  var p=getPending().length;
+  var c=getClinics();
+  var total=84+c.length;
+  // Sidebar
+  var sb=document.getElementById('sbReqBadge');if(sb){sb.textContent=p;sb.style.display=p>0?'block':'none';}
+  var skp=document.getElementById('sbKpiPending');if(skp)skp.textContent=p;
+  var skc=document.getElementById('sbKpiClinics');if(skc)skc.textContent=total;
+  // KPI
+  var kp=document.getElementById('kpiPending');if(kp)kp.textContent=p;
+  var kt=document.getElementById('kpiPendingTrend');if(kt)kt.textContent=p>0?'→ '+p+' awaiting approval':'→ No new requests';
+  var kc=document.getElementById('kpiClinics');if(kc)kc.textContent=total;
+  var oc=document.getElementById('ovClinicCount');if(oc)oc.textContent=total+' active';
+  // Topbar
+  var tp=document.getElementById('tbReqText');if(tp)tp.textContent=p+' PENDING';
+  var tl=document.getElementById('tbLive');if(tl)tl.textContent=total+' CLINICS LIVE';
+  // Notif dot
+  var nd=document.getElementById('notifDot');if(nd)nd.style.display=p>0?'block':'none';
+  // Mobile badge
+  var mb=document.getElementById('mnBadge');if(mb){mb.textContent=p;mb.style.display=p>0?'block':'none';}
+}
+
+// ══ CLINICS SCREEN ══
+function renderClinics(){
+  var clinics=getClinics();
+  var search=(document.getElementById('clinicSearch')||{value:''}).value.toLowerCase();
+  var tf=(document.getElementById('clinicTypeF')||{value:''}).value;
+  var sf=(document.getElementById('clinicStatusF')||{value:''}).value;
+  if(tf) clinics=clinics.filter(c=>c.type===tf);
+  if(sf) clinics=clinics.filter(c=>(c.status||'active')===sf);
+  if(search) clinics=clinics.filter(c=>[(c.clinicName||''),(c.city||''),(c.clinicId||'')].join(' ').toLowerCase().includes(search));
+  var sub=document.getElementById('clinicsSub');
+  if(sub) sub.textContent=clinics.length+' clinic'+(clinics.length!==1?'s':'')+' onboarded';
+  var el=document.getElementById('clinicsList');if(!el)return;
+  if(!clinics.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">🏥</div><div class="empty-title">No clinics onboarded yet</div><div class="empty-sub">Click "Add Clinic / Lab" to onboard your first clinic,<br/>or approve a pending request from the Requests screen.</div></div>';
+    return;
+  }
+  el.innerHTML=clinics.map(c=>{
+    var tc=c.type==='Lab Only'?'type-lab':c.type==='Clinic Only'?'type-clinic':'type-both';
+    var icon=c.type==='Lab Only'?'🧪':'🏥';
+    var st=c.status||'active';
+    var sc=st==='active'?'st-active':st==='suspended'?'st-alert':'st-hold';
+    var stxt=st==='active'?'Active ●':st==='suspended'?'Suspended':'On Hold';
+    return `<div class="cc-card">
+      <div class="cc-top">
+        <div class="cc-icon icon-teal">${icon}</div>
+        <div style="flex:1">
+          <div class="cc-name">${c.clinicName||'—'}</div>
+          <div class="cc-meta">📍 ${c.city||'—'} · 👤 ${c.adminName||'—'} · 📱 +91 ${c.mobile||'—'}</div>
+          <span class="cr-type ${tc}">${c.type||'—'}</span>
+          <span class="cc-id">${c.clinicId||'—'}</span>
+        </div>
+        <span class="cr-status ${sc}">${stxt}</span>
+      </div>
+      <div class="cc-bottom">
+        <div class="cc-cred">Login: <b>+91 ${c.mobile}</b> · Pass: <b>${c.password}</b></div>
+        <div class="cc-actions">
+          <button class="cr-btn cr-btn-teal" onclick="copyClinicCreds('${c.clinicId}')">📋 Copy</button>
+          ${st==='active'
+            ?`<button class="cr-btn cr-btn-gold" onclick="toggleStatus('${c.clinicId}','suspended')">⏸ Suspend</button>`
+            :`<button class="cr-btn cr-btn-teal" onclick="toggleStatus('${c.clinicId}','active')">▶️ Activate</button>`}
+          <button class="cr-btn cr-btn-red" onclick="deleteClinic('${c.clinicId}')">🗑️ Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleStatus(cid, ns){
+  var c=JSON.parse(localStorage.getItem('halsaa_clinic_'+cid)||'{}');
+  c.status=ns; localStorage.setItem('halsaa_clinic_'+cid,JSON.stringify(c));
+  if(c.mobile){var u=JSON.parse(localStorage.getItem('halsaa_user_'+c.mobile)||'{}');u.active=ns==='active';localStorage.setItem('halsaa_user_'+c.mobile,JSON.stringify(u));}
+  showToast(ns==='active'?'▶️ Clinic activated!':'⏸ Clinic suspended!');
+  renderClinics(); updateBadges();
+}
+function deleteClinic(cid){
+  if(!confirm('Delete this clinic? All credentials will be removed.')) return;
+  var c=JSON.parse(localStorage.getItem('halsaa_clinic_'+cid)||'{}');
+  localStorage.removeItem('halsaa_clinic_'+cid);
+  if(c.mobile){localStorage.removeItem('halsaa_user_'+c.mobile);localStorage.removeItem('halsaa_staff_'+c.mobile);}
+  showToast('🗑️ Clinic deleted');
+  renderClinics(); updateBadges();
+}
+function copyClinicCreds(cid){
+  var c=JSON.parse(localStorage.getItem('halsaa_clinic_'+cid)||'{}');
+  var txt='HALSAA Login\nClinic: '+c.clinicName+'\nID: '+c.clinicId+'\nMobile: +91 '+c.mobile+'\nPassword: '+c.password+'\nLogin: index.html → Clinic Admin';
+  navigator.clipboard.writeText(txt).then(()=>showToast('📋 Credentials copied!')).catch(()=>showToast('Copy: +91'+c.mobile+' / '+c.password));
+}
+
+// ══ REQUESTS SCREEN ══
+function renderRequests(){
+  var reqs=getRequests();
+  var pending=reqs.filter(r=>r.status==='pending').length;
+  var sub=document.getElementById('requestsSub');
+  if(sub) sub.textContent=reqs.length+' total · '+pending+' pending approval';
+  var el=document.getElementById('requestsList');if(!el)return;
+  if(!reqs.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No onboarding requests yet</div><div class="empty-sub">When a clinic submits a registration request from the<br/>landing page, it will appear here for your review.</div></div>';
+    return;
+  }
+  reqs.sort((a,b)=>{
+    if(a.status==='pending'&&b.status!=='pending') return -1;
+    if(b.status==='pending'&&a.status!=='pending') return 1;
+    return new Date(b.submittedAt)-new Date(a.submittedAt);
+  });
+  el.innerHTML=reqs.map(r=>{
+    var ip=r.status==='pending';
+    var cc=r.status==='approved'?'req-card approved':r.status==='rejected'?'req-card rejected':'req-card';
+    var ts=r.submittedAt?new Date(r.submittedAt).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+    var badge=r.status==='approved'?'<span style="font-size:.6rem;font-weight:800;background:rgba(0,200,83,.1);color:var(--green);padding:3px 9px;border-radius:100px">✅ Approved</span>':r.status==='rejected'?'<span style="font-size:.6rem;font-weight:800;background:rgba(255,107,107,.1);color:var(--red);padding:3px 9px;border-radius:100px">❌ Rejected</span>':'<span style="font-size:.6rem;font-weight:800;background:rgba(255,179,71,.15);color:#CC7A00;padding:3px 9px;border-radius:100px">⏳ Pending</span>';
+    return `<div class="${cc}">
+      <div class="req-top">
+        <div class="req-icon">🏥</div>
+        <div style="flex:1">
+          <div class="req-name">${r.clinicName||'—'} ${badge}</div>
+          <div class="req-meta">👤 ${r.adminName||'—'} · 📱 +91 ${r.mobile||'—'}<br>📍 ${r.city||'—'} — ${r.address||'—'}<br>🏷️ ${r.type||'—'}</div>
+        </div>
+        <div class="req-time">⏱ ${ts}</div>
+      </div>
+      ${ip?`<div class="req-actions">
+        <button class="req-btn req-btn-teal" onclick="openApprove('${r.id}')">✅ Approve & Assign Credentials</button>
+        <button class="req-btn req-btn-red" onclick="rejectById('${r.id}')">❌ Reject</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderOnboardAlerts(){
+  var pending=getPending();
+  var el=document.getElementById('onboardAlerts');if(!el)return;
+  if(!pending.length){el.innerHTML='';return;}
+  el.innerHTML=pending.map(r=>{
+    var ts=r.submittedAt?new Date(r.submittedAt).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+    return `<div class="alert-card info">
+      <div class="alert-icon">🏥</div>
+      <div class="alert-body">
+        <div class="alert-title">New Onboarding Request — ${r.clinicName}</div>
+        <div class="alert-desc">${r.adminName} from ${r.city} submitted a request for ${r.clinicName} (${r.type}). Mobile: +91 ${r.mobile}. Pending approval.</div>
+        <div class="alert-time">⏱ ${ts} · Documents received</div>
+        <div class="alert-actions">
+          <button class="aa-btn aa-teal" onclick="openApprove('${r.id}')">✅ Approve & Assign Credentials</button>
+          <button class="aa-btn aa-outline" onclick="rejectById('${r.id}');this.closest('.alert-card').remove()">❌ Reject</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function rejectById(id){
+  if(!confirm('Reject this request?')) return;
+  var r=JSON.parse(localStorage.getItem(id)||'{}');
+  r.status='rejected'; localStorage.setItem(id,JSON.stringify(r));
+  showToast('❌ Request rejected');
+  renderRequests(); renderOnboardAlerts(); updateBadges();
+}
+
+// ══ MODAL ══
+var _currentReqId=null;
+
+function openModal(){
+  _currentReqId=null;
+  document.getElementById('mTitle').textContent='➕ Add Clinic / Lab';
+  document.getElementById('mSub').textContent='Fill details to onboard a new clinic or lab on HALSAA';
+  ['mClinicName','mAdminName','mMobile','mCity','mAddress'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('mType').value='';
+  document.getElementById('mPassword').value='';
+  document.getElementById('credBox').classList.remove('show');
+  document.getElementById('mRejectBtn').style.display='none';
+  document.getElementById('mSaveBtn').textContent='Onboard Clinic →';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openApprove(reqId){
+  var r=JSON.parse(localStorage.getItem(reqId)||'{}');
+  if(!r.id) return;
+  _currentReqId=reqId;
+  document.getElementById('mTitle').textContent='✅ Approve & Onboard Clinic';
+  document.getElementById('mSub').textContent='Review details and assign login credentials';
+  document.getElementById('mClinicName').value=r.clinicName||'';
+  document.getElementById('mAdminName').value=r.adminName||'';
+  document.getElementById('mMobile').value=r.mobile||'';
+  document.getElementById('mCity').value=r.city||'';
+  document.getElementById('mAddress').value=r.address||'';
+  document.getElementById('mType').value=r.type||'';
+  genPwd();
+  document.getElementById('mRejectBtn').style.display='block';
+  document.getElementById('mSaveBtn').textContent='✅ Approve & Activate →';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');_currentReqId=null;}
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+function genPwd(){
+  var chars='ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  var p='';for(var i=0;i<8;i++)p+=chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById('mPassword').value=p;
+  liveCredPreview();
+}
+
+function makeClinicId(type, count){
+  var pre=type==='Lab Only'?'LAB':type==='Clinic + Lab'?'CLB':'CLI';
+  return 'HALSAA-'+pre+'-'+String(84+count+1).padStart(3,'0');
+}
+
+function liveCredPreview(){
+  var mob=document.getElementById('mMobile').value.trim();
+  var pwd=document.getElementById('mPassword').value.trim();
+  var type=document.getElementById('mType').value;
+  if(mob.length===10&&pwd&&type){
+    var cid=makeClinicId(type,getClinics().length);
+    document.getElementById('credId').textContent=cid;
+    document.getElementById('credMob').textContent='+91 '+mob;
+    document.getElementById('credPwd').textContent=pwd;
+    document.getElementById('credBox').classList.add('show');
+  } else {
+    document.getElementById('credBox').classList.remove('show');
+  }
+}
+
+function saveClinic(){
+  var cn=document.getElementById('mClinicName').value.trim();
+  var an=document.getElementById('mAdminName').value.trim();
+  var mob=document.getElementById('mMobile').value.trim();
+  var city=document.getElementById('mCity').value.trim();
+  var addr=document.getElementById('mAddress').value.trim();
+  var type=document.getElementById('mType').value;
+  var pwd=document.getElementById('mPassword').value.trim();
+  if(!cn||!an||!mob||mob.length!==10||!city||!addr||!type||!pwd){showToast('⚠️ Please fill all required fields');return;}
+  if(localStorage.getItem('halsaa_user_'+mob)){showToast('⚠️ This mobile is already registered');return;}
+  var clinics=getClinics();
+  var cid=makeClinicId(type,clinics.length);
+  var clinicData={clinicId:cid,clinicName:cn,adminName:an,mobile:mob,city:city,address:addr,type:type,password:pwd,status:'active',createdAt:new Date().toISOString()};
+  localStorage.setItem('halsaa_clinic_'+cid,JSON.stringify(clinicData));
+  localStorage.setItem('halsaa_user_'+mob,JSON.stringify({mobile:mob,name:an,role:'admin',roles:['admin'],clinicId:cid,password:pwd,active:true}));
+  if(_currentReqId){
+    var r=JSON.parse(localStorage.getItem(_currentReqId)||'{}');
+    r.status='approved'; r.clinicId=cid;
+    localStorage.setItem(_currentReqId,JSON.stringify(r));
+    // Add to ticker
+    var tk=document.getElementById('tickerEl');
+    if(tk){var sp=document.createElement('span');sp.className='ticker-item';sp.textContent='🏥 '+cn+' joined — '+city;tk.prepend(sp);}
+  }
+  closeModal();
+  showToast('✅ '+cn+' onboarded! ID: '+cid);
+  updateBadges(); renderClinics(); renderRequests(); renderOnboardAlerts();
+}
+
+function rejectCurrent(){if(_currentReqId)rejectById(_currentReqId);closeModal();}
+
+function copyCreds(){
+  var cn=document.getElementById('mClinicName').value.trim();
+  var mob=document.getElementById('mMobile').value.trim();
+  var pwd=document.getElementById('mPassword').value.trim();
+  var cid=document.getElementById('credId').textContent;
+  var txt='HALSAA Clinic Login\n\nClinic: '+cn+'\nID: '+cid+'\nMobile: +91 '+mob+'\nPassword: '+pwd+'\nLogin: index.html → Clinic Admin\n\nChange password after first login.';
+  navigator.clipboard.writeText(txt).then(()=>showToast('📋 Credentials copied!')).catch(()=>showToast('Creds: +91 '+mob+' / '+pwd));
+}
+
+// ══ CHARTS ══
+function buildChart(cid,lid,days,vals,hi){
+  var c=document.getElementById(cid),l=document.getElementById(lid);
+  if(!c||!l)return;
+  var mx=Math.max(...vals);c.innerHTML='';l.innerHTML='';
+  days.forEach((d,i)=>{
+    var w=document.createElement('div');w.className='bar-wrap';
+    var b=document.createElement('div');b.className='bar'+(i===hi?' hl':'');
+    b.style.height=(vals[i]/mx*110+10)+'px';
+    var v=vals[i]>=1000?'₹'+(vals[i]/1000).toFixed(0)+'K':vals[i];
+    b.innerHTML='<span class="bar-v">'+v+'</span>';
+    w.appendChild(b);c.appendChild(w);
+    var lb=document.createElement('div');lb.className='bar-wrap';
+    lb.innerHTML='<div class="bar-lbl">'+d+'</div>';l.appendChild(lb);
+  });
+}
+
+// ══ TOAST ══
+var _tt;
+function showToast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ══ INIT ══
+window.addEventListener('DOMContentLoaded',function(){
+  var d=new Date();
+  var td=document.getElementById('tbDate');
+  if(td) td.textContent=d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  var days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  buildChart('revChart','revLabels',days,[28000,32000,38400,25000,44000,18000,12000],4);
+  buildChart('patChart','patLabels',days,[1800,2100,2340,1600,2600,1200,800],4);
+  updateBadges();
+  renderOnboardAlerts();
+});
+</script>
+</body>
+</html>
